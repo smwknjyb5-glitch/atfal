@@ -1,0 +1,126 @@
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>حل معادلة من الدرجة الثانية</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#eef7ff;
+    text-align:center;
+    padding:20px;
+}
+
+h2{
+    color:darkblue;
+}
+
+input{
+    width:80px;
+    font-size:20px;
+    text-align:center;
+    margin:5px;
+}
+
+button{
+    font-size:20px;
+    padding:8px 20px;
+    margin-top:15px;
+    cursor:pointer;
+}
+
+#result{
+    margin-top:20px;
+    font-size:22px;
+    color:darkred;
+    line-height:1.8;
+}
+</style>
+
+</head>
+<body>
+
+<h2>حل معادلة من الدرجة الثانية</h2>
+
+<p>المعادلة: ax² + bx + c = 0</p>
+
+ <p>
+<label>المعامل a :</label><br>
+<input type="number" id="a" value="1">
+</p>
+
+<p>
+<label>المعامل b :</label><br>
+<input type="number" id="b" value="0">
+</p>
+
+<p>
+<label>المعامل c :</label><br>
+<input type="number" id="c" value="0">
+</p>
+
+
+
+<br><br>
+
+<button onclick="solve()">حل المعادلة</button>
+
+<div id="result"></div>
+
+<script>
+
+function solve(){
+
+let a=parseFloat(document.getElementById("a").value);
+let b=parseFloat(document.getElementById("b").value);
+let c=parseFloat(document.getElementById("c").value);
+
+if(a==0){
+    document.getElementById("result").innerHTML=
+    "المعامل a يجب أن يكون مختلفاً عن الصفر.";
+    return;
+}
+
+let delta=b*b-4*a*c;
+
+let txt="<b>المميز Δ = </b>"+delta+"<br><br>";
+
+if(delta>0){
+
+let x1=(-b+Math.sqrt(delta))/(2*a);
+let x2=(-b-Math.sqrt(delta))/(2*a);
+
+txt+="يوجد حلان حقيقيان مختلفان.<br>";
+txt+="x₁ = "+x1+"<br>";
+txt+="x₂ = "+x2;
+
+}
+else if(delta==0){
+
+let x=(-b)/(2*a);
+
+txt+="يوجد حل حقيقي مضاعف.<br>";
+txt+="x = "+x;
+
+}
+else{
+
+let real=(-b/(2*a)).toFixed(4);
+let imag=(Math.sqrt(-delta)/(2*a)).toFixed(4);
+
+txt+="لا توجد حلول حقيقية.<br>";
+txt+="الحلان العقديان هما:<br>";
+txt+="x₁ = "+real+" + "+imag+"i<br>";
+txt+="x₂ = "+real+" - "+imag+"i";
+
+}
+
+document.getElementById("result").innerHTML=txt;
+
+}
+
+</script>
+
+</body>
+</html>

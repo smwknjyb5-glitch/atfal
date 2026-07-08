@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>PGCD بالفوارق المتتالية</title>
+</head>
+<body>
+
+<h2>حساب PGCD بالفوارق المتتالية</h2>
+
+<input type="number" id="a" placeholder="العدد الأول">
+<input type="number" id="b" placeholder="العدد الثاني">
+
+<button onclick="calculer()">احسب</button>
+
+<p id="etapes"></p>
+<p id="resultat"></p>
+
+<script>
+function calculer() {
+    let a = parseInt(document.getElementById("a").value);
+    let b = parseInt(document.getElementById("b").value);
+
+    let texte = "";
+
+    while (a !== b) {
+        if (a > b) {
+            texte += a + " - " + b + " = " + (a - b) + "<br>";
+            a = a - b;
+        } else {
+            texte += b + " - " + a + " = " + (b - a) + "<br>";
+            b = b - a;
+        }
+    }
+
+    document.getElementById("etapes").innerHTML = texte;
+    document.getElementById("resultat").innerHTML =
+        "<b>PGCD = " + a + "</b>";
+}
+</script>
+
+</body>
+</html>

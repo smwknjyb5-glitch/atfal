@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الجدول الدوري للعناصر</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Tahoma','Segoe UI',sans-serif; }
+  body {
+    background: radial-gradient(circle at 20% 0%, #1b2a3a, #0a131d 70%);
+    color:#fff; min-height:100vh; padding:16px; display:flex; flex-direction:column; align-items:center;
+  }
+  h1 { font-size:1.5em; color:#ffd166; text-shadow:0 0 10px rgba(255,209,102,.5); margin-bottom:4px; text-align:center;}
+  .sub { color:#9fb3c8; font-size:.85em; margin-bottom:14px; text-align:center; }
+
+  .toolbar {
+    display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; width:100%; max-width:1100px;
+  }
+  input#search {
+    flex:1; min-width:180px; padding:9px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.08); color:#fff; font-size:.9em;
+  }
+  input#search::placeholder{ color:#9fb3c8; }
+  select#categoryFilter {
+    padding:9px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.2);
+    background:rgba(20,30,45,.9); color:#fff; font-size:.85em;
+  }
+
+  .legend {
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; max-width:1100px;
+  }
+  .legend-item { display:flex; align-items:center; gap:5px; font-size:.72em; color:#cfe0f3; }
+  .legend-swatch { width:13px; height:13px; border-radius:4px; }
+
+  #tableWrap { width:100%; max-width:1100px; overflow-x:auto; padding-bottom:10px; }
+  #grid {
+    display:grid;
+    grid-template-columns: repeat(18, minmax(46px, 1fr));
+    grid-auto-rows: minmax(46px, auto);
+    gap:3px;
+    min-width:880px;
+  }
+  .cell {
+    border-radius:6px; padding:3px 2px; cursor:pointer; position:relative;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    font-size:.62em; transition:.15s; border:1px solid rgba(255,255,255,0.15);
+    color:#0a131d;
+  }
+  .cell:hover { transform:scale(1.12); z-index:5; box-shadow:0 0 10px rgba(255,255,255,0.4); }
+  .cell.dim { opacity:0.18; }
+  .cell .num { position:absolute; top:2px; right:3px; font-size:.85em; opacity:.75;}
+  .cell .sym { font-size:1.25em; font-weight:bold; line-height:1; }
+  .cell .name { font-size:.78em; line-height:1.1; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .cell.placeholder { visibility:hidden; }
+  .cell.lan-act-label {
+    background:transparent; border:none; color:#9fb3c8; cursor:default; font-size:.7em; align-items:flex-start; justify-content:center;
+  }
+  .cell.lan-act-label:hover { transform:none; box-shadow:none; }
+
+  /* فئات الألوان */
+  .alkali { background:#ff6b6b; }
+  .alkaline { background:#ffa45c; }
+  .lanthanide { background:#ffd166; }
+  .actinide { background:#f4978e; }
+  .transition { background:#6fb3ff; }
+  .post-transition { background:#83d6c5; }
+  .metalloid { background:#9bdb8a; }
+  .nonmetal { background:#caf0a4; }
+  .halogen { background:#9af0d4; }
+  .noble { background:#c8b6ff; }
+  .unknown { background:#cfd8e3; }
+
+  #detail {
+    margin-top:16px; width:100%; max-width:700px;
+    background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15);
+    border-radius:16px; padding:18px; backdrop-filter:blur(6px); min-height:90px;
+  }
+  #detail .placeholder-text { color:#7e93ab; text-align:center; font-size:.9em; }
+  .detail-head { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+  .detail-sym {
+    font-size:2.4em; font-weight:bold; width:70px; height:70px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center; color:#0a131d;
+  }
+  .detail-titles .ar { font-size:1.3em; color:#ffd166; font-weight:bold; }
+  .detail-titles .en { font-size:.9em; color:#9fb3c8; }
+  .detail-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;
+  }
+  .dstat { background:rgba(0,0,0,0.25); border-radius:10px; padding:8px 10px; font-size:.82em; }
+  .dstat .l { color:#9fb3c8; font-size:.78em; }
+  .dstat .v { color:#fff; font-weight:bold; margin-top:2px; }
+  footer { margin-top:18px; color:#7e93ab; font-size:.72em; text-align:center; }
+</style>
+</head>
+<body>
+
+<h1>🧪 الجدول الدوري للعناصر</h1>
+<div class="sub">اضغط على أي عنصر لعرض تفاصيله — أو ابحث / صنّف حسب الفئة</div>
+
+<div class="toolbar">
+  <input type="text" id="search" placeholder="🔍 ابحث بالاسم العربي، الإنجليزي، الرمز، أو العدد الذري...">
+  <select id="categoryFilter">
+    <option value="">كل الفئات</option>
+    <option value="alkali">فلزات قلوية</option>
+    <option value="alkaline">فلزات قلوية ترابية</option>
+    <option value="transition">فلزات انتقالية</option>
+    <option value="post-transition">فلزات بعد انتقالية</option>
+    <option value="metalloid">أشباه فلزات</option>
+    <option value="nonmetal">لافلزات</option>
+    <option value="halogen">هالوجينات</option>
+    <option value="noble">غازات نبيلة</option>
+    <option value="lanthanide">لانثانيدات</option>
+    <option value="actinide">أكتينيدات</option>
+  </select>
+</div>
+
+<div class="legend" id="legend"></div>
+
+<div id="tableWrap">
+  <div id="grid"></div>
+</div>
+
+<div id="detail"><div class="placeholder-text">اضغط على عنصر من الجدول لعرض معلوماته الكاملة هنا</div></div>
+
+<footer>محاكاة تعليمية للجدول الدوري — البيانات تقريبية لأغراض تعليمية</footer>
+
+<script>
+// تنسيق العنصر: [العدد الذري، الرمز، الاسم بالعربي، الاسم بالإنجليزي، الكتلة الذرية، الفئة، الصف، العمود، الحالة، الكتلة]
+const elements = [
+ [1,"H","هيدروجين","Hydrogen",1.008,"nonmetal",1,1,"غاز"],
+ [2,"He","هيليوم","Helium",4.003,"noble",1,18,"غاز"],
+ [3,"Li","ليثيوم","Lithium",6.94,"alkali",2,1,"صلب"],
+ [4,"Be","بريليوم","Beryllium",9.012,"alkaline",2,2,"صلب"],
+ [5,"B","بورون","Boron",10.81,"metalloid",2,13,"صلب"],
+ [6,"C","كربون","Carbon",12.011,"nonmetal",2,14,"صلب"],
+ [7,"N","نيتروجين","Nitrogen",14.007,"nonmetal",2,15,"غاز"],
+ [8,"O","أكسجين","Oxygen",15.999,"nonmetal",2,16,"غاز"],
+ [9,"F","فلور","Fluorine",18.998,"halogen",2,17,"غاز"],
+ [10,"Ne","نيون","Neon",20.180,"noble",2,18,"غاز"],
+ [11,"Na","صوديوم","Sodium",22.990,"alkali",3,1,"صلب"],
+ [12,"Mg","مغنيسيوم","Magnesium",24.305,"alkaline",3,2,"صلب"],
+ [13,"Al","ألومنيوم","Aluminium",26.982,"post-transition",3,13,"صلب"],
+ [14,"Si","سيليكون","Silicon",28.085,"metalloid",3,14,"صلب"],
+ [15,"P","فسفور","Phosphorus",30.974,"nonmetal",3,15,"صلب"],
+ [16,"S","كبريت","Sulfur",32.06,"nonmetal",3,16,"صلب"],
+ [17,"Cl","كلور","Chlorine",35.45,"halogen",3,17,"غاز"],
+ [18,"Ar","أرجون","Argon",39.948,"noble",3,18,"غاز"],
+ [19,"K","بوتاسيوم","Potassium",39.098,"alkali",4,1,"صلب"],
+ [20,"Ca","كالسيوم","Calcium",40.078,"alkaline",4,2,"صلب"],
+ [21,"Sc","سكانديوم","Scandium",44.956,"transition",4,3,"صلب"],
+ [22,"Ti","تيتانيوم","Titanium",47.867,"transition",4,4,"صلب"],
+ [23,"V","فاناديوم","Vanadium",50.942,"transition",4,5,"صلب"],
+ [24,"Cr","كروم","Chromium",51.996,"transition",4,6,"صلب"],
+ [25,"Mn","منغنيز","Manganese",54.938,"transition",4,7,"صلب"],
+ [26,"Fe","حديد","Iron",55.845,"transition",4,8,"صلب"],
+ [27,"Co","كوبالت","Cobalt",58.933,"transition",4,9,"صلب"],
+ [28,"Ni","نيكل","Nickel",58.693,"transition",4,10,"صلب"],
+ [29,"Cu","نحاس","Copper",63.546,"transition",4,11,"صلب"],
+ [30,"Zn","زنك","Zinc",65.38,"transition",4,12,"صلب"],
+ [31,"Ga","غاليوم","Gallium",69.723,"post-transition",4,13,"صلب"],
+ [32,"Ge","جرمانيوم","Germanium",72.630,"metalloid",4,14,"صلب"],
+ [33,"As","زرنيخ","Arsenic",74.922,"metalloid",4,15,"صلب"],
+ [34,"Se","سيلينيوم","Selenium",78.971,"nonmetal",4,16,"صلب"],
+ [35,"Br","بروم","Bromine",79.904,"halogen",4,17,"سائل"],
+ [36,"Kr","كريبتون","Krypton",83.798,"noble",4,18,"غاز"],
+ [37,"Rb","روبيديوم","Rubidium",85.468,"alkali",5,1,"صلب"],
+ [38,"Sr","سترونشيوم","Strontium",87.62,"alkaline",5,2,"صلب"],
+ [39,"Y","ييتريوم","Yttrium",88.906,"transition",5,3,"صلب"],
+ [40,"Zr","زركونيوم","Zirconium",91.224,"transition",5,4,"صلب"],
+ [41,"Nb","نيوبيوم","Niobium",92.906,"transition",5,5,"صلب"],
+ [42,"Mo","موليبدنوم","Molybdenum",95.95,"transition",5,6,"صلب"],
+ [43,"Tc","تكنيشيوم","Technetium",98,"transition",5,7,"صلب"],
+ [44,"Ru","روثينيوم","Ruthenium",101.07,"transition",5,8,"صلب"],
+ [45,"Rh","روديوم","Rhodium",102.906,"transition",5,9,"صلب"],
+ [46,"Pd","بالاديوم","Palladium",106.42,"transition",5,10,"صلب"],
+ [47,"Ag","فضة","Silver",107.868,"transition",5,11,"صلب"],
+ [48,"Cd","كادميوم","Cadmium",112.414,"transition",5,12,"صلب"],
+ [49,"In","إنديوم","Indium",114.818,"post-transition",5,13,"صلب"],
+ [50,"Sn","قصدير","Tin",118.710,"post-transition",5,14,"صلب"],
+ [51,"Sb","أنتيمون","Antimony",121.760,"metalloid",5,15,"صلب"],
+ [52,"Te","تيلوريوم","Tellurium",127.60,"metalloid",5,16,"صلب"],
+ [53,"I","يود","Iodine",126.904,"halogen",5,17,"صلب"],
+ [54,"Xe","زينون","Xenon",131.293,"noble",5,18,"غاز"],
+ [55,"Cs","سيزيوم","Caesium",132.905,"alkali",6,1,"صلب"],
+ [56,"Ba","باريوم","Barium",137.327,"alkaline",6,2,"صلب"],
+ [57,"La","لانثانوم","Lanthanum",138.905,"lanthanide",8,4,"صلب"],
+ [58,"Ce","سيريوم","Cerium",140.116,"lanthanide",8,5,"صلب"],
+ [59,"Pr","براسيوديميوم","Praseodymium",140.908,"lanthanide",8,6,"صلب"],
+ [60,"Nd","نيوديميوم","Neodymium",144.242,"lanthanide",8,7,"صلب"],
+ [61,"Pm","بروميثيوم","Promethium",145,"lanthanide",8,8,"صلب"],
+ [62,"Sm","ساماريوم","Samarium",150.36,"lanthanide",8,9,"صلب"],
+ [63,"Eu","يوروبيوم","Europium",151.964,"lanthanide",8,10,"صلب"],
+ [64,"Gd","غادولينيوم","Gadolinium",157.25,"lanthanide",8,11,"صلب"],
+ [65,"Tb","تيربيوم","Terbium",158.925,"lanthanide",8,12,"صلب"],
+ [66,"Dy","ديسبروسيوم","Dysprosium",162.500,"lanthanide",8,13,"صلب"],
+ [67,"Ho","هولميوم","Holmium",164.930,"lanthanide",8,14,"صلب"],
+ [68,"Er","إربيوم","Erbium",167.259,"lanthanide",8,15,"صلب"],
+ [69,"Tm","ثوليوم","Thulium",168.934,"lanthanide",8,16,"صلب"],
+ [70,"Yb","إيتيربيوم","Ytterbium",173.045,"lanthanide",8,17,"صلب"],
+ [71,"Lu","لوتيتيوم","Lutetium",174.967,"lanthanide",8,18,"صلب"],
+ [72,"Hf","هافنيوم","Hafnium",178.49,"transition",6,4,"صلب"],
+ [73,"Ta","تانتالوم","Tantalum",180.948,"transition",6,5,"صلب"],
+ [74,"W","تنغستن","Tungsten",183.84,"transition",6,6,"صلب"],
+ [75,"Re","رينيوم","Rhenium",186.207,"transition",6,7,"صلب"],
+ [76,"Os","أوزميوم","Osmium",190.23,"transition",6,8,"صلب"],
+ [77,"Ir","إيريديوم","Iridium",192.217,"transition",6,9,"صلب"],
+ [78,"Pt","بلاتين","Platinum",195.085,"transition",6,10,"صلب"],
+ [79,"Au","ذهب","Gold",196.967,"transition",6,11,"صلب"],
+ [80,"Hg","زئبق","Mercury",200.592,"transition",6,12,"سائل"],
+ [81,"Tl","ثاليوم","Thallium",204.38,"post-transition",6,13,"صلب"],
+ [82,"Pb","رصاص","Lead",207.2,"post-transition",6,14,"صلب"],
+ [83,"Bi","بزموت","Bismuth",208.980,"post-transition",6,15,"صلب"],
+ [84,"Po","بولونيوم","Polonium",209,"post-transition",6,16,"صلب"],
+ [85,"At","أستاتين","Astatine",210,"halogen",6,17,"صلب"],
+ [86,"Rn","رادون","Radon",222,"noble",6,18,"غاز"],
+ [87,"Fr","فرانسيوم","Francium",223,"alkali",7,1,"صلب"],
+ [88,"Ra","راديوم","Radium",226,"alkaline",7,2,"صلب"],
+ [89,"Ac","أكتينيوم","Actinium",227,"actinide",9,4,"صلب"],
+ [90,"Th","ثوريوم","Thorium",232.038,"actinide",9,5,"صلب"],
+ [91,"Pa","بروتكتينيوم","Protactinium",231.036,"actinide",9,6,"صلب"],
+ [92,"U","يورانيوم","Uranium",238.029,"actinide",9,7,"صلب"],
+ [93,"Np","نبتونيوم","Neptunium",237,"actinide",9,8,"صلب"],
+ [94,"Pu","بلوتونيوم","Plutonium",244,"actinide",9,9,"صلب"],
+ [95,"Am","أمريسيوم","Americium",243,"actinide",9,10,"صلب"],
+ [96,"Cm","كوريوم","Curium",247,"actinide",9,11,"صلب"],
+ [97,"Bk","بركيليوم","Berkelium",247,"actinide",9,12,"صلب"],
+ [98,"Cf","كاليفورنيوم","Californium",251,"actinide",9,13,"صلب"],
+ [99,"Es","أينشتاينيوم","Einsteinium",252,"actinide",9,14,"صلب"],
+ [100,"Fm","فيرميوم","Fermium",257,"actinide",9,15,"صلب"],
+ [101,"Md","مندليفيوم","Mendelevium",258,"actinide",9,16,"صلب"],
+ [102,"No","نوبليوم","Nobelium",259,"actinide",9,17,"صلب"],
+ [103,"Lr","لورنسيوم","Lawrencium",266,"actinide",9,18,"صلب"],
+ [104,"Rf","رذرفورديوم","Rutherfordium",267,"transition",7,4,"صلب"],
+ [105,"Db","دوبنيوم","Dubnium",268,"transition",7,5,"صلب"],
+ [106,"Sg","سيبورجيوم","Seaborgium",269,"transition",7,6,"صلب"],
+ [107,"Bh","بوهريوم","Bohrium",270,"transition",7,7,"صلب"],
+ [108,"Hs","هاسيوم","Hassium",269,"transition",7,8,"صلب"],
+ [109,"Mt","مايتنيريوم","Meitnerium",278,"unknown",7,9,"صلب"],
+ [110,"Ds","دارمشتاتيوم","Darmstadtium",281,"unknown",7,10,"صلب"],
+ [111,"Rg","رونتجينيوم","Roentgenium",282,"unknown",7,11,"صلب"],
+ [112,"Cn","كوبرنيسيوم","Copernicium",285,"transition",7,12,"صلب"],
+ [113,"Nh","نيهونيوم","Nihonium",286,"post-transition",7,13,"صلب"],
+ [114,"Fl","فليروفيوم","Flerovium",289,"post-transition",7,14,"صلب"],
+ [115,"Mc","موسكوفيوم","Moscovium",290,"post-transition",7,15,"صلب"],
+ [116,"Lv","ليفرموريوم","Livermorium",293,"post-transition",7,16,"صلب"],
+ [117,"Ts","تينيسين","Tennessine",294,"halogen",7,17,"صلب"],
+ [118,"Og","أوغانيسون","Oganesson",294,"noble",7,18,"غاز"]
+];
+
+const categoryNames = {
+  alkali:"فلزات قلوية", alkaline:"فلزات قلوية ترابية", transition:"فلزات انتقالية",
+  "post-transition":"فلزات بعد انتقالية", metalloid:"أشباه فلزات", nonmetal:"لافلزات",
+  halogen:"هالوجينات", noble:"غازات نبيلة", lanthanide:"لانثانيدات", actinide:"أكتينيدات", unknown:"غير معروف"
+};
+
+const grid = document.getElementById('grid');
+const detail = document.getElementById('detail');
+const legend = document.getElementById('legend');
+const search = document.getElementById('search');
+const categoryFilter = document.getElementById('categoryFilter');
+
+// بناء الخريطة (صف، عمود) -> عنصر
+const map = {};
+elements.forEach(e => map[e[6]+'-'+e[7]] = e);
+
+// إضافة فاصل بصري للانثانيدات/أكتينيدات (صف 6 وصف 7 يحتاجان فجوة في العمود 3)
+
+function buildGrid() {
+  grid.innerHTML = '';
+  for (let row=1; row<=9; row++){
+    for (let col=1; col<=18; col++){
+      if (row===6 && col===3) { addLabelCell('57–71', row, col); continue; }
+      if (row===7 && col===3) { addLabelCell('89–103', row, col); continue; }
+      if (row===8 && col===1) { /* skip leading cols for lanthanide row spacer */ }
+      const key = row+'-'+col;
+      if (map[key]) {
+        addElementCell(map[key], row, col);
+      } else if (row<=7) {
+        addPlaceholder(row,col);
+      } else if (row===8 || row===9) {
+        if (col<4) addPlaceholder(row,col);
+      }
+    }
+  }
+}
+
+function addPlaceholder(row,col){
+  const div = document.createElement('div');
+  div.className = 'cell placeholder';
+  div.style.gridRow = row; div.style.gridColumn = col;
+  grid.appendChild(div);
+}
+
+function addLabelCell(text,row,col){
+  const div = document.createElement('div');
+  div.className = 'cell lan-act-label';
+  div.style.gridRow = row; div.style.gridColumn = col;
+  div.textContent = text;
+  grid.appendChild(div);
+}
+
+function addElementCell(e, row, col){
+  const [num,sym,arName,enName,mass,cat] = e;
+  const div = document.createElement('div');
+  div.className = 'cell ' + cat;
+  div.style.gridRow = row; div.style.gridColumn = col;
+  div.dataset.num = num;
+  div.innerHTML = `<span class="num">${num}</span><span class="sym">${sym}</span><span class="name">${arName}</span>`;
+  div.addEventListener('click', () => showDetail(e));
+  grid.appendChild(div);
+}
+
+function showDetail(e){
+  const [num,sym,arName,enName,mass,cat,row,col,phaseState] = e;
+  detail.innerHTML = `
+    <div class="detail-head">
+      <div class="detail-sym ${cat}">${sym}</div>
+      <div class="detail-titles">
+        <div class="ar">${arName}</div>
+        <div class="en">${enName}</div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="dstat"><div class="l">العدد الذري</div><div class="v">${num}</div></div>
+      <div class="dstat"><div class="l">الكتلة الذرية</div><div class="v">${mass}</div></div>
+      <div class="dstat"><div class="l">الفئة</div><div class="v">${categoryNames[cat]}</div></div>
+      <div class="dstat"><div class="l">الحالة القياسية</div><div class="v">${phaseState}</div></div>
+      <div class="dstat"><div class="l">الدورة</div><div class="v">${row<=7?row:(row===8?6:7)}</div></div>
+      <div class="dstat"><div class="l">المجموعة</div><div class="v">${(row===8||row===9)?'—':col}</div></div>
+    </div>
+  `;
+}
+
+function buildLegend(){
+  legend.innerHTML = '';
+  Object.entries(categoryNames).forEach(([key,name])=>{
+    if (key==='unknown') return;
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-swatch ${key}"></span>${name}`;
+    legend.appendChild(item);
+  });
+}
+
+function applyFilters(){
+  const term = search.value.trim().toLowerCase();
+  const cat = categoryFilter.value;
+  document.querySelectorAll('.cell:not(.placeholder):not(.lan-act-label)').forEach(cell=>{
+    const num = cell.dataset.num;
+    const e = elements.find(x=>x[0]==num);
+    let visible = true;
+    if (cat && e[5] !== cat) visible = false;
+    if (term) {
+      const hay = (e[1]+' '+e[2]+' '+e[3]+' '+e[0]).toLowerCase();
+      if (!hay.includes(term)) visible = false;
+    }
+    cell.classList.toggle('dim', !visible);
+  });
+}
+
+search.addEventListener('input', applyFilters);
+categoryFilter.addEventListener('change', applyFilters);
+
+buildGrid();
+buildLegend();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,223 @@
+ <!DOCTYPE html>
+ <html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> لعبة ذاكرة بالصور</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    text-align:center;
+    background:#f0f8ff;
+    padding:20px;
+    body{
+    direction: rtl;
+}
+
+h1{
+    color:#0066cc;
+}
+
+#niveau{
+    font-size:24px;
+    margin:10px;
+    font-weight:bold;
+}
+
+#zone{
+    min-height:120px;
+    margin:20px;
+    direction: rtl;
+}
+
+#zone img{
+    width:80px;
+    height:80px;
+    margin:5px;
+}
+
+#choix{
+    margin-top:20px;
+}
+
+#choix img{
+    width:80px;
+    height:80px;
+    margin:8px;
+    cursor:pointer;
+    border:3px solid transparent;
+    border-radius:10px;
+}
+
+#choix img:hover{
+    border-color:blue;
+}
+
+#reponse{
+    min-height:100px;
+    margin:20px;
+    padding:10px;
+    border:2px dashed #888;
+}
+
+#reponse img{
+    width:70px;
+    height:70px;
+    margin:5px;
+}
+
+button{
+    padding:10px 20px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+#message{
+    margin-top:20px;
+    font-size:22px;
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+<h1>🧠 لعبة الذاكرة</h1>
+
+ <div id="niveau">المستوى: 1</div>
+
+<div id="zone"></div>
+
+<h3> انقر على الصور من اليمين إلى اليسار كما ظهرت:</h3>
+<div id="reponse"></div>
+
+<button onclick="verifier()">تاكيد</button>
+<button onclick="effacer()">مسح</button>
+
+<div id="message"></div>
+
+<hr>
+
+<h3>اختر الصور بالترتيب:</h3>
+
+<div id="choix"></div>
+
+<script>
+
+const images = [
+"b1.png",
+"b2.png"
+];
+
+let niveau = 1;
+let sequence = [];
+let reponse = [];
+
+const zone = document.getElementById("zone");
+const choix = document.getElementById("choix");
+
+images.forEach((img,index)=>{
+    const image = document.createElement("img");
+    image.src = img;
+    image.onclick = ()=>ajouter(index);
+    choix.appendChild(image);
+});
+
+function nouveauNiveau(){
+
+    sequence = [];
+    reponse = [];
+
+    document.getElementById("reponse").innerHTML="";
+    document.getElementById("message").innerHTML="";
+
+    let longueur = niveau + 2;
+
+    for(let i=0;i<longueur;i++){
+        sequence.push(
+            Math.floor(Math.random()*images.length)
+        );
+    }
+
+    afficherSequence();
+
+    setTimeout(()=>{
+        zone.innerHTML="<h2>تذكر الصور</h2>";
+    },2000);
+}
+
+function afficherSequence(){
+
+    zone.innerHTML="";
+
+    sequence.forEach(indice=>{
+        let img=document.createElement("img");
+        img.src=images[indice];
+        zone.appendChild(img);
+    });
+}
+
+function ajouter(indice){
+
+    reponse.push(indice);
+
+    let img=document.createElement("img");
+    img.src=images[indice];
+
+    document.getElementById("reponse").appendChild(img);
+}
+
+function effacer(){
+
+    reponse=[];
+    document.getElementById("reponse").innerHTML="";
+}
+
+function verifier(){
+
+    let correct = true;
+
+    if(reponse.length !== sequence.length){
+        correct = false;
+    }else{
+
+        for(let i=0;i<sequence.length;i++){
+
+            if(sequence[i] !== reponse[i]){
+                correct = false;
+                break;
+            }
+        }
+    }
+
+    if(correct){
+
+        document.getElementById("message").innerHTML =
+        "✅ انت رائع !";
+
+        niveau++;
+
+        document.getElementById("niveau").innerHTML =
+        "المستوى: " + niveau;
+
+        setTimeout(nouveauNiveau,1500);
+
+    }else{
+
+        document.getElementById("message").innerHTML =
+        "❌ خطأ! العودة إلى المستوى الأول";
+
+        niveau = 1;
+
+        document.getElementById("niveau").innerHTML =
+        "المستوى: 1";
+
+        setTimeout(nouveauNiveau,3000);
+    }
+}
+
+nouveauNiveau();
+
+</script>
+
+</body>
+</html>

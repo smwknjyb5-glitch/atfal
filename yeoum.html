@@ -1,0 +1,48 @@
+ <!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>معرفة يوم الميلاد</title>
+</head>
+<body dir="rtl">
+
+<h2>معرفة يوم الميلاد</h2>
+
+<label>اليوم:</label>
+<input type="number" id="day" min="1" max="31"><br><br>
+
+<label>الشهر:</label>
+<input type="number" id="month" min="1" max="12"><br><br>
+
+<label>السنة:</label>
+<input type="number" id="year"><br><br>
+
+<button onclick="calculateDay()">احسب</button>
+
+<h3 id="result"></h3>
+
+<script>
+function calculateDay() {
+    let day = parseInt(document.getElementById("day").value);
+    let month = parseInt(document.getElementById("month").value);
+    let year = parseInt(document.getElementById("year").value);
+
+    let date = new Date(year, month - 1, day);
+
+    let days = [
+        "الأحد",
+        "الاثنين",
+        "الثلاثاء",
+        "الأربعاء",
+        "الخميس",
+        "الجمعة",
+        "السبت"
+    ];
+
+    document.getElementById("result").innerHTML =
+        "يوم ميلادك هو: " + days[date.getDay()];
+}
+</script>
+
+</body>
+</html>
