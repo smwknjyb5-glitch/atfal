@@ -1,0 +1,110 @@
+ <!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>جميع الاحتمالات</title>
+<style>
+body{
+    font-family:Arial;
+    direction:rtl;
+    text-align:center;
+}
+input{
+    width:300px;
+    padding:5px;
+}
+button{
+    padding:8px;
+    margin:5px;
+}
+#result{
+    margin-top:15px;
+    border:1px solid #ccc;
+    padding:10px;
+    max-height:400px;
+    overflow-y:auto;
+}
+</style>
+</head>
+<body>
+
+<h2>توليد جميع الأعداد الممكنة</h2>
+
+<p>أدخل الأرقام مفصولة بمسافة:</p>
+<input type="text" id="digits" placeholder="مثال: 1 2 3">
+
+<br><br>
+
+<button onclick="generate()">إظهار الاحتمالات</button>
+<button onclick="sortAscending()">ترتيب تصاعدي</button>
+<button onclick="sortDescending()">ترتيب تنازلي</button>
+
+<div id="result"></div>
+
+<script>
+let numbers = [];
+
+function permutations(arr){
+    if(arr.length <= 1) return [arr];
+
+    let result = [];
+
+    for(let i=0;i<arr.length;i++){
+        let current = arr[i];
+        let remaining = arr.slice(0,i).concat(arr.slice(i+1));
+
+        let perms = permutations(remaining);
+
+        for(let p of perms){
+            result.push([current].concat(p));
+        }
+    }
+    return result;
+}
+
+function display(list){
+    let html = "<b>عدد الاحتمالات = "
+             + list.length +
+             "</b><hr>";
+
+    list.forEach(n=>{
+        html += n + "<br>";
+    });
+
+    document.getElementById("result").innerHTML = html;
+}
+
+function generate(){
+
+    let digits = document.getElementById("digits")
+        .value.trim()
+        .split(/\s+/)
+        .filter(x=>x!="");
+
+    let perms = permutations(digits);
+
+    numbers = perms.map(p=>p.join(""));
+
+    display(numbers);
+}
+
+function sortAscending(){
+
+    if(numbers.length===0) return;
+
+    numbers.sort((a,b)=>Number(a)-Number(b));
+
+    display(numbers);
+}
+ function sortDescending(){
+
+    if(numbers.length===0) return;
+
+    numbers.sort((a,b)=>Number(b)-Number(a));
+
+    display(numbers);
+}
+</script>
+
+</body>
+</html>
