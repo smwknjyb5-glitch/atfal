@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نجيب | أعمالي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#080b1f;
+    --navy:#0e1330;
+    --navy-light:#161c40;
+    --gold:#d4af37;
+    --gold-soft:#f0d78c;
+    --text:#e9e7e0;
+    --muted:#8b93b8;
+    --card-border: rgba(212,175,55,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--navy-deep);
+    color:var(--text);
+    font-family:'Cairo', sans-serif;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  #stars{position:fixed;inset:0;z-index:0;}
+  .content{position:relative;z-index:1;}
+
+  /* ===== نافبار ===== */
+  nav{
+    position:sticky;top:0;z-index:10;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 6%;
+    background:rgba(8,11,31,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--card-border);
+  }
+  .logo{
+    font-family:'Amiri', serif;
+    font-size:1.6rem;
+    color:var(--gold-soft);
+    letter-spacing:1px;
+  }
+  .logo span{color:var(--gold);}
+  nav ul{
+    list-style:none;display:flex;gap:32px;
+  }
+  nav a{
+    color:var(--muted);text-decoration:none;font-weight:600;font-size:.95rem;
+    transition:color .25s;
+  }
+  nav a:hover{color:var(--gold-soft);}
+
+  /* ===== الهيرو ===== */
+  .hero{
+    min-height:88vh;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:0 6%;position:relative;
+  }
+  .eyebrow{
+    color:var(--gold);
+    letter-spacing:4px;font-size:.85rem;font-weight:700;
+    text-transform:uppercase;margin-bottom:18px;
+    opacity:.85;
+  }
+  .hero h1{
+    font-family:'Amiri', serif;
+    font-size:clamp(2.8rem, 7vw, 5.5rem);
+    font-weight:700;
+    background:linear-gradient(120deg, var(--gold-soft), var(--gold) 60%, #a9822a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    line-height:1.15;
+    margin-bottom:20px;
+  }
+  .hero p{
+    max-width:640px;color:var(--muted);font-size:1.15rem;line-height:2;
+    margin-bottom:36px;
+  }
+  .hero-actions{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
+  .btn{
+    padding:14px 34px;border-radius:999px;font-weight:700;font-size:1rem;
+    cursor:pointer;text-decoration:none;transition:all .3s;
+    border:1px solid transparent;
+  }
+  .btn-gold{background:linear-gradient(120deg,var(--gold-soft),var(--gold));color:var(--navy-deep);}
+  .btn-gold:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(212,175,55,0.35);}
+  .btn-ghost{border-color:var(--card-border);color:var(--gold-soft);background:transparent;}
+  .btn-ghost:hover{border-color:var(--gold);background:rgba(212,175,55,0.06);}
+
+  .divider{
+    width:100%;max-width:120px;height:1px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin:70px auto;opacity:.6;
+  }
+
+  /* ===== الأقسام ===== */
+  section{padding:40px 6% 100px;}
+  .section-title{
+    text-align:center;margin-bottom:12px;
+  }
+  .section-title .eyebrow{margin-bottom:8px;}
+  .section-title h2{
+    font-family:'Amiri', serif;font-size:2.3rem;color:var(--text);
+  }
+  .section-sub{
+    text-align:center;color:var(--muted);max-width:520px;margin:0 auto 50px;line-height:1.9;
+  }
+
+  /* فلاتر */
+  .filters{
+    display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:44px;
+  }
+  .filter-btn{
+    padding:9px 22px;border-radius:999px;border:1px solid var(--card-border);
+    background:var(--navy-light);color:var(--muted);font-family:inherit;
+    font-size:.9rem;font-weight:600;cursor:pointer;transition:all .25s;
+  }
+  .filter-btn:hover{color:var(--gold-soft);border-color:var(--gold);}
+  .filter-btn.active{background:var(--gold);color:var(--navy-deep);border-color:var(--gold);}
+
+  /* شبكة المشاريع */
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+    gap:28px;max-width:1200px;margin:0 auto;
+  }
+  .card{
+    background:linear-gradient(160deg, var(--navy-light), var(--navy));
+    border:1px solid var(--card-border);border-radius:18px;
+    padding:30px 26px;position:relative;overflow:hidden;
+    transition:transform .35s, box-shadow .35s, border-color .35s;
+    display:flex;flex-direction:column;
+  }
+  .card::before{
+    content:'';position:absolute;top:0;right:0;width:100%;height:3px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity:0;transition:opacity .3s;
+  }
+  .card:hover{
+    transform:translateY(-6px);
+    border-color:var(--gold);
+    box-shadow:0 18px 40px rgba(0,0,0,0.4);
+  }
+  .card:hover::before{opacity:1;}
+  .card-icon{font-size:2.2rem;margin-bottom:16px;}
+  .card h3{font-size:1.25rem;color:var(--gold-soft);margin-bottom:10px;font-weight:700;}
+  .card p{color:var(--muted);font-size:.92rem;line-height:1.8;flex-grow:1;margin-bottom:20px;}
+  .card-tag{
+    display:inline-block;font-size:.72rem;color:var(--gold);
+    border:1px solid var(--card-border);border-radius:999px;
+    padding:4px 12px;margin-bottom:14px;width:fit-content;
+  }
+  .card-link{
+    color:var(--gold);text-decoration:none;font-weight:700;font-size:.9rem;
+    display:flex;align-items:center;gap:6px;
+  }
+  .card-link:hover{color:var(--gold-soft);}
+  .card.empty{
+    align-items:center;justify-content:center;text-align:center;
+    border-style:dashed;color:var(--muted);
+  }
+
+  /* حول */
+  .about-wrap{
+    max-width:760px;margin:0 auto;text-align:center;
+  }
+  .about-wrap p{color:var(--muted);line-height:2.1;font-size:1.05rem;margin-bottom:18px;}
+
+  footer{
+    text-align:center;padding:50px 6%;border-top:1px solid var(--card-border);
+    color:var(--muted);font-size:.9rem;
+  }
+  footer .logo{display:block;margin-bottom:14px;}
+
+  @media (max-width:700px){
+    nav ul{gap:16px;font-size:.85rem;}
+    .hero p{font-size:1rem;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important;animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="content">
+
+  <nav>
+    <div class="logo">موقع <span>نجيب</span></div>
+    <ul>
+      <li><a href="#projects">الأعمال</a></li>
+      <li><a href="#about">عن الموقع</a></li>
+      <li><a href="#contact">تواصل</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="eyebrow">أرشيف رقمي شخصي</div>
+    <h1>أعمال نجيب</h1>
+    <p>محاكاات فيزيائية، أدوات تفاعلية، ألعاب تعليمية، وبرامج بايثون — كل شيء صنعته بيدي، في مكان واحد يحمل اسمي.</p>
+    <div class="hero-actions">
+      <a href="#projects" class="btn btn-gold">تصفّح الأعمال</a>
+      <a href="#about" class="btn btn-ghost">عن الموقع</a>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="projects">
+    <div class="section-title">
+      <div class="eyebrow">المعرض</div>
+      <h2>الأعمال والمشاريع</h2>
+    </div>
+    <p class="section-sub">اضغط على أي تصنيف لعرض الأعمال المرتبطة به. كل بطاقة يمكن ربطها بملف HTML أو PDF أو برنامج بايثون خاص بك.</p>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">الكل</button>
+      <button class="filter-btn" data-filter="physics">محاكاات فيزيائية</button>
+      <button class="filter-btn" data-filter="tools">أدوات</button>
+      <button class="filter-btn" data-filter="games">ألعاب</button>
+      <button class="filter-btn" data-filter="python">بايثون</button>
+    </div>
+
+    <div class="grid" id="grid">
+
+      <div class="card" data-cat="physics">
+        <div class="card-icon"> </div>
+        <span class="card-tag">تاريخ اليوم</span>
+        <h3>تاريخ اليوم</h3>
+        <p> اعرف تاريخ اليوم بكل مكوناته  </p>
+        <a href="terikh.html" class="card-link">فتح الاداة   ←</a>
+      </div>
+
+      <div class="card" data-cat="physics">
+        <div class="card-icon"></div>
+        <span class="card-tag">فارق السن</span>
+        <h3>بيني و بينك</h3>
+        <p>معرفة فارق السن بين تاريخين</p>
+        <a href="3mor.html" class="card-link">فتح   الاداة ←</a>
+      </div>
+
+      <div class="card" data-cat="physics">
+        <div class="card-icon"></div>
+        <span class="card-tag"> القاسم المشترك الاكبر</span>
+        <h3>القاسم المشترك الاكبر بالفروق المتتالية</h3>
+        <p>PGCD</p>
+        <a href=" pgcd_dif.html" class="card-link">فتح  الاداة ←</a>
+      </div>
+
+      <div class="card" data-cat="physics">
+        <div class="card-icon">⚪</div>
+        <span class="card-tag">محاكاة فيزيائية</span>
+        <h3>منحنى السيكلويد</h3>
+        <p>تتبّع مسار نقطة على محيط دائرة متدحرجة لرسم منحنى السيكلويد بصريًا.</p>
+        <a href="cycloid.html" class="card-link">فتح المحاكاة ←</a>
+      </div>
+
+      <div class="card" data-cat="tools">
+        <div class="card-icon"></div>
+        <span class="card-tag">لعبة تركيز</span>
+        <h3>لعبة تركيز</h3>
+        <p>ركز و رتب</p>
+        <a href="memoir.html" class="card-link">فتح اللعبة   ←</a>
+      </div>
+
+      <div class="card" data-cat="tools">
+        <div class="card-icon"></div>
+        <span class="card-tag">أداة</span>
+        <h3>كلمة من القران الكريم</h3>
+        <p>ادخل كلمة البحث</p>
+        <a href="coran1.html" class="card-link">فتح الأداة ←</a>
+      </div>
+
+      <div class="card" data-cat="tools">
+        <div class="card-icon"></div>
+        <span class="card-tag">أداة</span>
+        <h3>قواسم عدد طبيعي</h3>
+        <p> قواسم.</p>
+        <a href=" diviseurs.html" class="card-link">فتح الأداة ←</a>
+      </div>
+
+      <div class="card" data-cat="tools">
+        <div class="card-icon"></div>
+        <span class="card-tag">أداة</span>
+        <h3>يوم مولدي</h3>
+        <p>حساب اليوم من تاريخ رقمي</p>
+        <a href="yeoum.html" class="card-link">فتح الأداة ←</a>
+      </div>
+
+      <div class="card" data-cat="tools">
+        <div class="card-icon">🌙</div>
+        <span class="card-tag">أداة صحية</span>
+        <h3>تمرين التنفس 4-7-8</h3>
+        <p>مرشد تنفس بصري لتقنية الاسترخاء 4-7-8 لتهدئة الجسم والعقل.</p>
+        <a href="breathing-478.html" class="card-link">فتح الأداة ←</a>
+      </div>
+
+      <div class="card" data-cat="games">
+        <div class="card-icon">🔢</div>
+        <span class="card-tag">لعبة تعليمية</span>
+        <h3>المربع السحري</h3>
+        <p>لغز رياضي تفاعلي لترتيب الأرقام بحيث يتساوى مجموع كل صف وعمود وقطر.</p>
+        <a href="magic-square.html" class="card-link">فتح اللعبة ←</a>
+      </div>
+
+      <div class="card" data-cat="tools">
+        <div class="card-icon"></div>
+        <span class="card-tag">أداة تعليمية</span>
+        <h3>الجدول الدوري التفاعلي</h3>
+        <p>جدول دوري كامل بأسماء العناصر بالعربية مع تفاصيل كل عنصر عند الضغط عليه.</p>
+        <a href="periodic-table.html" class="card-link">فتح الجدول ←</a>
+      </div>
+
+      <div class="card" data-cat="python">
+        <div class="card-icon">🌈</div>
+        <span class="card-tag">محاكاة</span>
+        <h3>قرص نيوتن</h3>
+        <p>محاكاة لتوضيح تركيب الضوء الأبيض من الألوان.</p>
+        <a href="newton-disk.html " class="card-link"> فتح المحاكاة ←</a>
+      </div>
+
+      <div class="card" data-cat="python">
+        <div class="card-icon"></div>
+        <span class="card-tag"> حل معادلة  </span>
+        <h3> حل معادلة من الدرجة الثانية</h3>
+        <p>حل معادلة من الدرجة الثانية</p>
+        <a href="mou3edela2.html" class="card-link"> افتح  الاداة ←</a>
+      </div>
+
+      <div class="card empty">
+        <div class="card-icon">➕</div>
+        <h3 style="color:var(--muted)">أضف عملك القادم هنا</h3>
+        <p style="margin:0">انسخ بنية أي بطاقة أعلاه وغيّر العنوان والوصف والرابط.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="about">
+    <div class="section-title">
+      <div class="eyebrow">الخلفية</div>
+      <h2>عن هذا الموقع</h2>
+    </div>
+    <div class="about-wrap">
+      <p>هذا الموقع هو الأرشيف الشخصي لأعمالي: محاكاات فيزيائية وهندسية، أدوات ويب مستقلة لا تحتاج إلى إنترنت أو تثبيت، وبرامج بايثون تعليمية بلمسة عربية.</p>
+      <p>كل عمل هنا ملف مستقل بالكامل — يمكنك فتحه مباشرة من المتصفح أو تنزيله والاحتفاظ به دون أي اعتماد على خدمات خارجية.</p>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <div class="logo">موقع <span>نجيب</span></div>
+    <p>صُنع بشغف بالفيزياء والرياضيات والتقنية التعليمية.</p>
+  </footer>
+
+</div>
+
+<script>
+  // خلفية النجوم المتلألئة
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let w, h, stars = [];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = document.body.scrollHeight;
+  }
+  function initStars(){
+    stars = [];
+    const count = Math.floor((w*h)/9000);
+    for(let i=0;i<count;i++){
+      stars.push({
+        x: Math.random()*w,
+        y: Math.random()*h,
+        r: Math.random()*1.4+0.3,
+        a: Math.random(),
+        speed: Math.random()*0.015+0.003
+      });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#080b1f';
+    ctx.fillRect(0,0,w,h);
+    for(const s of stars){
+      s.a += s.speed;
+      const twinkle = (Math.sin(s.a)+1)/2;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(240,215,140,${0.15+twinkle*0.65})`;
+      ctx.fill();
+    }
+    if(!reduceMotion) requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize', ()=>{ resize(); initStars(); });
+  resize(); initStars(); draw();
+
+  // فلاتر المشاريع
+  const buttons = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('#grid .card');
+  buttons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      buttons.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      cards.forEach(card=>{
+        if(card.classList.contains('empty')) return;
+        const show = filter === 'all' || card.dataset.cat === filter;
+        card.style.display = show ? 'flex' : 'none';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
