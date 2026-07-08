@@ -1,0 +1,87 @@
+ <!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title> اختزال كسر</title>
+<style>
+body{
+    font-family: Arial;
+    text-align: center;
+    margin-top: 50px;
+}
+
+input{
+    width: 120px;
+    padding: 5px;
+    margin: 5px;
+}
+
+button{
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.fraction{
+    display: inline-block;
+    text-align: center;
+    font-size: 32px;
+    margin-top: 20px;
+}
+
+.top{
+    display: block;
+    border-bottom: 2px solid black;
+    padding: 0 10px;
+}
+
+.bottom{
+    display: block;
+}
+</style>
+</head>
+<body>
+
+<h2> اختزال كسر</h2>
+
+<input id="n" type="number" placeholder="البسط">
+<input id="d" type="number" placeholder="المقام">
+
+<br><br>
+<button onclick="reduceFraction()">اختزال</button>
+
+<div id="result"></div>
+
+<script>
+function pgcd(a, b){
+    while(b !== 0){
+        let r = a % b;
+        a = b;
+        b = r;
+    }
+    return Math.abs(a);
+}
+
+function reduceFraction(){
+    let n = parseInt(document.getElementById("n").value);
+    let d = parseInt(document.getElementById("d").value);
+
+    if(d === 0){
+        document.getElementById("result").innerHTML = "اختزال كسر";
+        return;
+    }
+
+    let g = pgcd(n, d);
+
+    let num = n / g;
+    let den = d / g;
+
+    document.getElementById("result").innerHTML =
+    `<div class="fraction">
+        <span class="top">${num}</span>
+        <span class="bottom">${den}</span>
+    </div>`;
+}
+</script>
+
+</body>
+</html>
