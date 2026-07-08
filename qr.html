@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>مولد QR</title>
+<style>
+body{
+    direction: rtl;
+    text-align: center;
+    font-family: Arial;
+    margin-top: 30px;
+}
+textarea{
+    width: 300px;
+    height: 100px;
+    font-size: 16px;
+}
+button{
+    padding: 8px 15px;
+    font-size: 18px;
+    margin-top: 10px;
+}
+#qrcode{
+    margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<h2>إنشاء رمز QR لنص</h2>
+
+<textarea id="text" placeholder="اكتب النص هنا"></textarea>
+<br>
+<button onclick="generateQR()">إنشاء QR</button>
+
+<div id="qrcode"></div>
+
+<script>
+function generateQR() {
+    let text = encodeURIComponent(
+        document.getElementById("text").value
+    );
+
+    document.getElementById("qrcode").innerHTML =
+        '<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data='
+        + text + '" alt="QR Code">';
+}
+</script>
+
+</body>
+</html>
