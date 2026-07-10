@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>السهم والأهداف</title>
+
+<style>
+body{
+    margin:0;
+    background:#eee;
+    text-align:center;
+    font-family:Arial;
+}
+canvas{
+    background:white;
+    border:2px solid #444;
+    margin-top:15px;
+}
+</style>
+</head>
+<body>
+
+<h2>🎯 السهم والأهداف</h2>
+
+<canvas id="game" width="1000" height="600"></canvas>
+
+<script>
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+const W=canvas.width;
+const H=canvas.height;
+
+const arrow=new Image();
+arrow.src="arrow.png";
+
+const target=new Image();
+target.src="target.png";
+
+let score=0;
+
+let x=W/2;
+let y=H/2;
+
+let angle=0;
+let stopAngle=Math.random()*360;
+
+let rotate=true;
+let move=false;
+
+const speed=8;
+
+let tx=random(100,W-180);
+let ty=random(100,H-180);
+
+canvas.onclick=()=>{
+    if(!rotate) move=true;
+};
+
+function random(a,b){
+    return Math.floor(Math.random()*(b-a))+a;
+}
+
+function reset(){
+
+    x=W/2;
+    y=H/2;
+
+    angle=0;
+    stopAngle=Math.random()*360;
+
+    rotate=true;
+    move=false;
+
+}
+
+function newTarget(){
+
+    tx=random(100,W-180);
+    ty=random(100,H-180);
+
+}
+
+function drawArrow(){
+
+    ctx.save();
+
+    ctx.translate(x,y);
+
+    ctx.rotate(-angle*Math.PI/180);
+
+    ctx.drawImage(arrow,-60,-30,120,60);
+
+    ctx.restore();
+
+}
+
+function collision(){
+
+    return(
+        x>tx &&
+        x<tx+80 &&
+        y>ty &&
+        y<ty+80
+    );
+
+}
+
+function loop(){
+
+    ctx.clearRect(0,0,W,H);
+
+    if(rotate){
+
+        angle+=5;
+
+        if(angle>=stopAngle){
+
+            angle=stopAngle;
+            rotate=false;
+
+        }
+
+    }
+
+    if(move){
+
+        x+=Math.cos(angle*Math.PI/180)*speed;
+        y-=Math.sin(angle*Math.PI/180)*speed;
+
+    }
+
+    ctx.drawImage(target,tx,ty,80,80);
+
+    drawArrow();
+
+    ctx.fillStyle="green";
+    ctx.font="30px Arial";
+    ctx.fillText("النقاط : "+score,20,40);
+
+    ctx.fillStyle="blue";
+    ctx.fillText(
+        rotate ? "السهم يدور..." : "انقر لإطلاق السهم",
+        20,80
+    );
+
+    if(collision()){
+
+        score++;
+        newTarget();
+        reset();
+
+    }
+
+    if(
+        x<-100||
+        x>W+100||
+        y<-100||
+        y>H+100
+    ){
+
+        reset();
+
+    }
+
+    requestAnimationFrame(loop);
+
+}
+
+arrow.onload=()=>{
+
+    target.onload=()=>{
+
+        loop();
+
+    };
+
+};
+
+</script>
+
+</body>
+</html>
