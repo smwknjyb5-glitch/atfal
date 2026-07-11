@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ترتيب القطع التقدية  في الأنابيب</title>
+<title>ترتيب الكرات في الأنابيب</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -152,40 +152,14 @@
     box-shadow: 0 0 16px rgba(120,230,160,0.25), inset 0 0 18px rgba(0,0,0,0.5);
   }
 
-  .ball{
-    width:48px; height:48px;
-    border-radius:50%;
+   .ball{
+    width:48px;
+    height:48px;
+    object-fit:contain;
     margin-top:4px;
-    position:relative;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    background:linear-gradient(160deg, #3a3220, #1a1608);
-    box-shadow:
-      0 3px 6px rgba(0,0,0,0.45),
-      inset 0 0 0 2px rgba(212,175,55,0.5);
-    animation: drop .22s ease;
+    animation:drop .22s ease;
     flex-shrink:0;
-  }
-  .ball .coin-img{
-    width:100%; height:100%;
-    object-fit:cover;
-    border-radius:50%;
-    position:relative; z-index:1;
-  }
-  .ball .emblem{
-    position:relative;
-    z-index:1;
-    font-family:'Amiri', serif;
-    font-weight:700;
-    font-size:1.2rem;
-    color:var(--gold-bright);
-    user-select:none;
-  }
-  @media (max-width:520px){
-    .ball .emblem{ font-size:.95rem; }
-  }
+}
   @keyframes drop{
     from{ transform:translateY(-30px); opacity:0; }
     to{ transform:translateY(0); opacity:1; }
@@ -255,8 +229,8 @@
 <div class="wrap">
   <header>
     <div class="eyebrow">لعبة تفكير ومنطق</div>
-    <h1> ترتيب القطع النقدية</h1>
-    <div class="sub">افرز كل  قطعة في أنبوبها الخاص — انقر أنبوباً لتحديده، ثم انقر الوجهة</div>
+    <h1>ترتيب الكرات</h1>
+    <div class="sub">افرز كل لون في أنبوبه الخاص — انقر أنبوباً لتحديده، ثم انقر الوجهة</div>
   </header>
 
   <div class="panel">
@@ -322,20 +296,21 @@ window.addEventListener('resize', resizeStars);
 drawStars();
 
 /* ===== منطق اللعبة ===== */
-const COIN_IMAGES = [
-  'images/coin1.png',
-  'images/coin2.png',
-  'images/coin3.png',
-  'images/coin4.png',
-  'images/coin5.png',
-  'images/coin6.png',
-  'images/coin7.png',
+ const PALETTE = [
+  "images/coin1.png",
+  "images/coin2.png",
+  "images/coin3.png",
+  "images/coin4.png",
+  "images/coin5.png",
+  "images/coin6.png",
+  "images/coin7.png",
+  "images/coin8.png"
 ];
 const CAPACITY = 4;
 const DIFF = {
-  easy:   {colors:3, empties:2},
-  medium: {colors:5, empties:2},
-  hard:   {colors:7, empties:2},
+  easy:   {colors:4, empties:2},
+  medium: {colors:6, empties:2},
+  hard:   {colors:8, empties:2},
 };
 
 let currentDiff = 'easy';
@@ -350,10 +325,10 @@ const movesEl = document.getElementById('moves');
 const winOverlay = document.getElementById('winOverlay');
 const winText = document.getElementById('winText');
 
-function shuffledBallStack(numTypes){
+function shuffledBallStack(numColors){
   let balls = [];
-  for(let c=0;c<numTypes;c++){
-    for(let i=0;i<CAPACITY;i++) balls.push(c);
+  for(let c=0;c<numColors;c++){
+    for(let i=0;i<CAPACITY;i++) balls.push(PALETTE[c]);
   }
   // خلط عشوائي (Fisher-Yates)
   for(let i=balls.length-1;i>0;i--){
@@ -485,27 +460,11 @@ function render(){
     if(idx === selected) el.classList.add('selected');
     if(isTubeSolved(t) && t.length===CAPACITY) el.classList.add('solved');
 
-const SYMBOLS = ['١','٢','٣','٤','٥','٦','٧']; // احتياطي إن لم توجد صورة
-
-function coinIndex(color){ return color; }
-
     t.forEach(color => {
-      const b = document.createElement('div');
-      b.className = 'ball';
-      const img = document.createElement('img');
-      img.src = COIN_IMAGES[color];
-      img.className = 'coin-img';
-      img.alt = `قطعة نقدية ${color+1}`;
-      img.onerror = function(){
-        // إن لم تُضف الصورة بعد، اعرض رقم النوع كبديل مؤقت
-        this.style.display = 'none';
-        const fallback = document.createElement('span');
-        fallback.className = 'emblem';
-        fallback.textContent = SYMBOLS[color] || '●';
-        b.appendChild(fallback);
-      };
-      b.appendChild(img);
-      el.appendChild(b);
+        const img = document.createElement("img");
+img.src = color;
+img.className = "ball";
+el.appendChild(img);
     });
 
     el.addEventListener('click', ()=>handleTubeClick(idx));
@@ -534,3 +493,4 @@ newGame('easy');
 </script>
 </body>
 </html>
+
