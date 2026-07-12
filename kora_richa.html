@@ -1,0 +1,609 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سقوط الكرة الحديدية والريشة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#070b1a;
+    --navy2:#0d1330;
+    --gold:#d4af37;
+    --gold-soft:#f1d97a;
+    --text:#eae6d8;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    background:var(--navy);
+    color:var(--text);
+    font-family:'Cairo',sans-serif;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  #stars{
+    position:fixed;inset:0;
+    z-index:0;
+    display:block;
+  }
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:1100px;
+    margin:0 auto;
+    padding:22px 16px 60px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  h1{
+    font-family:'Amiri',serif;
+    font-size:clamp(24px,5vw,38px);
+    color:var(--gold-soft);
+    margin:0 0 6px;
+    text-shadow:0 0 18px rgba(212,175,55,.35);
+  }
+  .sub{
+    color:#b9b4a0;
+    font-size:14px;
+  }
+
+  .tabs{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:18px 0;
+  }
+  .tab{
+    background:linear-gradient(180deg,#12183a,#0b0f26);
+    border:1px solid rgba(212,175,55,.35);
+    color:var(--text);
+    padding:10px 20px;
+    border-radius:12px;
+    cursor:pointer;
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    transition:.25s;
+  }
+  .tab:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .tab.active{
+    background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+    color:#0b0f26;
+    box-shadow:0 0 20px rgba(212,175,55,.5);
+  }
+
+  .stage{
+    position:relative;
+    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+    border:1px solid rgba(212,175,55,.25);
+    border-radius:18px;
+    padding:14px;
+    box-shadow:0 0 30px rgba(0,0,0,.4) inset;
+  }
+  canvas#sim{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:12px;
+    background:#040611;
+  }
+
+  .env-label{
+    position:absolute;
+    top:26px;
+    right:34px;
+    font-family:'Amiri',serif;
+    font-size:20px;
+    color:var(--gold-soft);
+    background:rgba(7,11,26,.55);
+    padding:4px 14px;
+    border-radius:10px;
+    border:1px solid rgba(212,175,55,.3);
+    pointer-events:none;
+  }
+
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+    margin:18px 0;
+  }
+  button.ctrl{
+    background:linear-gradient(180deg,#1a2350,#0d1330);
+    border:1px solid var(--gold);
+    color:var(--gold-soft);
+    padding:10px 22px;
+    border-radius:10px;
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  button.ctrl:hover{
+    background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+    color:#0b0f26;
+  }
+  button.ctrl:disabled{opacity:.5;cursor:not-allowed;}
+
+  .panel{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:14px;
+    margin-top:20px;
+  }
+  .card{
+    background:linear-gradient(180deg,#0e1436,#080b22);
+    border:1px solid rgba(212,175,55,.25);
+    border-radius:14px;
+    padding:14px 16px;
+  }
+  .card h3{
+    margin:0 0 8px;
+    font-size:15px;
+    color:var(--gold-soft);
+    font-family:'Amiri',serif;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .dot.ball{background:#c7c7c7;box-shadow:0 0 8px #fff8}
+  .dot.feather{background:#e8dcb0;box-shadow:0 0 8px #fff5}
+  .card p{
+    margin:4px 0;
+    font-size:13.5px;
+    color:#cfcabb;
+    line-height:1.7;
+  }
+  .card b{color:var(--gold-soft);}
+
+  .note{
+    margin-top:20px;
+    text-align:center;
+    font-size:13px;
+    color:#8f8a78;
+    line-height:1.8;
+  }
+
+  .stats{
+    display:flex;
+    gap:22px;
+    justify-content:center;
+    margin-top:14px;
+    flex-wrap:wrap;
+    font-size:14px;
+  }
+  .stat{
+    background:rgba(212,175,55,.08);
+    border:1px solid rgba(212,175,55,.25);
+    border-radius:10px;
+    padding:8px 16px;
+    min-width:140px;
+    text-align:center;
+  }
+  .stat span{display:block;color:#9c9885;font-size:12px;margin-bottom:3px;}
+  .stat b{color:var(--gold-soft);font-size:16px;}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+  <header>
+    <h1>سقوط الكرة الحديدية والريشة</h1>
+    <div class="sub">مقارنة تفاعلية بين ثلاث بيئات: الفراغ — الهواء — الماء</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-env="vacuum">🌌 الفراغ</button>
+    <button class="tab" data-env="air">💨 الهواء</button>
+    <button class="tab" data-env="water">💧 الماء</button>
+  </div>
+
+  <div class="stage">
+    <div class="env-label" id="envLabel">الفراغ</div>
+    <canvas id="sim" width="1000" height="520"></canvas>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span>زمن وصول الكرة</span><b id="tBall">—</b></div>
+    <div class="stat"><span>زمن وصول الريشة</span><b id="tFeather">—</b></div>
+    <div class="stat"><span>الفارق الزمني</span><b id="tDiff">—</b></div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl" id="btnStart">▶ إسقاط</button>
+    <button class="ctrl" id="btnReset">⟲ إعادة ضبط</button>
+    <button class="ctrl" id="btnSeq">⏩ تشغيل تسلسلي (الثلاث بيئات)</button>
+  </div>
+
+  <div class="panel" id="explainPanel"></div>
+
+  <div class="note">
+    محاكاة فيزيائية مبسطة: الفراغ بلا مقاومة هواء (تسارع الجسمين متساوٍ = تجربة غاليليو)، الهواء بمقاومة تتناسب مع مربع السرعة ومساحة الجسم، الماء بمقاومة إضافة لقوة الطفو (دافعة أرخميدس).
+  </div>
+</div>
+
+<script>
+/* ===== خلفية النجوم المتحركة ===== */
+const starCanvas = document.getElementById('stars');
+const sctx = starCanvas.getContext('2d');
+let stars = [];
+function resizeStars(){
+  starCanvas.width = window.innerWidth;
+  starCanvas.height = window.innerHeight;
+  stars = [];
+  const count = Math.floor((starCanvas.width*starCanvas.height)/9000);
+  for(let i=0;i<count;i++){
+    stars.push({
+      x:Math.random()*starCanvas.width,
+      y:Math.random()*starCanvas.height,
+      r:Math.random()*1.4+0.3,
+      a:Math.random()*Math.PI*2,
+      s:Math.random()*0.02+0.005
+    });
+  }
+}
+function drawStars(){
+  sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
+  sctx.fillStyle = '#070b1a';
+  sctx.fillRect(0,0,starCanvas.width,starCanvas.height);
+  for(const st of stars){
+    st.a += st.s;
+    const op = 0.4 + Math.sin(st.a)*0.4;
+    sctx.beginPath();
+    sctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
+    sctx.fillStyle = `rgba(212,175,55,${op})`;
+    sctx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+resizeStars();
+window.addEventListener('resize', resizeStars);
+drawStars();
+
+/* ===== محاكاة السقوط ===== */
+const canvas = document.getElementById('sim');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const groundY = H - 40;
+const startY = 60;
+const dropHeight = groundY - startY; // بالبكسل
+const metersTotal = 20; // نعتبر الارتفاع الحقيقي 20 متر
+const pxPerMeter = dropHeight / metersTotal;
+
+const g = 9.8;
+
+// خصائص الجسمين
+const ball = { massKg: 0.5, radiusM: 0.03, area: Math.PI*0.03*0.03, Cd: 0.47 };     // كرة حديد صغيرة
+const feather = { massKg: 0.00005, radiusM: 0.05, area: 0.004, Cd: 1.9 };          // ريشة (مساحة أكبر نسبيًا لمقاومة الهواء)
+
+const envs = {
+  vacuum: { name:'الفراغ', rho:0, waterLevel:null, bg:['#04060f','#070b1a'] },
+  air:    { name:'الهواء', rho:1.225, waterLevel:null, bg:['#050815','#0a0f24'] },
+  water:  { name:'الماء',  rho:1000, waterLevel:0.55, bg:['#020a12','#04121c'] }
+};
+
+let currentEnv = 'vacuum';
+let running = false;
+let animId = null;
+let sequenceMode = false;
+let sequenceQueue = [];
+
+let ballState, featherState;
+
+function resetState(){
+  ballState = { y:startY, v:0, t:0, landed:false, landTime:null };
+  featherState = { y:startY, v:0, t:0, landed:false, landTime:null };
+  document.getElementById('tBall').textContent = '—';
+  document.getElementById('tFeather').textContent = '—';
+  document.getElementById('tDiff').textContent = '—';
+}
+resetState();
+
+function dragForce(rho, Cd, area, v){
+  // F = 0.5 * rho * Cd * A * v^2  (تعاكس اتجاه الحركة)
+  return 0.5 * rho * Cd * area * v * v;
+}
+
+function buoyancy(rho, volume){
+  return rho * volume * g;
+}
+
+function volumeOf(obj){
+  // نقدر الحجم اعتمادًا على نصف قطر تقريبي كروي مكافئ
+  return (4/3) * Math.PI * Math.pow(obj.radiusM, 3);
+}
+
+function stepBody(state, obj, env, dt, waterTopY){
+  if(state.landed) return;
+
+  const rho = env.rho;
+  let netAccel;
+
+  const inWater = env.name === 'الماء' && state.y >= waterTopY;
+
+  // وزن الجسم
+  const weight = obj.massKg * g;
+
+  // مقاومة الهواء/الماء
+  let drag = 0;
+  if(rho > 0){
+    const mediumRho = inWater ? 1000 : rho;
+    drag = dragForce(mediumRho, obj.Cd, obj.area, state.v);
+  }
+
+  // الطفو (فقط داخل الماء)
+  let buoy = 0;
+  if(inWater){
+    buoy = buoyancy(1000, volumeOf(obj));
+  }
+
+  const netForce = weight - drag - buoy;
+  netAccel = netForce / obj.massKg;
+
+  // تخميد إضافي بسيط داخل الماء لمنع التذبذب العددي عند السرعات المنخفضة جدًا (الريشة)
+  if(inWater && obj.massKg < 0.001){
+    netAccel = Math.max(netAccel, -2); // لا تصعد بسرعة كبيرة لأعلى
+  }
+
+  state.v += netAccel * dt;
+  state.y += state.v * dt * pxPerMeter / 1; // v بالمتر/ثانية -> نحوله لبكسل
+  state.t += dt;
+
+  if(state.y >= groundY){
+    state.y = groundY;
+    state.landed = true;
+    state.landTime = state.t;
+  }
+}
+
+function drawEnv(env){
+  const g1 = ctx.createLinearGradient(0,0,0,H);
+  g1.addColorStop(0, env.bg[0]);
+  g1.addColorStop(1, env.bg[1]);
+  ctx.fillStyle = g1;
+  ctx.fillRect(0,0,W,H);
+
+  // خطوط قياس أفقية خفيفة
+  ctx.strokeStyle = 'rgba(212,175,55,.08)';
+  ctx.lineWidth = 1;
+  for(let m=0; m<=metersTotal; m+=2){
+    const y = startY + m*pxPerMeter;
+    ctx.beginPath();
+    ctx.moveTo(20,y);
+    ctx.lineTo(W-20,y);
+    ctx.stroke();
+  }
+
+  // الماء
+  if(env.name === 'الماء'){
+    const waterTopY = startY + dropHeight*env.waterLevel;
+    const wg = ctx.createLinearGradient(0,waterTopY,0,groundY+20);
+    wg.addColorStop(0,'rgba(60,140,190,.35)');
+    wg.addColorStop(1,'rgba(10,60,90,.55)');
+    ctx.fillStyle = wg;
+    ctx.fillRect(0, waterTopY, W, groundY+20-waterTopY);
+    ctx.strokeStyle = 'rgba(150,220,255,.4)';
+    ctx.beginPath();
+    ctx.moveTo(0,waterTopY);
+    ctx.lineTo(W,waterTopY);
+    ctx.stroke();
+  }
+
+  // الأرض
+  ctx.fillStyle = '#1a1f38';
+  ctx.fillRect(0, groundY, W, H-groundY);
+  ctx.strokeStyle = 'rgba(212,175,55,.5)';
+  ctx.beginPath();
+  ctx.moveTo(0,groundY);
+  ctx.lineTo(W,groundY);
+  ctx.stroke();
+
+  return env.waterLevel !== null ? startY + dropHeight*env.waterLevel : null;
+}
+
+function drawBody(x, y, type){
+  if(type === 'ball'){
+    const grd = ctx.createRadialGradient(x-6,y-6,2,x,y,16);
+    grd.addColorStop(0,'#eef0f5');
+    grd.addColorStop(0.5,'#9aa0ab');
+    grd.addColorStop(1,'#3d424d');
+    ctx.beginPath();
+    ctx.arc(x,y,14,0,Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.3)';
+    ctx.stroke();
+  } else {
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(Math.sin(y*0.03)*0.3);
+    ctx.beginPath();
+    ctx.moveTo(0,-16);
+    ctx.quadraticCurveTo(14,-4,0,16);
+    ctx.quadraticCurveTo(-14,-4,0,-16);
+    ctx.closePath();
+    const grd = ctx.createLinearGradient(-10,-16,10,16);
+    grd.addColorStop(0,'#f1e6bd');
+    grd.addColorStop(1,'#c9ad63');
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // عمود الريشة
+    ctx.strokeStyle = 'rgba(255,255,255,.5)';
+    ctx.beginPath();
+    ctx.moveTo(0,-15);
+    ctx.lineTo(0,15);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawLabels(){
+  ctx.fillStyle = 'rgba(234,230,216,.85)';
+  ctx.font = '13px Cairo, sans-serif';
+  ctx.textAlign = 'center';
+}
+
+function render(){
+  const env = envs[currentEnv];
+  const waterTopY = drawEnv(env);
+
+  const ballX = W*0.38;
+  const featherX = W*0.62;
+
+  drawBody(ballX, ballState.y, 'ball');
+  drawBody(featherX, featherState.y, 'feather');
+
+  ctx.fillStyle = 'rgba(234,230,216,.85)';
+  ctx.font = '14px Cairo, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('كرة حديدية', ballX, startY-25);
+  ctx.fillText('ريشة', featherX, startY-25);
+
+  ctx.font = '12px Cairo, sans-serif';
+  ctx.fillStyle = 'rgba(212,175,55,.9)';
+  ctx.fillText(ballState.v.toFixed(2)+' م/ث', ballX, ballState.y+35);
+  ctx.fillText(featherState.v.toFixed(2)+' م/ث', featherX, featherState.y+35);
+}
+
+function loop(){
+  const env = envs[currentEnv];
+  const waterTopY = env.waterLevel !== null ? startY + dropHeight*env.waterLevel : Infinity;
+  const dt = 1/60;
+
+  stepBody(ballState, ball, env, dt, waterTopY);
+  stepBody(featherState, feather, env, dt, waterTopY);
+
+  render();
+
+  if(ballState.landed && ballState.landTime && document.getElementById('tBall').textContent === '—'){
+    document.getElementById('tBall').textContent = ballState.landTime.toFixed(2)+' ث';
+  }
+  if(featherState.landed && featherState.landTime && document.getElementById('tFeather').textContent === '—'){
+    document.getElementById('tFeather').textContent = featherState.landTime.toFixed(2)+' ث';
+  }
+  if(ballState.landed && featherState.landed){
+    const diff = Math.abs(ballState.landTime - featherState.landTime);
+    document.getElementById('tDiff').textContent = diff.toFixed(2)+' ث';
+    running = false;
+    document.getElementById('btnStart').disabled = false;
+
+    if(sequenceMode && sequenceQueue.length){
+      setTimeout(()=>{
+        const next = sequenceQueue.shift();
+        switchEnv(next);
+        resetState();
+        render();
+        startDrop();
+      }, 1200);
+    } else {
+      sequenceMode = false;
+    }
+    return;
+  }
+
+  animId = requestAnimationFrame(loop);
+}
+
+function startDrop(){
+  if(running) return;
+  running = true;
+  document.getElementById('btnStart').disabled = true;
+  animId = requestAnimationFrame(loop);
+}
+
+function switchEnv(envKey){
+  currentEnv = envKey;
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.classList.toggle('active', t.dataset.env === envKey);
+  });
+  document.getElementById('envLabel').textContent = envs[envKey].name;
+  updateExplainPanel(envKey);
+}
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    if(running) return;
+    sequenceMode = false;
+    switchEnv(tab.dataset.env);
+    resetState();
+    render();
+  });
+});
+
+document.getElementById('btnStart').addEventListener('click', ()=>{
+  if(running) return;
+  sequenceMode = false;
+  resetState();
+  startDrop();
+});
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(animId) cancelAnimationFrame(animId);
+  running = false;
+  sequenceMode = false;
+  document.getElementById('btnStart').disabled = false;
+  resetState();
+  render();
+});
+
+document.getElementById('btnSeq').addEventListener('click', ()=>{
+  if(running) return;
+  sequenceMode = true;
+  sequenceQueue = ['vacuum','air','water'].filter(e=>e!==currentEnv);
+  // نبدأ من الفراغ دائمًا لتسلسل تعليمي منطقي
+  switchEnv('vacuum');
+  sequenceQueue = ['air','water'];
+  resetState();
+  render();
+  startDrop();
+});
+
+const explainData = {
+  vacuum: [
+    {title:'⚪ الكرة الحديدية', dot:'ball', text:'تسقط بتسارع الجاذبية الأرضية فقط <b>g = 9.8 م/ث²</b>، بلا أي مقاومة تُذكر.'},
+    {title:'🪶 الريشة', dot:'feather', text:'في الفراغ التام لا يوجد هواء يقاوم حركتها، فتسقط بنفس تسارع الكرة تمامًا.'},
+    {title:'⚖️ النتيجة', dot:'ball', text:'يصل الجسمان إلى الأرض في <b>نفس اللحظة</b> — وهذه تجربة غاليليو الشهيرة، وأُثبتت عمليًا على سطح القمر بواسطة رواد أبولو 15.'}
+  ],
+  air: [
+    {title:'⚪ الكرة الحديدية', dot:'ball', text:'كثافتها العالية ومساحة سطحها الصغيرة تجعلان مقاومة الهواء ضئيلة جدًا مقارنة بوزنها، فتسقط شبه حرة.'},
+    {title:'🪶 الريشة', dot:'feather', text:'مساحة سطحها كبيرة نسبيًا لكتلتها الصغيرة، فتصطدم بمقاومة هواء قوية تُبطئها بسرعة حتى تصل إلى <b>سرعة نهائية</b> منخفضة.'},
+    {title:'⚖️ النتيجة', dot:'ball', text:'تصل الكرة إلى الأرض أولًا بفارق واضح، بينما تتمايل الريشة ببطء إلى الأسفل.'}
+  ],
+  water: [
+    {title:'⚪ الكرة الحديدية', dot:'ball', text:'كثافة الحديد أكبر بكثير من كثافة الماء، فتستمر بالغرق لكن بسرعة أقل بسبب اللزوجة ومقاومة الماء.'},
+    {title:'🪶 الريشة', dot:'feather', text:'قوة الطفو (دافعة أرخميدس) تقارب وزنها، ومقاومة الماء الكبيرة تجعلها تهبط ببطء شديد شبه معلقة.'},
+    {title:'⚖️ النتيجة', dot:'ball', text:'الفارق الزمني بين الجسمين يصبح أكبر ما يمكن، لأن الماء أكثف من الهواء بحوالي 800 مرة.'}
+  ]
+};
+
+function updateExplainPanel(envKey){
+  const panel = document.getElementById('explainPanel');
+  panel.innerHTML = '';
+  explainData[envKey].forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<h3><span class="dot ${item.dot}"></span>${item.title}</h3><p>${item.text}</p>`;
+    panel.appendChild(card);
+  });
+}
+
+// تهيئة أولية
+switchEnv('vacuum');
+render();
+</script>
+</body>
+</html>
