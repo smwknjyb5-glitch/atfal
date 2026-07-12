@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فوائد وأضرار الشوارد المعدنية في الماء</title>
+<style>
+  :root{
+    --navy-deep:#050b1a; --navy:#0a1830; --navy-light:#132a4d;
+    --gold:#e8b84b; --gold-bright:#ffd777; --gold-dim:#8a6d2e;
+    --text:#eaf0ff; --text-dim:#9fb0d0;
+    --green:#7ddc9b; --red:#f28b8b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--navy-deep);
+    color:var(--text); font-family:'Tahoma','Segoe UI',sans-serif;
+    overflow-x:hidden; position:relative;
+  }
+  #stars{position:fixed; inset:0; z-index:0; pointer-events:none;}
+  .wrap{position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:20px 16px 60px;}
+  header{text-align:center; margin-bottom:20px;}
+  h1{font-size:clamp(21px,4vw,30px); color:var(--gold-bright); text-shadow:0 0 20px rgba(232,184,75,0.35); margin:10px 0 6px;}
+  header p{color:var(--text-dim); margin:0; font-size:14px;}
+
+  .filter-bar{
+    display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:22px;
+  }
+  .filter-btn{
+    background:transparent; border:1px solid var(--gold-dim); color:var(--text-dim);
+    padding:8px 16px; border-radius:20px; cursor:pointer; font-size:13px; transition:.2s;
+  }
+  .filter-btn.active{
+    background:linear-gradient(160deg,var(--gold-bright),var(--gold-dim));
+    color:#231800; border-color:transparent; font-weight:bold;
+  }
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px;
+  }
+
+  .card{
+    background:linear-gradient(160deg,var(--navy-light),var(--navy));
+    border:1px solid rgba(232,184,75,0.25); border-radius:16px;
+    box-shadow:0 10px 26px rgba(0,0,0,0.45);
+    padding:18px; cursor:pointer; transition:transform .2s, box-shadow .2s;
+  }
+  .card:hover{ transform:translateY(-4px); box-shadow:0 14px 32px rgba(232,184,75,0.15); }
+
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .ion-name{ font-size:17px; color:var(--gold-bright); font-weight:bold; }
+  .ion-formula{ font-family:'Consolas',monospace; color:var(--text-dim); font-size:14px; background:rgba(0,0,0,0.3); padding:3px 10px; border-radius:6px; }
+
+  .card-body{ display:none; margin-top:14px; }
+  .card.open .card-body{ display:block; }
+  .card .chevron{ transition:transform .2s; color:var(--gold); }
+  .card.open .chevron{ transform:rotate(180deg); }
+
+  .section{ margin-bottom:12px; }
+  .section-title{ display:flex; align-items:center; gap:6px; font-size:14px; font-weight:bold; margin-bottom:6px; }
+  .section-title.good{ color:var(--green); }
+  .section-title.bad{ color:var(--red); }
+  .section ul{ margin:0; padding-right:20px; color:var(--text-dim); font-size:13.5px; line-height:1.9; }
+  .section ul li{ margin-bottom:2px; }
+
+  .badge-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .badge{
+    font-size:11px; padding:4px 10px; border-radius:12px;
+    border:1px solid rgba(232,184,75,0.3); color:var(--text-dim);
+  }
+
+  .norms{
+    margin-top:12px; background:rgba(0,0,0,0.25); border-radius:8px; padding:10px 12px;
+    font-size:12.5px; color:var(--text-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;
+  }
+  .norms b{ color:var(--gold); }
+
+  .legend{
+    display:flex; gap:20px; justify-content:center; margin-bottom:18px; flex-wrap:wrap;
+    font-size:13px; color:var(--text-dim);
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+
+  footer{text-align:center; color:var(--text-dim); font-size:12px; margin-top:30px;}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+  <header>
+    <h1>⚖️ فوائد وأضرار الشوارد المعدنية في الماء</h1>
+    <p>اضغط على أي شاردة لعرض تفاصيل فوائدها الصحية ومخاطر الإفراط أو النقص فيها</p>
+  </header>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--green)"></span> فوائد</span>
+    <span><span class="dot" style="background:var(--red)"></span> أضرار محتملة</span>
+  </div>
+
+  <div class="filter-bar" id="filterBar"></div>
+
+  <div class="grid" id="ionGrid"></div>
+
+  <footer>محتوى تعليمي مبسّط — لا يُغني عن استشارة طبية أو تحليل مخبري دقيق للمياه</footer>
+</div>
+
+<script>
+// ---------- خلفية النجوم ----------
+(function(){
+  const c=document.getElementById('stars');
+  const ctx=c.getContext('2d');
+  function resize(){c.width=innerWidth;c.height=innerHeight;}
+  resize(); addEventListener('resize',resize);
+  const stars=Array.from({length:150},()=>({
+    x:Math.random()*c.width,y:Math.random()*c.height,
+    r:Math.random()*1.4+0.2, s:Math.random()*0.02+0.005, p:Math.random()*Math.PI*2
+  }));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.fillStyle='#050b1a'; ctx.fillRect(0,0,c.width,c.height);
+    for(const st of stars){
+      st.p+=st.s;
+      const alpha=0.4+0.6*Math.abs(Math.sin(st.p));
+      ctx.beginPath();
+      ctx.fillStyle=`rgba(232,184,75,${alpha*0.8})`;
+      ctx.arc(st.x,st.y,st.r,0,7);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ---------- بيانات الشوارد ----------
+const ions=[
+  {
+    key:'ca', name:'الكالسيوم', formula:'Ca²⁺', category:'موجبة',
+    benefits:['يبني ويقوّي العظام والأسنان','ضروري لتخثر الدم','يساعد على انقباض العضلات وعمل القلب'],
+    harms:['نقصه يسبب هشاشة العظام وتقلصات عضلية','زيادته قد تؤدي لحصى الكلى','قد يتداخل مع امتصاص بعض المعادن الأخرى'],
+    norm:'25 – 200 mg/L'
+  },
+  {
+    key:'mg', name:'المغنيزيوم', formula:'Mg²⁺', category:'موجبة',
+    benefits:['يساعد على استرخاء العضلات والأعصاب','يدعم عمل القلب المنتظم','يشارك في أكثر من 300 تفاعل إنزيمي'],
+    harms:['نقصه يسبب تشنجات وتعب عام','زيادته قد تسبب إسهالاً وانخفاض ضغط الدم'],
+    norm:'1 – 100 mg/L'
+  },
+  {
+    key:'na', name:'الصوديوم', formula:'Na⁺', category:'موجبة',
+    benefits:['ينظّم توازن الماء داخل وخارج الخلايا','ضروري لنقل السيالات العصبية'],
+    harms:['الإفراط فيه يرفع ضغط الدم','يُشكّل خطراً لمرضى القلب والكلى','قد يسبب احتباس الماء والوذمة'],
+    norm:'أقل من 200 mg/L (يُفضَّل أقل من 20 للرضّع)'
+  },
+  {
+    key:'k', name:'البوتاسيوم', formula:'K⁺', category:'موجبة',
+    benefits:['يوازن السوائل مع الصوديوم','ضروري لانقباض عضلة القلب','يدعم وظائف الأعصاب'],
+    harms:['نادراً ما يكون ضاراً من الماء وحده','فرط البوتاسيوم (من مصادر أخرى) قد يؤثر على نظم القلب لدى مرضى الكلى'],
+    norm:'أقل من 10-12 mg/L عادة'
+  },
+  {
+    key:'hco3', name:'البيكربونات', formula:'HCO₃⁻', category:'سالبة',
+    benefits:['يعادل حموضة المعدة ويساعد الهضم','يمنح الماء طعماً منعشاً خفيفاً'],
+    harms:['نادراً ما تسبب أضراراً مباشرة','تركيزها العالي جداً قد يغيّر طعم الماء ويزعج الجهاز الهضمي الحساس'],
+    norm:'حتى 1500 mg/L في بعض المياه الغنية'
+  },
+  {
+    key:'so4', name:'الكبريتات', formula:'SO₄²⁻', category:'سالبة',
+    benefits:['بكميات معتدلة تساعد على الهضم (تأثير ملين خفيف)'],
+    harms:['التركيز المرتفع (>250 mg/L) قد يسبب إسهالاً واضطراباً معوياً خاصة عند من لا يعتادون عليها'],
+    norm:'أقل من 250 mg/L'
+  },
+  {
+    key:'cl', name:'الكلوريد', formula:'Cl⁻', category:'سالبة',
+    benefits:['ضروري لإنتاج عصارة المعدة الهاضمة','يشارك في توازن السوائل مع الصوديوم'],
+    harms:['التركيز المرتفع جداً يعطي طعماً مالحاً ويرفع ضغط الدم بالترافق مع الصوديوم'],
+    norm:'أقل من 250 mg/L'
+  },
+  {
+    key:'no3', name:'النترات', formula:'NO₃⁻', category:'سالبة',
+    benefits:['بتركيز منخفض جداً لا تُشكّل خطراً يُذكر'],
+    harms:['خطيرة على الرضّع (متلازمة الطفل الأزرق - نقص أكسجة الدم)','قد تتحول لمركبات مسرطنة محتملة (نتروزامينات) بتركيز مرتفع','مؤشر على تلوث المياه بالأسمدة أو الفضلات'],
+    norm:'أقل من 50 mg/L (ويُفضَّل أقل من 10 للرضّع)'
+  }
+];
+
+const filterBar=document.getElementById('filterBar');
+const cats=['الكل','موجبة','سالبة'];
+let activeCat='الكل';
+cats.forEach(c=>{
+  const btn=document.createElement('button');
+  btn.className='filter-btn'+(c===activeCat?' active':'');
+  btn.textContent = c==='الكل' ? '🔍 الكل' : (c==='موجبة' ? '➕ الشوارد الموجبة' : '➖ الشوارد السالبة');
+  btn.addEventListener('click',()=>{
+    activeCat=c;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+  filterBar.appendChild(btn);
+});
+
+const grid=document.getElementById('ionGrid');
+
+function render(){
+  grid.innerHTML='';
+  ions.filter(i=> activeCat==='الكل' || i.category===activeCat).forEach(ion=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <div class="card-head">
+        <div>
+          <span class="ion-name">${ion.name}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="ion-formula">${ion.formula}</span>
+          <span class="chevron">▾</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="section">
+          <div class="section-title good">✔ الفوائد</div>
+          <ul>${ion.benefits.map(b=>`<li>${b}</li>`).join('')}</ul>
+        </div>
+        <div class="section">
+          <div class="section-title bad">⚠ الأضرار المحتملة</div>
+          <ul>${ion.harms.map(h=>`<li>${h}</li>`).join('')}</ul>
+        </div>
+        <div class="norms">
+          <span><b>النوع:</b> شاردة ${ion.category}</span>
+          <span><b>الحد الطبيعي التقريبي:</b> ${ion.norm}</span>
+        </div>
+      </div>
+    `;
+    card.addEventListener('click',()=>card.classList.toggle('open'));
+    grid.appendChild(card);
+  });
+}
+render();
+</script>
+</body>
+</html>
