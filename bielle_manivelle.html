@@ -1,0 +1,466 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة آلية بيّل - مانيفيلا | تحويل الحركة الدورانية إلى خطية</title>
+<style>
+  :root{
+    --navy-deep:#050b1a;
+    --navy:#0a1830;
+    --navy-light:#132a4d;
+    --gold:#e8b84b;
+    --gold-bright:#ffd777;
+    --gold-dim:#8a6d2e;
+    --text:#eaf0ff;
+    --text-dim:#9fb0d0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--navy-deep);
+    color:var(--text);
+    font-family:'Tahoma','Segoe UI',sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+  #stars{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:1100px; margin:0 auto; padding:20px 16px 60px;
+  }
+  header{
+    text-align:center; margin-bottom:20px;
+  }
+  h1{
+    font-size:clamp(22px,4vw,32px);
+    color:var(--gold-bright);
+    text-shadow:0 0 20px rgba(232,184,75,0.35);
+    margin:10px 0 6px;
+  }
+  header p{color:var(--text-dim); margin:0; font-size:14px;}
+
+  .panel{
+    background:linear-gradient(160deg,var(--navy-light),var(--navy));
+    border:1px solid rgba(232,184,75,0.25);
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5), inset 0 0 40px rgba(232,184,75,0.03);
+    padding:18px;
+    margin-bottom:18px;
+  }
+
+  canvas{
+    display:block; width:100%; border-radius:12px;
+    background:radial-gradient(ellipse at center, #0d1c38 0%, #060e20 100%);
+    border:1px solid rgba(232,184,75,0.18);
+  }
+
+  .controls{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:16px;
+    margin-top:16px;
+  }
+  .ctrl{
+    background:rgba(0,0,0,0.2);
+    border:1px solid rgba(232,184,75,0.15);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .ctrl label{
+    display:flex; justify-content:space-between;
+    font-size:14px; color:var(--gold); margin-bottom:8px;
+  }
+  .ctrl label span.val{color:var(--gold-bright); font-weight:bold;}
+  input[type=range]{
+    width:100%; accent-color:var(--gold);
+  }
+  .buttons{
+    display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
+  }
+  button{
+    background:linear-gradient(160deg,var(--gold-bright),var(--gold-dim));
+    color:#231800;
+    border:none; border-radius:8px;
+    padding:10px 18px;
+    font-weight:bold; font-size:14px;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(232,184,75,0.25);
+    transition:transform .15s;
+  }
+  button:hover{transform:translateY(-2px);}
+  button.secondary{
+    background:transparent;
+    border:1px solid var(--gold-dim);
+    color:var(--gold);
+    box-shadow:none;
+  }
+
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:10px;
+    margin-top:16px;
+  }
+  .stat{
+    background:rgba(0,0,0,0.25);
+    border:1px solid rgba(232,184,75,0.15);
+    border-radius:10px;
+    padding:10px 12px;
+    text-align:center;
+  }
+  .stat .label{font-size:12px; color:var(--text-dim);}
+  .stat .value{font-size:18px; color:var(--gold-bright); font-weight:bold; margin-top:4px;}
+
+  h2{color:var(--gold); font-size:18px; margin:0 0 10px; border-bottom:1px solid rgba(232,184,75,0.2); padding-bottom:8px;}
+
+  .explain{
+    font-size:14px; line-height:2; color:var(--text-dim);
+  }
+  .explain b{color:var(--gold);}
+  .formula{
+    background:rgba(0,0,0,0.3);
+    border-right:3px solid var(--gold);
+    padding:8px 14px;
+    margin:8px 0;
+    font-family:'Consolas',monospace;
+    color:var(--gold-bright);
+    display:inline-block;
+  }
+  footer{text-align:center; color:var(--text-dim); font-size:12px; margin-top:30px;}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+  <header>
+    <h1>⚙️ محاكاة آلية بيّل - مانيفيلا</h1>
+    <p>Bielle - Manivelle : تحويل الحركة الدورانية إلى حركة خطية مستقيمة (والعكس)</p>
+  </header>
+
+  <div class="panel">
+    <canvas id="sim" width="1000" height="420"></canvas>
+
+    <div class="buttons">
+      <button id="toggleBtn">⏸ إيقاف مؤقت</button>
+      <button class="secondary" id="resetBtn">↺ إعادة الضبط</button>
+      <button class="secondary" id="dirBtn">⇄ عكس الاتجاه</button>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <label>سرعة الدوران (المانيفيلا) <span class="val" id="speedVal">1.0×</span></label>
+        <input type="range" id="speed" min="0" max="3" step="0.05" value="1">
+      </div>
+      <div class="ctrl">
+        <label>طول المانيفيلا (نصف قطر الكرنك) <span class="val" id="crankVal">70</span></label>
+        <input type="range" id="crankLen" min="30" max="110" step="1" value="70">
+      </div>
+      <div class="ctrl">
+        <label>طول البيّل (ذراع التوصيل) <span class="val" id="rodVal">220</span></label>
+        <input type="range" id="rodLen" min="140" max="320" step="1" value="220">
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">زاوية المانيفيلا θ</div><div class="value" id="angleStat">0°</div></div>
+      <div class="stat"><div class="label">موضع المكبس X</div><div class="value" id="posStat">0 mm</div></div>
+      <div class="stat"><div class="label">السرعة الخطية</div><div class="value" id="velStat">0</div></div>
+      <div class="stat"><div class="label">التسارع</div><div class="value" id="accStat">0</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>📈 منحنى موضع المكبس بدلالة زاوية الدوران</h2>
+    <canvas id="graph" width="1000" height="200"></canvas>
+  </div>
+
+  <div class="panel explain">
+    <h2>🧠 كيف تعمل الآلية؟</h2>
+    <p>
+      آلية <b>بيّل - مانيفيلا</b> (Bielle-Manivelle) هي آلية ميكانيكية أساسية تُستخدم لتحويل
+      <b>الحركة الدورانية</b> الصادرة عن عمود مرفقي (Crankshaft) إلى <b>حركة خطية ترددية</b> (ذهاباً وإياباً)،
+      وهذا بالضبط ما يحدث داخل محرك السيارة: يدور المرفق فيدفع المكبس (Piston) عبر ذراع التوصيل (البيّل) للأعلى والأسفل داخل الأسطوانة.
+    </p>
+    <p>
+      العلاقة الرياضية بين زاوية دوران المانيفيلا <b>θ</b> وموضع المكبس <b>x</b> تُعطى تقريبياً بالمعادلة:
+    </p>
+    <div class="formula">x(θ) = r·cos(θ) + √(L² − r²·sin²(θ))</div>
+    <p>
+      حيث <b>r</b> هو طول المانيفيلا (نصف قطر الكرنك)، و<b>L</b> هو طول البيّل (ذراع التوصيل).
+      عندما تدور المانيفيلا دورة كاملة (360°)، يتحرك المكبس مسافة كاملة ذهاباً وإياباً بين نقطتي الموت العلوية والسفلية (PMH / PMB).
+    </p>
+    <p>
+      لاحظ أن حركة المكبس <b>ليست منتظمة</b> رغم أن دوران المانيفيلا منتظم: فهو يتسارع ويتباطأ بشكل مختلف في كل نصف دورة،
+      وهذا ما يوضحه منحنى الموضع أعلاه — فهو ليس جيبياً تماماً (Not a perfect sine wave) بسبب طول البيّل المحدود.
+    </p>
+  </div>
+
+  <footer>تجربة تفاعلية للفيزياء والميكانيكا • يمكنك تحريك أشرطة التمرير لتغيير أبعاد الآلية مباشرة</footer>
+</div>
+
+<script>
+// ---------- خلفية النجوم ----------
+(function(){
+  const c=document.getElementById('stars');
+  const ctx=c.getContext('2d');
+  function resize(){c.width=innerWidth;c.height=innerHeight;}
+  resize(); addEventListener('resize',resize);
+  const stars=Array.from({length:160},()=>({
+    x:Math.random()*c.width,y:Math.random()*c.height,
+    r:Math.random()*1.4+0.2, s:Math.random()*0.02+0.005, p:Math.random()*Math.PI*2
+  }));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.fillStyle='#050b1a'; ctx.fillRect(0,0,c.width,c.height);
+    for(const st of stars){
+      st.p+=st.s;
+      const alpha=0.4+0.6*Math.abs(Math.sin(st.p));
+      ctx.beginPath();
+      ctx.fillStyle=`rgba(232,184,75,${alpha*0.8})`;
+      ctx.arc(st.x,st.y,st.r,0,7);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ---------- المحاكاة ----------
+const canvas=document.getElementById('sim');
+const ctx=canvas.getContext('2d');
+const graphCanvas=document.getElementById('graph');
+const gctx=graphCanvas.getContext('2d');
+
+let theta=0;           // زاوية المانيفيلا (راديان)
+let running=true;
+let direction=1;
+let crankLen=70;
+let rodLen=220;
+let speedFactor=1;
+let lastTime=null;
+
+const speedEl=document.getElementById('speed');
+const crankLenEl=document.getElementById('crankLen');
+const rodLenEl=document.getElementById('rodLen');
+const speedVal=document.getElementById('speedVal');
+const crankVal=document.getElementById('crankVal');
+const rodVal=document.getElementById('rodVal');
+const angleStat=document.getElementById('angleStat');
+const posStat=document.getElementById('posStat');
+const velStat=document.getElementById('velStat');
+const accStat=document.getElementById('accStat');
+
+speedEl.addEventListener('input',e=>{
+  speedFactor=parseFloat(e.target.value);
+  speedVal.textContent=speedFactor.toFixed(2)+'×';
+});
+crankLenEl.addEventListener('input',e=>{
+  crankLen=parseFloat(e.target.value);
+  crankVal.textContent=crankLen.toFixed(0);
+});
+rodLenEl.addEventListener('input',e=>{
+  rodLen=parseFloat(e.target.value);
+  rodVal.textContent=rodLen.toFixed(0);
+});
+
+document.getElementById('toggleBtn').addEventListener('click',function(){
+  running=!running;
+  this.textContent = running ? '⏸ إيقاف مؤقت' : '▶ تشغيل';
+  lastTime=null;
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  theta=0;
+});
+document.getElementById('dirBtn').addEventListener('click',()=>{
+  direction*=-1;
+});
+
+// نقطة ارتكاز المانيفيلا (مركز الدوران) على الرسم
+const pivot={x:250,y:210};
+const pistonY=210; // خط حركة المكبس أفقياً
+
+function computeX(th, r, L){
+  return r*Math.cos(th) + Math.sqrt(Math.max(L*L - r*r*Math.sin(th)*Math.sin(th),0));
+}
+
+let prevX=null, prevV=null;
+
+function drawSim(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // خط سكة المكبس
+  ctx.strokeStyle='rgba(159,176,208,0.25)';
+  ctx.setLineDash([6,6]);
+  ctx.beginPath();
+  ctx.moveTo(pivot.x - crankLen - rodLen - 40, pistonY);
+  ctx.lineTo(pivot.x + crankLen + rodLen + 40, pistonY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const xPiston = pivot.x + computeX(theta, crankLen, rodLen);
+
+  const crankEnd = {
+    x: pivot.x + crankLen*Math.cos(theta),
+    y: pivot.y - crankLen*Math.sin(theta)
+  };
+
+  // ---- المانيفيلا (الكرنك) ----
+  ctx.lineWidth=8;
+  ctx.strokeStyle='#e8b84b';
+  ctx.beginPath();
+  ctx.moveTo(pivot.x,pivot.y);
+  ctx.lineTo(crankEnd.x,crankEnd.y);
+  ctx.stroke();
+
+  // مركز الدوران
+  ctx.fillStyle='#ffd777';
+  ctx.beginPath(); ctx.arc(pivot.x,pivot.y,10,0,7); ctx.fill();
+  ctx.strokeStyle='#050b1a'; ctx.lineWidth=2; ctx.stroke();
+
+  // مسار دائري خافت للمانيفيلا
+  ctx.strokeStyle='rgba(232,184,75,0.15)';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(pivot.x,pivot.y,crankLen,0,7); ctx.stroke();
+
+  // ---- البيّل (ذراع التوصيل) ----
+  ctx.lineWidth=7;
+  ctx.strokeStyle='#7fb8e0';
+  ctx.beginPath();
+  ctx.moveTo(crankEnd.x,crankEnd.y);
+  ctx.lineTo(xPiston,pistonY);
+  ctx.stroke();
+
+  // مفصل البيّل-كرنك
+  ctx.fillStyle='#ffe9a8';
+  ctx.beginPath(); ctx.arc(crankEnd.x,crankEnd.y,7,0,7); ctx.fill();
+
+  // ---- الأسطوانة / سكة المكبس ----
+  ctx.fillStyle='rgba(127,184,224,0.08)';
+  ctx.fillRect(pivot.x+crankLen+rodLen*0.35, pistonY-32, rodLen*0.9, 64);
+  ctx.strokeStyle='rgba(127,184,224,0.4)';
+  ctx.lineWidth=2;
+  ctx.strokeRect(pivot.x+crankLen+rodLen*0.35, pistonY-32, rodLen*0.9, 64);
+
+  // ---- المكبس ----
+  ctx.fillStyle='#eaf0ff';
+  ctx.strokeStyle='#e8b84b';
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.roundRect(xPiston-24,pistonY-30,48,60,8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle='#050b1a';
+  ctx.font='bold 12px Tahoma';
+  ctx.textAlign='center';
+  ctx.fillText('مكبس',xPiston,pistonY+5);
+
+  // تسمية المانيفيلا والبيّل
+  ctx.fillStyle='#e8b84b';
+  ctx.font='13px Tahoma';
+  ctx.textAlign='center';
+  const midCrank={x:(pivot.x+crankEnd.x)/2, y:(pivot.y+crankEnd.y)/2};
+  ctx.fillText('مانيفيلا', midCrank.x, midCrank.y-14);
+  ctx.fillStyle='#7fb8e0';
+  const midRod={x:(crankEnd.x+xPiston)/2, y:(crankEnd.y+pistonY)/2};
+  ctx.fillText('بيّل (ذراع التوصيل)', midRod.x, midRod.y-14);
+
+  return xPiston - pivot.x;
+}
+
+function drawGraph(){
+  gctx.clearRect(0,0,graphCanvas.width,graphCanvas.height);
+  const W=graphCanvas.width, H=graphCanvas.height;
+  const pad=40;
+
+  // محاور
+  gctx.strokeStyle='rgba(159,176,208,0.3)';
+  gctx.lineWidth=1;
+  gctx.beginPath();
+  gctx.moveTo(pad,H-pad); gctx.lineTo(W-10,H-pad);
+  gctx.moveTo(pad,10); gctx.lineTo(pad,H-pad);
+  gctx.stroke();
+
+  gctx.fillStyle='#9fb0d0';
+  gctx.font='11px Tahoma';
+  gctx.fillText('0°',pad-6,H-pad+15);
+  gctx.fillText('360°',W-40,H-pad+15);
+  gctx.save();
+  gctx.translate(14,H/2);
+  gctx.rotate(-Math.PI/2);
+  gctx.textAlign='center';
+  gctx.fillText('موضع المكبس x(θ)',0,0);
+  gctx.restore();
+
+  const maxX = crankLen + rodLen;
+  const minX = -crankLen + Math.sqrt(Math.max(rodLen*rodLen-0,0));
+  const range = (crankLen+rodLen) - (Math.sqrt(Math.max(rodLen*rodLen-crankLen*crankLen,0))-crankLen);
+
+  gctx.strokeStyle='#ffd777';
+  gctx.lineWidth=2.5;
+  gctx.beginPath();
+  const N=200;
+  let yMin=Infinity, yMax=-Infinity;
+  const vals=[];
+  for(let i=0;i<=N;i++){
+    const th=(i/N)*Math.PI*2;
+    const x=computeX(th,crankLen,rodLen);
+    vals.push(x);
+    if(x<yMin)yMin=x;
+    if(x>yMax)yMax=x;
+  }
+  for(let i=0;i<=N;i++){
+    const px = pad + (i/N)*(W-pad-10);
+    const py = H-pad - ((vals[i]-yMin)/(yMax-yMin))*(H-pad-20);
+    if(i===0) gctx.moveTo(px,py); else gctx.lineTo(px,py);
+  }
+  gctx.stroke();
+
+  // مؤشر الموضع الحالي
+  const curFrac = ((theta%(Math.PI*2))+Math.PI*2)%(Math.PI*2) / (Math.PI*2);
+  const curX = computeX(theta,crankLen,rodLen);
+  const px = pad + curFrac*(W-pad-10);
+  const py = H-pad - ((curX-yMin)/(yMax-yMin))*(H-pad-20);
+  gctx.fillStyle='#ffffff';
+  gctx.beginPath(); gctx.arc(px,py,5,0,7); gctx.fill();
+  gctx.strokeStyle='#e8b84b'; gctx.lineWidth=2; gctx.stroke();
+}
+
+function tick(t){
+  if(lastTime===null) lastTime=t;
+  const dt=(t-lastTime)/1000;
+  lastTime=t;
+
+  if(running){
+    theta += direction * speedFactor * 2 * dt; // rad/s تقريبية
+  }
+
+  const xRel = drawSim();
+  drawGraph();
+
+  const degrees = (((theta%(Math.PI*2))+Math.PI*2)%(Math.PI*2)) * 180/Math.PI;
+  angleStat.textContent = degrees.toFixed(1)+'°';
+  posStat.textContent = xRel.toFixed(1)+' مم';
+
+  if(prevX!==null && dt>0){
+    const v = (xRel - prevX)/dt;
+    if(prevV!==null){
+      const a = (v - prevV)/dt;
+      accStat.textContent = a.toFixed(0)+' مم/ث²';
+    }
+    velStat.textContent = v.toFixed(0)+' مم/ث';
+    prevV = v;
+  }
+  prevX = xRel;
+
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
