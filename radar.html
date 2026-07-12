@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة كيفية عمل الرادار</title>
+<style>
+  :root{
+    --navy-deep:#050b1a; --navy:#0a1830; --navy-light:#132a4d;
+    --gold:#e8b84b; --gold-bright:#ffd777; --gold-dim:#8a6d2e;
+    --text:#eaf0ff; --text-dim:#9fb0d0;
+    --green:#7ddc9b; --red:#f25c5c; --blue:#7fb8e0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--navy-deep);
+    color:var(--text); font-family:'Tahoma','Segoe UI',sans-serif;
+    overflow-x:hidden; position:relative;
+  }
+  #stars{position:fixed; inset:0; z-index:0; pointer-events:none;}
+  .wrap{position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:20px 16px 60px;}
+  header{text-align:center; margin-bottom:18px;}
+  h1{font-size:clamp(21px,4vw,30px); color:var(--gold-bright); text-shadow:0 0 20px rgba(232,184,75,0.35); margin:10px 0 6px;}
+  header p{color:var(--text-dim); margin:0; font-size:14px;}
+
+  .tabs{ display:flex; gap:10px; justify-content:center; margin-bottom:18px; flex-wrap:wrap; }
+  .tab-btn{
+    background:transparent; border:1px solid var(--gold-dim); color:var(--text-dim);
+    padding:10px 18px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:bold; transition:.2s;
+  }
+  .tab-btn.active{
+    background:linear-gradient(160deg,var(--gold-bright),var(--gold-dim));
+    color:#231800; border-color:transparent; box-shadow:0 4px 14px rgba(232,184,75,0.3);
+  }
+
+  .panel{
+    background:linear-gradient(160deg,var(--navy-light),var(--navy));
+    border:1px solid rgba(232,184,75,0.25); border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5), inset 0 0 40px rgba(232,184,75,0.03);
+    padding:18px; margin-bottom:18px; display:none;
+  }
+  .panel.active{display:block;}
+  h2{ color:var(--gold); font-size:18px; margin:0 0 10px; border-bottom:1px solid rgba(232,184,75,0.2); padding-bottom:8px; }
+
+  canvas.sim{ display:block; width:100%; border-radius:12px; background:linear-gradient(#0d1c38,#060e20); border:1px solid rgba(232,184,75,0.18); }
+
+  .controls{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:16px; }
+  .ctrl{ background:rgba(0,0,0,0.2); border:1px solid rgba(232,184,75,0.15); border-radius:10px; padding:12px 14px; }
+  .ctrl label{ display:flex; justify-content:space-between; font-size:14px; color:var(--gold); margin-bottom:8px; }
+  .ctrl label span.val{ color:var(--gold-bright); font-weight:bold; }
+  input[type=range]{ width:100%; accent-color:var(--gold); }
+
+  .buttons{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  button{
+    background:linear-gradient(160deg,var(--gold-bright),var(--gold-dim)); color:#231800;
+    border:none; border-radius:8px; padding:10px 18px; font-weight:bold; font-size:14px;
+    cursor:pointer; box-shadow:0 4px 12px rgba(232,184,75,0.25); transition:transform .15s;
+  }
+  button:hover{ transform:translateY(-2px); }
+  button.secondary{ background:transparent; border:1px solid var(--gold-dim); color:var(--gold); box-shadow:none; }
+
+  .dash{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-top:16px; }
+  .box{
+    background:rgba(0,0,0,0.3); border:1px solid rgba(232,184,75,0.2); border-radius:12px;
+    padding:14px; text-align:center;
+  }
+  .box .label{ font-size:12px; color:var(--text-dim); margin-bottom:6px; }
+  .box .value{ font-size:22px; font-weight:bold; font-family:'Consolas',monospace; color:var(--gold-bright); }
+
+  .explain{ font-size:14px; line-height:2; color:var(--text-dim); }
+  .explain b{ color:var(--gold); }
+  .formula{
+    background:rgba(0,0,0,0.3); border-right:3px solid var(--gold); padding:8px 14px; margin:8px 0;
+    font-family:'Consolas',monospace; color:var(--gold-bright); display:inline-block;
+  }
+  .steps{ counter-reset:step; padding:0; list-style:none; }
+  .steps li{
+    counter-increment:step; margin-bottom:10px; padding-right:34px; position:relative; color:var(--text-dim);
+  }
+  .steps li::before{
+    content:counter(step); position:absolute; right:0; top:0;
+    background:var(--gold); color:#231800; width:22px; height:22px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;
+  }
+  footer{text-align:center; color:var(--text-dim); font-size:12px; margin-top:30px;}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+  <header>
+    <h1>📡 كيف يعمل الرادار؟</h1>
+    <p>محاكاتان توضحان مبدأي عمل الرادار: قياس المسافة عبر زمن رجوع الموجة، وقياس السرعة عبر تأثير دوبلر</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="distance">📏 قياس المسافة (زمن الرجوع)</button>
+    <button class="tab-btn" data-tab="doppler">🌊 قياس السرعة (تأثير دوبلر)</button>
+  </div>
+
+  <!-- ================= TAB 1: DISTANCE (TIME OF FLIGHT) ================= -->
+  <div class="panel active" id="panel-distance">
+    <h2>المبدأ الأول: قياس المسافة عبر زمن ذهاب وإياب الموجة</h2>
+    <canvas class="sim" id="simDist" width="1000" height="260"></canvas>
+
+    <div class="dash">
+      <div class="box"><div class="label">المسافة المضبوطة</div><div class="value" id="distSet">300 م</div></div>
+      <div class="box"><div class="label">زمن الذهاب والإياب</div><div class="value" id="distTime">-- µs</div></div>
+      <div class="box"><div class="label">المسافة المحسوبة من الرادار</div><div class="value" id="distCalc">-- م</div></div>
+    </div>
+
+    <div class="buttons">
+      <button id="firePulseBtn">📡 إرسال نبضة</button>
+      <button class="secondary" id="autoDistBtn">🔁 إرسال تلقائي</button>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <label>مسافة الهدف <span class="val" id="distVal">300 م</span></label>
+        <input type="range" id="distRange" min="50" max="900" step="10" value="300">
+      </div>
+    </div>
+
+    <div class="explain" style="margin-top:16px;">
+      <ol class="steps">
+        <li>يُرسل هوائي الرادار نبضة موجة كهرومغناطيسية قصيرة بسرعة الضوء <b>c</b>.</li>
+        <li>تصطدم الموجة بالهدف (سيارة، طائرة...) وترتد جزئياً نحو الرادار.</li>
+        <li>يقيس جهاز الاستقبال <b>الزمن الكلي t</b> بين الإرسال واستقبال الصدى.</li>
+        <li>تُحسب المسافة لأن الموجة قطعت المسار (ذهاباً وإياباً) خلال هذا الزمن.</li>
+      </ol>
+      <div class="formula">d = (c × t) / 2</div>
+      <p>حيث <b>c ≈ 300,000 كم/ث</b> سرعة الموجة، و<b>t</b> الزمن المُقاس بين الإرسال والاستقبال.</p>
+    </div>
+  </div>
+
+  <!-- ================= TAB 2: DOPPLER (SPEED) ================= -->
+  <div class="panel" id="panel-doppler">
+    <h2>المبدأ الثاني: قياس السرعة عبر إزاحة دوبلر في التردد</h2>
+    <canvas class="sim" id="simDoppler" width="1000" height="260"></canvas>
+
+    <div class="dash">
+      <div class="box"><div class="label">تردد الإرسال f₀</div><div class="value">24.15 GHz</div></div>
+      <div class="box"><div class="label">إزاحة دوبلر Δf</div><div class="value" id="dopplerShift">-- Hz</div></div>
+      <div class="box"><div class="label">السرعة المحسوبة</div><div class="value" id="dopplerSpeed">-- كم/س</div></div>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <label>سرعة الهدف الحقيقية <span class="val" id="targetSpeedVal">70 كم/س</span></label>
+        <input type="range" id="targetSpeed" min="-120" max="120" step="5" value="70">
+      </div>
+    </div>
+    <p style="color:var(--text-dim); font-size:13px; margin-top:8px;">
+      🔹 قيمة موجبة = الهدف يقترب من الرادار &nbsp;|&nbsp; 🔹 قيمة سالبة = الهدف يبتعد
+    </p>
+
+    <div class="explain" style="margin-top:10px;">
+      <p>
+        لاحظ الموجة الصفراء (المُرسَلة) ثابتة التردد دائماً، بينما تتغيّر الموجة الزرقاء (الصدى العائد):
+        تنضغط (يزيد ترددها) عندما <b>يقترب</b> الهدف، وتتمدد (يقل ترددها) عندما <b>يبتعد</b> — تماماً كصفارة سيارة إسعاف تسمعها أعلى حدة وهي قادمة نحوك وأخفض وهي مبتعدة.
+      </p>
+      <div class="formula">Δf = 2 × v × f₀ / c</div>
+      <p>ومنها تُستنتج السرعة: <b>v = (Δf × c) / (2 × f₀)</b></p>
+    </div>
+  </div>
+
+  <footer>تجربة تفاعلية تعليمية للفيزياء — مبدأ عمل الرادار</footer>
+</div>
+
+<script>
+// ---------- خلفية النجوم ----------
+(function(){
+  const c=document.getElementById('stars');
+  const ctx=c.getContext('2d');
+  function resize(){c.width=innerWidth;c.height=innerHeight;}
+  resize(); addEventListener('resize',resize);
+  const stars=Array.from({length:150},()=>({
+    x:Math.random()*c.width,y:Math.random()*c.height,
+    r:Math.random()*1.4+0.2, s:Math.random()*0.02+0.005, p:Math.random()*Math.PI*2
+  }));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.fillStyle='#050b1a'; ctx.fillRect(0,0,c.width,c.height);
+    for(const st of stars){
+      st.p+=st.s;
+      const alpha=0.4+0.6*Math.abs(Math.sin(st.p));
+      ctx.beginPath();
+      ctx.fillStyle=`rgba(232,184,75,${alpha*0.8})`;
+      ctx.arc(st.x,st.y,st.r,0,7);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ---------- تبديل التبويبات ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* =========================================================
+   TAB 1: قياس المسافة (Time of Flight) - مبسّط بصرياً
+========================================================= */
+const c = 3e8; // سرعة الضوء m/s
+const distCanvas=document.getElementById('simDist');
+const dctx=distCanvas.getContext('2d');
+const radarX1=60, radarY1=180;
+let targetDist=300; // متر
+
+const distRange=document.getElementById('distRange');
+const distVal=document.getElementById('distVal');
+const distSet=document.getElementById('distSet');
+distRange.addEventListener('input',e=>{
+  targetDist=parseFloat(e.target.value);
+  distVal.textContent=targetDist+' م';
+  distSet.textContent=targetDist+' م';
+});
+
+function xForDistance(d){
+  const maxD=900, minX=radarX1+60, maxX=distCanvas.width-60;
+  return minX + (d/maxD)*(maxX-minX);
+}
+
+let distPulses=[];
+let autoDistTimer=null;
+
+function fireDistancePulse(){
+  const tx=xForDistance(targetDist);
+  distPulses.push({x:radarX1, targetPixelX:tx, phase:'out'});
+  const t_seconds = (2*targetDist)/c;
+  const t_micro = t_seconds*1e6;
+  document.getElementById('distTime').textContent = t_micro.toFixed(3)+' µs';
+  const d_calc = (c*t_seconds)/2;
+  setTimeout(()=>{
+    document.getElementById('distCalc').textContent = d_calc.toFixed(1)+' م';
+  }, 900);
+}
+document.getElementById('firePulseBtn').addEventListener('click',fireDistancePulse);
+document.getElementById('autoDistBtn').addEventListener('click',function(){
+  if(autoDistTimer){
+    clearInterval(autoDistTimer); autoDistTimer=null;
+    this.textContent='🔁 إرسال تلقائي';
+  } else {
+    fireDistancePulse();
+    autoDistTimer=setInterval(fireDistancePulse,1800);
+    this.textContent='⏹ إيقاف الإرسال التلقائي';
+  }
+});
+
+function drawDistanceScene(){
+  dctx.clearRect(0,0,distCanvas.width,distCanvas.height);
+
+  dctx.strokeStyle='rgba(159,176,208,0.2)';
+  dctx.beginPath(); dctx.moveTo(0,220); dctx.lineTo(distCanvas.width,220); dctx.stroke();
+
+  dctx.fillStyle='#0f3a63'; dctx.strokeStyle='#7fb8e0'; dctx.lineWidth=2;
+  dctx.beginPath(); dctx.roundRect(radarX1-25,radarY1-10,50,40,6); dctx.fill(); dctx.stroke();
+  dctx.fillStyle='#ffd777';
+  dctx.beginPath(); dctx.arc(radarX1,radarY1-10,7,0,7); dctx.fill();
+  dctx.fillStyle='#9fb0d0'; dctx.font='11px Tahoma'; dctx.textAlign='center';
+  dctx.fillText('رادار', radarX1, radarY1+50);
+
+  const tx=xForDistance(targetDist);
+  dctx.fillStyle='#e8b84b';
+  dctx.beginPath(); dctx.roundRect(tx-20,190,40,26,6); dctx.fill();
+  dctx.fillStyle='#050b1a'; dctx.font='bold 10px Tahoma';
+  dctx.fillText('هدف', tx, 207);
+
+  dctx.strokeStyle='rgba(232,184,75,0.25)';
+  dctx.setLineDash([4,4]);
+  dctx.beginPath(); dctx.moveTo(radarX1,230); dctx.lineTo(tx,230); dctx.stroke();
+  dctx.setLineDash([]);
+  dctx.fillStyle='#9fb0d0';
+  dctx.fillText(targetDist+' م', (radarX1+tx)/2, 245);
+
+  distPulses.forEach(p=>{
+    if(p.phase==='out'){
+      p.x += 9;
+      if(p.x>=p.targetPixelX){ p.phase='back'; }
+    } else {
+      p.x -= 9;
+    }
+    dctx.fillStyle='#ffd777';
+    dctx.beginPath(); dctx.arc(p.x,radarY1-10,5,0,7); dctx.fill();
+    if(p.phase==='back' && p.x > p.targetPixelX-15){
+      dctx.strokeStyle='rgba(255,215,119,0.5)';
+      dctx.beginPath(); dctx.arc(p.targetPixelX, radarY1-10, 12, 0, 7); dctx.stroke();
+    }
+  });
+  distPulses = distPulses.filter(p=> p.phase==='out' || p.x>radarX1-10);
+}
+
+/* =========================================================
+   TAB 2: تأثير دوبلر
+========================================================= */
+const dopCanvas=document.getElementById('simDoppler');
+const octx=dopCanvas.getContext('2d');
+let targetSpeed=70;
+const f0=24.15e9;
+
+const targetSpeedEl=document.getElementById('targetSpeed');
+const targetSpeedVal=document.getElementById('targetSpeedVal');
+targetSpeedEl.addEventListener('input',e=>{
+  targetSpeed=parseFloat(e.target.value);
+  targetSpeedVal.textContent=targetSpeed+' كم/س';
+  updateDopplerReadout();
+});
+
+function updateDopplerReadout(){
+  const v_ms = targetSpeed*1000/3600;
+  const deltaF = 2*v_ms*f0/c;
+  document.getElementById('dopplerShift').textContent = deltaF.toFixed(0)+' Hz';
+  document.getElementById('dopplerSpeed').textContent = Math.abs(targetSpeed).toFixed(0)+' كم/س ' + (targetSpeed>=0?'(⬅ اقتراب)':'(➡ ابتعاد)');
+}
+updateDopplerReadout();
+
+let wavePhaseTx=0, wavePhaseRx=0;
+
+function drawDopplerScene(){
+  octx.clearRect(0,0,dopCanvas.width,dopCanvas.height);
+  const W=dopCanvas.width;
+
+  const baseFreqPx=0.05;
+  octx.strokeStyle='#ffd777';
+  octx.lineWidth=2.5;
+  octx.beginPath();
+  const midY1=90;
+  for(let x=0;x<W;x++){
+    const y=midY1 + 20*Math.sin(x*baseFreqPx + wavePhaseTx);
+    if(x===0) octx.moveTo(x,y); else octx.lineTo(x,y);
+  }
+  octx.stroke();
+  octx.fillStyle='#ffd777'; octx.font='12px Tahoma'; octx.textAlign='right';
+  octx.fillText('الموجة المُرسَلة (تردد ثابت f₀)', W-10, midY1-32);
+
+  const freqFactor = baseFreqPx * (1 + targetSpeed/400);
+  octx.strokeStyle='#7fb8e0';
+  octx.lineWidth=2.5;
+  octx.beginPath();
+  const midY2=190;
+  for(let x=0;x<W;x++){
+    const y=midY2 + 20*Math.sin(x*freqFactor + wavePhaseRx);
+    if(x===0) octx.moveTo(x,y); else octx.lineTo(x,y);
+  }
+  octx.stroke();
+  octx.fillStyle='#7fb8e0'; octx.textAlign='right';
+  octx.fillText('الصدى العائد (التردد يتغيّر بسبب دوبلر)', W-10, midY2+42);
+
+  wavePhaseTx += 0.09;
+  wavePhaseRx += 0.09 * (1 + targetSpeed/400);
+}
+
+/* =========================================================
+   حلقة الرسم العامة
+========================================================= */
+function loop(){
+  drawDistanceScene();
+  drawDopplerScene();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة التناسب الطردي والعكسي</title>
+<style>
+  :root{
+    --navy-deep:#050b1f;
+    --navy:#0a1636;
+    --navy-light:#132048;
+    --gold:#f2c14e;
+    --gold-soft:#f7dc8a;
+    --text:#e8ecf7;
+    --muted:#9aa6c7;
+    --direct:#4ecfa0;
+    --inverse:#f2794e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:radial-gradient(ellipse at top, var(--navy-light), var(--navy-deep) 70%);
+    color:var(--text);
+    font-family:'Tahoma','Segoe UI',sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+  #stars{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:1100px;
+    margin:0 auto;
+    padding:24px 16px 60px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  header h1{
+    color:var(--gold);
+    font-size:1.9rem;
+    margin:0 0 6px;
+    text-shadow:0 0 18px rgba(242,193,78,.35);
+  }
+  header p{
+    color:var(--muted);
+    margin:0;
+    font-size:.95rem;
+  }
+  .tabs{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    background:var(--navy-light);
+    border:1px solid rgba(242,193,78,.25);
+    color:var(--text);
+    padding:10px 22px;
+    border-radius:30px;
+    cursor:pointer;
+    font-size:.95rem;
+    transition:.25s;
+  }
+  .tab-btn.active{
+    background:var(--gold);
+    color:var(--navy-deep);
+    font-weight:bold;
+    box-shadow:0 0 20px rgba(242,193,78,.4);
+  }
+  .panel{
+    display:none;
+    animation:fadeIn .4s ease;
+  }
+  .panel.active{display:block;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+  .card{
+    background:linear-gradient(160deg, rgba(19,32,72,.85), rgba(10,22,54,.9));
+    border:1px solid rgba(242,193,78,.2);
+    border-radius:18px;
+    padding:22px;
+    margin-bottom:22px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  .card h2{
+    margin-top:0;
+    font-size:1.3rem;
+  }
+  .direct-title{color:var(--direct);}
+  .inverse-title{color:var(--inverse);}
+
+  .law-select{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .law-chip{
+    background:var(--navy);
+    border:1px solid rgba(255,255,255,.12);
+    color:var(--muted);
+    padding:8px 16px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:.85rem;
+    transition:.2s;
+  }
+  .law-chip.active{
+    border-color:var(--gold);
+    color:var(--gold);
+    background:rgba(242,193,78,.08);
+  }
+
+  .layout{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:20px;
+  }
+  @media(min-width:800px){
+    .layout{grid-template-columns:280px 1fr;}
+  }
+
+  .controls label{
+    display:block;
+    font-size:.9rem;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  .control-row{
+    margin-bottom:16px;
+  }
+  .control-row input[type=range]{
+    width:100%;
+    accent-color:var(--gold);
+  }
+  .value-badge{
+    display:inline-block;
+    background:var(--navy);
+    border:1px solid var(--gold);
+    color:var(--gold);
+    padding:2px 10px;
+    border-radius:8px;
+    font-size:.85rem;
+    margin-inline-start:6px;
+  }
+  .formula-box{
+    background:var(--navy);
+    border-radius:12px;
+    padding:14px 18px;
+    text-align:center;
+    font-size:1.3rem;
+    color:var(--gold-soft);
+    margin-bottom:16px;
+    letter-spacing:1px;
+  }
+  .result-box{
+    background:rgba(78,207,160,.08);
+    border:1px solid rgba(78,207,160,.35);
+    border-radius:12px;
+    padding:14px;
+    text-align:center;
+    font-size:1.1rem;
+  }
+  .inverse .result-box{
+    background:rgba(242,121,78,.08);
+    border-color:rgba(242,121,78,.35);
+  }
+  .explain{
+    font-size:.85rem;
+    color:var(--muted);
+    line-height:1.7;
+    margin-top:14px;
+  }
+  canvas{
+    width:100%;
+    background:var(--navy-deep);
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.08);
+    display:block;
+  }
+  .legend{
+    display:flex;
+    gap:16px;
+    justify-content:center;
+    margin-top:10px;
+    font-size:.8rem;
+    color:var(--muted);
+  }
+  .dot{
+    width:10px;height:10px;border-radius:50%;
+    display:inline-block;
+    margin-inline-end:5px;
+  }
+  .summary{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-top:10px;
+  }
+  @media(max-width:600px){.summary{grid-template-columns:1fr;}}
+  .summary .box{
+    border-radius:12px;
+    padding:14px;
+    font-size:.85rem;
+    line-height:1.6;
+  }
+  .box.d{background:rgba(78,207,160,.07); border:1px solid rgba(78,207,160,.3);}
+  .box.i{background:rgba(242,121,78,.07); border:1px solid rgba(242,121,78,.3);}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="wrap">
+  <header>
+    <h1>⚖️ محاكاة التناسب الطردي والعكسي</h1>
+    <p>افهم العلاقة بين المتغيرات وشاهد تطبيقها المباشر على قوانين فيزيائية حقيقية</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="direct">التناسب الطردي</button>
+    <button class="tab-btn" data-tab="inverse">التناسب العكسي</button>
+    <button class="tab-btn" data-tab="compare">مقارنة عامة</button>
+  </div>
+
+  <!-- ===================== DIRECT ===================== -->
+  <div class="panel active direct" id="panel-direct">
+    <div class="card">
+      <h2 class="direct-title">📈 التناسب الطردي — عندما يزيد أحد المتغيرين يزيد الآخر</h2>
+      <div class="law-select" id="direct-laws">
+        <div class="law-chip active" data-law="ohm">قانون أوم: V = I × R</div>
+        <div class="law-chip" data-law="hooke">قانون هوك: F = k × x</div>
+        <div class="law-chip" data-law="newton2">القانون الثاني لنيوتن: F = m × a</div>
+      </div>
+
+      <div class="layout">
+        <div class="controls">
+          <div class="formula-box" id="direct-formula">V = I × R</div>
+          <div class="control-row">
+            <label id="direct-var1-label">شدة التيار I (أمبير) <span class="value-badge" id="direct-var1-val">2.0</span></label>
+            <input type="range" id="direct-var1" min="0" max="10" step="0.1" value="2">
+          </div>
+          <div class="control-row">
+            <label id="direct-const-label">المقاومة R (أوم) — ثابت <span class="value-badge" id="direct-const-val">5.0</span></label>
+            <input type="range" id="direct-const" min="1" max="20" step="0.5" value="5">
+          </div>
+          <div class="result-box">
+            <span id="direct-var2-label">الجهد V</span> = <b id="direct-result">10.0</b> <span id="direct-unit">فولت</span>
+          </div>
+          <div class="explain" id="direct-explain">
+            كلما زادت شدة التيار I مع بقاء المقاومة R ثابتة، زاد الجهد V بنفس النسبة. هذه علاقة خط مستقيم يمر من نقطة الأصل.
+          </div>
+        </div>
+        <div>
+          <canvas id="direct-canvas" width="600" height="380"></canvas>
+          <div class="legend">
+            <span><span class="dot" style="background:var(--direct)"></span>العلاقة الحالية</span>
+            <span><span class="dot" style="background:var(--gold)"></span>النقطة الحالية</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="summary">
+        <div class="box d">
+          <b>خصائص التناسب الطردي:</b><br>
+          • العلاقة على شكل خط مستقيم يمر بنقطة الأصل (0,0)<br>
+          • الميل (k) هو الثابت في القانون<br>
+          • y = k × x  →  y/x = ثابت دائمًا
+        </div>
+        <div class="box d">
+          <b>أمثلة أخرى من الفيزياء:</b><br>
+          • الوزن ∝ الكتلة (w = mg)<br>
+          • المسافة ∝ الزمن عند سرعة ثابتة (d = vt)<br>
+          • الطاقة الحركية ∝ مربع السرعة (بشكل جزئي)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== INVERSE ===================== -->
+  <div class="panel inverse" id="panel-inverse">
+    <div class="card">
+      <h2 class="inverse-title">📉 التناسب العكسي — عندما يزيد أحد المتغيرين ينقص الآخر</h2>
+      <div class="law-select" id="inverse-laws">
+        <div class="law-chip active" data-law="boyle">قانون بويل: P × V = ثابت</div>
+        <div class="law-chip" data-law="gravity">الجذب العام: F ∝ 1/r²</div>
+        <div class="law-chip" data-law="ohm2">قانون أوم: I = V / R</div>
+      </div>
+
+      <div class="layout">
+        <div class="controls">
+          <div class="formula-box" id="inverse-formula">P × V = k</div>
+          <div class="control-row">
+            <label id="inverse-var1-label">الحجم V (لتر) <span class="value-badge" id="inverse-var1-val">4.0</span></label>
+            <input type="range" id="inverse-var1" min="1" max="20" step="0.1" value="4">
+          </div>
+          <div class="control-row">
+            <label id="inverse-const-label">الثابت k <span class="value-badge" id="inverse-const-val">20.0</span></label>
+            <input type="range" id="inverse-const" min="5" max="100" step="1" value="20">
+          </div>
+          <div class="result-box">
+            <span id="inverse-var2-label">الضغط P</span> = <b id="inverse-result">5.0</b> <span id="inverse-unit">وحدة ضغط</span>
+          </div>
+          <div class="explain" id="inverse-explain">
+            كلما زاد حجم الغاز V مع ثبات درجة الحرارة، قلّ الضغط P بنفس النسبة، بحيث يبقى حاصل ضربهما (P×V) ثابتًا.
+          </div>
+        </div>
+        <div>
+          <canvas id="inverse-canvas" width="600" height="380"></canvas>
+          <div class="legend">
+            <span><span class="dot" style="background:var(--inverse)"></span>العلاقة الحالية</span>
+            <span><span class="dot" style="background:var(--gold)"></span>النقطة الحالية</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="summary">
+        <div class="box i">
+          <b>خصائص التناسب العكسي:</b><br>
+          • العلاقة على شكل منحنى قطع زائد (Hyperbola)<br>
+          • المنحنى لا يمس المحورين أبدًا<br>
+          • y = k / x  →  y × x = ثابت دائمًا
+        </div>
+        <div class="box i">
+          <b>أمثلة أخرى من الفيزياء:</b><br>
+          • شدة الإضاءة ∝ 1/(المسافة)² من المصدر<br>
+          • الزمن ∝ 1/السرعة لقطع مسافة ثابتة<br>
+          • التردد ∝ 1/الطول الموجي (v ثابتة)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== COMPARE ===================== -->
+  <div class="panel" id="panel-compare">
+    <div class="card">
+      <h2 style="color:var(--gold)">🔍 مقارنة سريعة</h2>
+      <canvas id="compare-canvas" width="900" height="420"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--direct)"></span>تناسب طردي: y = kx</span>
+        <span><span class="dot" style="background:var(--inverse)"></span>تناسب عكسي: y = k/x</span>
+      </div>
+      <div class="explain" style="margin-top:18px;">
+        <b>الفرق الجوهري:</b><br>
+        في التناسب الطردي، إذا ضاعفت x، تتضاعف y أيضًا (خط مستقيم صاعد من الأصل).<br>
+        في التناسب العكسي، إذا ضاعفت x، تنخفض y إلى النصف (منحنى متناقص يقترب من المحاور دون أن يلمسها).<br>
+        كلا النوعين يشتركان في فكرة "الثابت k"، لكن طريقة تأثيره على العلاقة مختلفة تمامًا.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Starfield background ----------
+const starsCanvas = document.getElementById('stars');
+const sctx = starsCanvas.getContext('2d');
+function resizeStars(){
+  starsCanvas.width = window.innerWidth;
+  starsCanvas.height = document.body.scrollHeight;
+}
+let starList = [];
+function initStars(){
+  resizeStars();
+  starList = [];
+  const count = Math.floor((starsCanvas.width*starsCanvas.height)/9000);
+  for(let i=0;i<count;i++){
+    starList.push({
+      x:Math.random()*starsCanvas.width,
+      y:Math.random()*starsCanvas.height,
+      r:Math.random()*1.4+0.3,
+      a:Math.random(),
+      speed:Math.random()*0.015
+    });
+  }
+}
+function drawStars(){
+  sctx.clearRect(0,0,starsCanvas.width,starsCanvas.height);
+  for(const s of starList){
+    s.a += s.speed;
+    const alpha = Math.abs(Math.sin(s.a));
+    sctx.beginPath();
+    sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sctx.fillStyle = `rgba(242,193,78,${alpha*0.8})`;
+    sctx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize', initStars);
+initStars();
+drawStars();
+
+// ---------- Tabs ----------
+const tabBtns = document.querySelectorAll('.tab-btn');
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- DIRECT PROPORTIONALITY ----------
+const directLaws = {
+  ohm:{
+    formula:'V = I × R',
+    var1Label:'شدة التيار I (أمبير)', var1Min:0, var1Max:10, var1Step:0.1, var1Def:2,
+    constLabel:'المقاومة R (أوم) — ثابت', constMin:1, constMax:20, constStep:0.5, constDef:5,
+    var2Label:'الجهد V', unit:'فولت',
+    explain:'كلما زادت شدة التيار I مع بقاء المقاومة R ثابتة، زاد الجهد V بنفس النسبة. هذه علاقة خط مستقيم يمر من نقطة الأصل.',
+    calc:(x,k)=> x*k
+  },
+  hooke:{
+    formula:'F = k × x',
+    var1Label:'الاستطالة x (متر)', var1Min:0, var1Max:2, var1Step:0.01, var1Def:0.3,
+    constLabel:'ثابت الزنبرك k (نيوتن/متر) — ثابت', constMin:10, constMax:200, constStep:5, constDef:50,
+    var2Label:'قوة الاستعادة F', unit:'نيوتن',
+    explain:'كلما زادت استطالة الزنبرك x، زادت قوة الاستعادة F بنفس النسبة، طالما بقي الزنبرك ضمن حدود المرونة.',
+    calc:(x,k)=> x*k
+  },
+  newton2:{
+    formula:'F = m × a',
+    var1Label:'التسارع a (م/ث²)', var1Min:0, var1Max:10, var1Step:0.1, var1Def:2,
+    constLabel:'الكتلة m (كجم) — ثابت', constMin:1, constMax:50, constStep:1, constDef:10,
+    var2Label:'القوة المحصلة F', unit:'نيوتن',
+    explain:'عند كتلة ثابتة، كلما زاد التسارع a، زادت القوة المحصلة F بنفس النسبة — وهذا هو جوهر قانون نيوتن الثاني.',
+    calc:(x,k)=> x*k
+  }
+};
+let currentDirectLaw = 'ohm';
+
+const dVar1 = document.getElementById('direct-var1');
+const dConst = document.getElementById('direct-const');
+const dVar1Val = document.getElementById('direct-var1-val');
+const dConstVal = document.getElementById('direct-const-val');
+const dResult = document.getElementById('direct-result');
+const dCanvas = document.getElementById('direct-canvas');
+const dctx = dCanvas.getContext('2d');
+
+function loadDirectLaw(key){
+  currentDirectLaw = key;
+  const law = directLaws[key];
+  document.getElementById('direct-formula').textContent = law.formula;
+  document.getElementById('direct-var1-label').childNodes[0].textContent = law.var1Label + ' ';
+  document.getElementById('direct-const-label').childNodes[0].textContent = law.constLabel + ' ';
+  document.getElementById('direct-var2-label').textContent = law.var2Label;
+  document.getElementById('direct-unit').textContent = law.unit;
+  document.getElementById('direct-explain').textContent = law.explain;
+  dVar1.min = law.var1Min; dVar1.max = law.var1Max; dVar1.step = law.var1Step; dVar1.value = law.var1Def;
+  dConst.min = law.constMin; dConst.max = law.constMax; dConst.step = law.constStep; dConst.value = law.constDef;
+  updateDirect();
+}
+
+function updateDirect(){
+  const law = directLaws[currentDirectLaw];
+  const x = parseFloat(dVar1.value);
+  const k = parseFloat(dConst.value);
+  const y = law.calc(x,k);
+  dVar1Val.textContent = x.toFixed(2);
+  dConstVal.textContent = k.toFixed(2);
+  dResult.textContent = y.toFixed(2);
+  drawDirectGraph(x,k,law);
+}
+
+function drawDirectGraph(x,k,law){
+  const w = dCanvas.width, h = dCanvas.height;
+  dctx.clearRect(0,0,w,h);
+  const pad = 50;
+  const maxX = parseFloat(dVar1.max)*1.1 || 1;
+  const maxY = law.calc(parseFloat(dVar1.max), k)*1.1 || 1;
+
+  // axes
+  dctx.strokeStyle = 'rgba(255,255,255,.25)';
+  dctx.lineWidth = 1.5;
+  dctx.beginPath();
+  dctx.moveTo(pad,h-pad); dctx.lineTo(w-20,h-pad);
+  dctx.moveTo(pad,h-pad); dctx.lineTo(pad,20);
+  dctx.stroke();
+  dctx.fillStyle = '#9aa6c7';
+  dctx.font='12px Tahoma';
+  dctx.fillText('x', w-30, h-pad+20);
+  dctx.fillText('y', pad-25, 25);
+
+  // line
+  dctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--direct');
+  dctx.lineWidth = 3;
+  dctx.beginPath();
+  for(let i=0;i<=100;i++){
+    const xi = (i/100)*maxX;
+    const yi = law.calc(xi,k);
+    const px = pad + (xi/maxX)*(w-pad-20);
+    const py = (h-pad) - (yi/maxY)*(h-pad-20);
+    if(i===0) dctx.moveTo(px,py); else dctx.lineTo(px,py);
+  }
+  dctx.stroke();
+
+  // current point
+  const py2 = law.calc(x,k);
+  const px = pad + (x/maxX)*(w-pad-20);
+  const pyv = (h-pad) - (py2/maxY)*(h-pad-20);
+  dctx.fillStyle = '#f2c14e';
+  dctx.beginPath();
+  dctx.arc(px,pyv,7,0,Math.PI*2);
+  dctx.fill();
+  dctx.strokeStyle = 'rgba(242,193,78,.5)';
+  dctx.setLineDash([4,4]);
+  dctx.beginPath();
+  dctx.moveTo(px,h-pad); dctx.lineTo(px,pyv); dctx.lineTo(pad,pyv);
+  dctx.stroke();
+  dctx.setLineDash([]);
+}
+
+document.querySelectorAll('#direct-laws .law-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#direct-laws .law-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    loadDirectLaw(chip.dataset.law);
+  });
+});
+dVar1.addEventListener('input', updateDirect);
+dConst.addEventListener('input', updateDirect);
+loadDirectLaw('ohm');
+
+// ---------- INVERSE PROPORTIONALITY ----------
+const inverseLaws = {
+  boyle:{
+    formula:'P × V = k',
+    var1Label:'الحجم V (لتر)', var1Min:1, var1Max:20, var1Step:0.1, var1Def:4,
+    constLabel:'الثابت k', constMin:5, constMax:100, constStep:1, constDef:20,
+    var2Label:'الضغط P', unit:'وحدة ضغط',
+    explain:'كلما زاد حجم الغاز V مع ثبات درجة الحرارة، قلّ الضغط P بنفس النسبة، بحيث يبقى حاصل ضربهما (P×V) ثابتًا.',
+    calc:(x,k)=> k/x
+  },
+  gravity:{
+    formula:'F = k / r²',
+    var1Label:'المسافة r (متر)', var1Min:1, var1Max:20, var1Step:0.1, var1Def:4,
+    constLabel:'الثابت k (يشمل الكتل وثابت الجذب)', constMin:5, constMax:200, constStep:5, constDef:50,
+    var2Label:'قوة الجذب F', unit:'نيوتن',
+    explain:'كلما زادت المسافة r بين جسمين، قلت قوة الجذب بينهما بسرعة أكبر (تتناسب عكسيًا مع مربع المسافة).',
+    calc:(x,k)=> k/(x*x)
+  },
+  ohm2:{
+    formula:'I = V / R',
+    var1Label:'المقاومة R (أوم)', var1Min:1, var1Max:20, var1Step:0.1, var1Def:4,
+    constLabel:'الجهد V (فولت) — ثابت', constMin:5, constMax:100, constStep:1, constDef:20,
+    var2Label:'شدة التيار I', unit:'أمبير',
+    explain:'عند جهد ثابت، كلما زادت المقاومة R، قلت شدة التيار I المارّ في الدائرة.',
+    calc:(x,k)=> k/x
+  }
+};
+let currentInverseLaw = 'boyle';
+
+const iVar1 = document.getElementById('inverse-var1');
+const iConst = document.getElementById('inverse-const');
+const iVar1Val = document.getElementById('inverse-var1-val');
+const iConstVal = document.getElementById('inverse-const-val');
+const iResult = document.getElementById('inverse-result');
+const iCanvas = document.getElementById('inverse-canvas');
+const ictx = iCanvas.getContext('2d');
+
+function loadInverseLaw(key){
+  currentInverseLaw = key;
+  const law = inverseLaws[key];
+  document.getElementById('inverse-formula').textContent = law.formula;
+  document.getElementById('inverse-var1-label').childNodes[0].textContent = law.var1Label + ' ';
+  document.getElementById('inverse-const-label').childNodes[0].textContent = law.constLabel + ' ';
+  document.getElementById('inverse-var2-label').textContent = law.var2Label;
+  document.getElementById('inverse-unit').textContent = law.unit;
+  document.getElementById('inverse-explain').textContent = law.explain;
+  iVar1.min = law.var1Min; iVar1.max = law.var1Max; iVar1.step = law.var1Step; iVar1.value = law.var1Def;
+  iConst.min = law.constMin; iConst.max = law.constMax; iConst.step = law.constStep; iConst.value = law.constDef;
+  updateInverse();
+}
+
+function updateInverse(){
+  const law = inverseLaws[currentInverseLaw];
+  const x = parseFloat(iVar1.value);
+  const k = parseFloat(iConst.value);
+  const y = law.calc(x,k);
+  iVar1Val.textContent = x.toFixed(2);
+  iConstVal.textContent = k.toFixed(2);
+  iResult.textContent = y.toFixed(3);
+  drawInverseGraph(x,k,law);
+}
+
+function drawInverseGraph(x,k,law){
+  const w = iCanvas.width, h = iCanvas.height;
+  ictx.clearRect(0,0,w,h);
+  const pad = 50;
+  const maxX = parseFloat(iVar1.max)*1.1;
+  const minXplot = 0.3;
+  const maxY = law.calc(minXplot,k);
+
+  ictx.strokeStyle = 'rgba(255,255,255,.25)';
+  ictx.lineWidth = 1.5;
+  ictx.beginPath();
+  ictx.moveTo(pad,h-pad); ictx.lineTo(w-20,h-pad);
+  ictx.moveTo(pad,h-pad); ictx.lineTo(pad,20);
+  ictx.stroke();
+  ictx.fillStyle = '#9aa6c7';
+  ictx.font='12px Tahoma';
+  ictx.fillText('x', w-30, h-pad+20);
+  ictx.fillText('y', pad-25, 25);
+
+  ictx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--inverse');
+  ictx.lineWidth = 3;
+  ictx.beginPath();
+  let started = false;
+  for(let i=0;i<=200;i++){
+    const xi = minXplot + (i/200)*(maxX-minXplot);
+    const yi = law.calc(xi,k);
+    const px = pad + (xi/maxX)*(w-pad-20);
+    const py = (h-pad) - Math.min(yi/maxY,1)*(h-pad-20);
+    if(!started){ ictx.moveTo(px,py); started=true; } else ictx.lineTo(px,py);
+  }
+  ictx.stroke();
+
+  const yv = law.calc(x,k);
+  const px = pad + (x/maxX)*(w-pad-20);
+  const pyv = (h-pad) - Math.min(yv/maxY,1)*(h-pad-20);
+  ictx.fillStyle = '#f2c14e';
+  ictx.beginPath();
+  ictx.arc(px,pyv,7,0,Math.PI*2);
+  ictx.fill();
+  ictx.strokeStyle = 'rgba(242,193,78,.5)';
+  ictx.setLineDash([4,4]);
+  ictx.beginPath();
+  ictx.moveTo(px,h-pad); ictx.lineTo(px,pyv); ictx.lineTo(pad,pyv);
+  ictx.stroke();
+  ictx.setLineDash([]);
+}
+
+document.querySelectorAll('#inverse-laws .law-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#inverse-laws .law-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    loadInverseLaw(chip.dataset.law);
+  });
+});
+iVar1.addEventListener('input', updateInverse);
+iConst.addEventListener('input', updateInverse);
+loadInverseLaw('boyle');
+
+// ---------- COMPARE ----------
+const cCanvas = document.getElementById('compare-canvas');
+const cctx = cCanvas.getContext('2d');
+function drawCompare(){
+  const w = cCanvas.width, h = cCanvas.height;
+  cctx.clearRect(0,0,w,h);
+  const pad = 55;
+  const k = 20;
+  const maxX = 10;
+  const maxY = 20;
+
+  cctx.strokeStyle = 'rgba(255,255,255,.25)';
+  cctx.lineWidth = 1.5;
+  cctx.beginPath();
+  cctx.moveTo(pad,h-pad); cctx.lineTo(w-20,h-pad);
+  cctx.moveTo(pad,h-pad); cctx.lineTo(pad,20);
+  cctx.stroke();
+  cctx.fillStyle = '#9aa6c7';
+  cctx.font='13px Tahoma';
+  cctx.fillText('x', w-30, h-pad+22);
+  cctx.fillText('y', pad-28, 25);
+
+  // direct y = kx/... scaled: choose k such that line reaches maxY at maxX -> k=2
+  const kd = 2;
+  cctx.strokeStyle = '#4ecfa0';
+  cctx.lineWidth = 3;
+  cctx.beginPath();
+  for(let i=0;i<=100;i++){
+    const xi=(i/100)*maxX;
+    const yi=kd*xi;
+    const px = pad+(xi/maxX)*(w-pad-20);
+    const py = (h-pad)-Math.min(yi/maxY,1)*(h-pad-20);
+    if(i===0) cctx.moveTo(px,py); else cctx.lineTo(px,py);
+  }
+  cctx.stroke();
+
+  // inverse y=k/x
+  cctx.strokeStyle = '#f2794e';
+  cctx.lineWidth = 3;
+  cctx.beginPath();
+  let started=false;
+  for(let i=0;i<=200;i++){
+    const xi = 0.5 + (i/200)*(maxX-0.5);
+    const yi = k/xi;
+    const px = pad+(xi/maxX)*(w-pad-20);
+    const py = (h-pad)-Math.min(yi/maxY,1)*(h-pad-20);
+    if(!started){cctx.moveTo(px,py); started=true;} else cctx.lineTo(px,py);
+  }
+  cctx.stroke();
+}
+drawCompare();
+</script>
+</body>
+</html>
