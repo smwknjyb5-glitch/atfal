@@ -1,0 +1,485 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة مكونات السيارة</title>
+<style>
+  :root{
+    --navy-deep:#050b1f;
+    --navy:#0a1636;
+    --navy-light:#132048;
+    --gold:#f2c14e;
+    --gold-soft:#f7dc8a;
+    --text:#e8ecf7;
+    --muted:#9aa6c7;
+    --accent:#4ecfa0;
+    --red:#e8615a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:radial-gradient(ellipse at top, var(--navy-light), var(--navy-deep) 70%);
+    color:var(--text);
+    font-family:'Tahoma','Segoe UI',sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+  #stars{position:fixed; inset:0; z-index:0; pointer-events:none;}
+  .wrap{position:relative; z-index:1; max-width:1150px; margin:0 auto; padding:22px 16px 60px;}
+  header{text-align:center; margin-bottom:22px;}
+  header h1{color:var(--gold); font-size:1.9rem; margin:0 0 6px; text-shadow:0 0 18px rgba(242,193,78,.35);}
+  header p{color:var(--muted); margin:0; font-size:.95rem;}
+
+  .stage{
+    background:linear-gradient(160deg, rgba(19,32,72,.85), rgba(10,22,54,.9));
+    border:1px solid rgba(242,193,78,.2);
+    border-radius:18px;
+    padding:20px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+    margin-bottom:20px;
+    position:relative;
+  }
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  .btn{
+    background:var(--navy-light);
+    border:1px solid rgba(242,193,78,.35);
+    color:var(--gold-soft);
+    padding:9px 20px;
+    border-radius:24px;
+    cursor:pointer;
+    font-size:.9rem;
+    transition:.2s;
+  }
+  .btn:hover{background:rgba(242,193,78,.12);}
+  .btn.on{
+    background:var(--gold);
+    color:var(--navy-deep);
+    font-weight:bold;
+    box-shadow:0 0 18px rgba(242,193,78,.4);
+  }
+
+  #car-svg{
+    width:100%;
+    height:auto;
+    display:block;
+    max-width:900px;
+    margin:0 auto;
+  }
+  .part{
+    cursor:pointer;
+    transition:filter .2s, opacity .2s;
+  }
+  .part:hover{ filter:brightness(1.3); }
+  .part.selected{ filter:brightness(1.5) drop-shadow(0 0 8px var(--gold)); }
+  .label-dot{
+    fill:var(--gold);
+    stroke:var(--navy-deep);
+    stroke-width:1.5;
+    cursor:pointer;
+  }
+  .label-dot:hover{ fill:#fff; }
+
+  #wheel-front, #wheel-rear{ transform-origin:center; }
+  .piston{ transform-origin:center; }
+  .smoke{ opacity:0; }
+
+  .info-panel{
+    background:var(--navy);
+    border:1px solid rgba(242,193,78,.3);
+    border-radius:14px;
+    padding:18px 20px;
+    margin-top:16px;
+    min-height:90px;
+  }
+  .info-panel h3{
+    color:var(--gold);
+    margin:0 0 8px;
+    font-size:1.15rem;
+  }
+  .info-panel p{
+    margin:0;
+    color:var(--text);
+    line-height:1.8;
+    font-size:.92rem;
+  }
+  .info-panel .placeholder{ color:var(--muted); }
+
+  .parts-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:10px;
+    margin-top:16px;
+  }
+  .part-chip{
+    background:var(--navy);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:.82rem;
+    color:var(--muted);
+    cursor:pointer;
+    text-align:center;
+    transition:.2s;
+  }
+  .part-chip.active{
+    border-color:var(--gold);
+    color:var(--gold);
+    background:rgba(242,193,78,.08);
+  }
+
+  .engine-section{
+    background:linear-gradient(160deg, rgba(19,32,72,.85), rgba(10,22,54,.9));
+    border:1px solid rgba(242,193,78,.2);
+    border-radius:18px;
+    padding:20px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  .engine-section h2{ color:var(--gold); margin-top:0; text-align:center; font-size:1.3rem;}
+  .stroke-label{
+    text-align:center;
+    color:var(--accent);
+    font-weight:bold;
+    margin-top:8px;
+    font-size:1rem;
+    min-height:24px;
+  }
+  #engine-canvas{
+    display:block;
+    margin:0 auto;
+    background:var(--navy-deep);
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.08);
+  }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="wrap">
+  <header>
+    <h1>🚗 محاكاة مكونات السيارة</h1>
+    <p>انقر على أي جزء لمعرفة وظيفته، أو شغّل المحرك لمشاهدة الحركة</p>
+  </header>
+
+  <div class="stage">
+    <div class="toolbar">
+      <button class="btn" id="engine-toggle">▶ تشغيل المحرك</button>
+      <button class="btn" id="reset-btn">إعادة تعيين</button>
+    </div>
+
+    <svg id="car-svg" viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+      <!-- ground -->
+      <line x1="30" y1="360" x2="870" y2="360" stroke="rgba(255,255,255,.15)" stroke-width="2"/>
+
+      <!-- exhaust smoke -->
+      <g id="smoke-group">
+        <circle class="smoke" cx="120" cy="330" r="8" fill="#8fa0c9"/>
+        <circle class="smoke" cx="105" cy="320" r="10" fill="#8fa0c9"/>
+        <circle class="smoke" cx="90" cy="308" r="12" fill="#8fa0c9"/>
+      </g>
+
+      <!-- car body -->
+      <path class="part" data-part="body" d="M110,300 L150,230 L250,190 L560,190 L640,230 L780,240 L800,270 L800,300 L760,300 L760,300 L150,300 Z"
+            fill="#1a2a55" stroke="#3a4d8a" stroke-width="3"/>
+      <!-- roof/cabin -->
+      <path class="part" data-part="cabin" d="M250,190 L290,130 L470,130 L560,190 Z" fill="#22335f" stroke="#3a4d8a" stroke-width="3"/>
+      <!-- windows -->
+      <path d="M300,140 L320,180 L400,180 L400,140 Z" fill="#8fd6ff" opacity=".35"/>
+      <path d="M410,140 L410,180 L470,180 L455,140 Z" fill="#8fd6ff" opacity=".35"/>
+
+      <!-- hood / engine bay marker -->
+      <rect class="part" data-part="engine" x="150" y="245" width="100" height="55" rx="6" fill="#2c1f1f" stroke="#e8615a" stroke-width="2"/>
+      <text x="200" y="277" text-anchor="middle" font-size="11" fill="#f2c14e" font-family="Tahoma">المحرك</text>
+
+      <!-- radiator/cooling -->
+      <rect class="part" data-part="cooling" x="125" y="250" width="18" height="45" fill="#3a6ea5" stroke="#5a9bd6" stroke-width="2"/>
+
+      <!-- battery -->
+      <rect class="part" data-part="battery" x="260" y="255" width="35" height="30" rx="3" fill="#3a5a3a" stroke="var(--accent)" stroke-width="2"/>
+
+      <!-- transmission -->
+      <rect class="part" data-part="transmission" x="300" y="270" width="70" height="30" rx="4" fill="#4a3a1f" stroke="var(--gold)" stroke-width="2"/>
+
+      <!-- exhaust pipe -->
+      <path class="part" data-part="exhaust" d="M140,300 L140,320 L110,325" fill="none" stroke="#7a7a7a" stroke-width="8" stroke-linecap="round"/>
+
+      <!-- suspension front -->
+      <path class="part" data-part="suspension" d="M220,300 L220,325" stroke="#e8615a" stroke-width="5"/>
+      <!-- suspension rear -->
+      <path class="part" data-part="suspension" d="M680,300 L680,325" stroke="#e8615a" stroke-width="5"/>
+
+      <!-- steering rod hint -->
+      <circle class="part" data-part="steering" cx="400" cy="235" r="10" fill="#5a4a2f" stroke="var(--gold)" stroke-width="2"/>
+
+      <!-- brakes (disc near wheels) -->
+      <circle class="part" data-part="brakes" cx="220" cy="330" r="20" fill="none" stroke="#e8615a" stroke-width="3" opacity=".85"/>
+      <circle class="part" data-part="brakes" cx="680" cy="330" r="20" fill="none" stroke="#e8615a" stroke-width="3" opacity=".85"/>
+
+      <!-- wheels -->
+      <g id="wheel-front" class="part" data-part="wheels">
+        <circle cx="220" cy="330" r="35" fill="#111" stroke="#444" stroke-width="4"/>
+        <circle cx="220" cy="330" r="12" fill="#666"/>
+        <line x1="220" y1="300" x2="220" y2="360" stroke="#666" stroke-width="3"/>
+        <line x1="190" y1="330" x2="250" y2="330" stroke="#666" stroke-width="3"/>
+        <line x1="199" y1="309" x2="241" y2="351" stroke="#666" stroke-width="3"/>
+        <line x1="199" y1="351" x2="241" y2="309" stroke="#666" stroke-width="3"/>
+      </g>
+      <g id="wheel-rear" class="part" data-part="wheels">
+        <circle cx="680" cy="330" r="35" fill="#111" stroke="#444" stroke-width="4"/>
+        <circle cx="680" cy="330" r="12" fill="#666"/>
+        <line x1="680" y1="300" x2="680" y2="360" stroke="#666" stroke-width="3"/>
+        <line x1="650" y1="330" x2="710" y2="330" stroke="#666" stroke-width="3"/>
+        <line x1="659" y1="309" x2="701" y2="351" stroke="#666" stroke-width="3"/>
+        <line x1="659" y1="351" x2="701" y2="309" stroke="#666" stroke-width="3"/>
+      </g>
+
+      <!-- headlight -->
+      <circle cx="785" cy="260" r="8" fill="#ffe8a0"/>
+    </svg>
+
+    <div class="info-panel" id="info-panel">
+      <h3 id="info-title">اختر جزءًا من السيارة</h3>
+      <p class="placeholder" id="info-text">انقر على أي عنصر في الرسم أعلاه، أو اختر من القائمة بالأسفل، لعرض شرح وظيفته.</p>
+    </div>
+
+    <div class="parts-grid" id="parts-grid"></div>
+  </div>
+
+  <div class="engine-section">
+    <h2>🔧 دورة المحرك الرباعية الأشواط (مبسّطة)</h2>
+    <canvas id="engine-canvas" width="700" height="260"></canvas>
+    <div class="stroke-label" id="stroke-label">اضغط "تشغيل المحرك" أعلاه لبدء المحاكاة</div>
+  </div>
+</div>
+
+<script>
+// ---------- Starfield ----------
+const starsCanvas = document.getElementById('stars');
+const sctx = starsCanvas.getContext('2d');
+function resizeStars(){ starsCanvas.width = window.innerWidth; starsCanvas.height = document.body.scrollHeight; }
+let starList = [];
+function initStars(){
+  resizeStars(); starList = [];
+  const count = Math.floor((starsCanvas.width*starsCanvas.height)/9000);
+  for(let i=0;i<count;i++){
+    starList.push({x:Math.random()*starsCanvas.width,y:Math.random()*starsCanvas.height,r:Math.random()*1.4+0.3,a:Math.random(),speed:Math.random()*0.015});
+  }
+}
+function drawStars(){
+  sctx.clearRect(0,0,starsCanvas.width,starsCanvas.height);
+  for(const s of starList){
+    s.a += s.speed;
+    const alpha = Math.abs(Math.sin(s.a));
+    sctx.beginPath(); sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sctx.fillStyle = `rgba(242,193,78,${alpha*0.8})`; sctx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize', initStars);
+initStars(); drawStars();
+
+// ---------- Parts data ----------
+const partsInfo = {
+  body:{name:'هيكل السيارة', text:'الإطار الخارجي الذي يحمل جميع الأجزاء الميكانيكية ويحمي الركاب، ويُصنع عادة من الفولاذ أو الألمنيوم لتحقيق التوازن بين المتانة والوزن.'},
+  cabin:{name:'المقصورة', text:'الحيّز الداخلي حيث يجلس السائق والركاب، ويحتوي على المقاعد ولوحة القيادة وعجلة القيادة.'},
+  engine:{name:'المحرك', text:'قلب السيارة الذي يحوّل طاقة الوقود (أو الكهرباء) إلى حركة ميكانيكية عبر دورة احتراق داخلي في الأسطوانات، لتوليد القوة التي تدفع السيارة.'},
+  cooling:{name:'نظام التبريد (المشعّ)', text:'يمنع المحرك من الارتفاع الزائد في درجة الحرارة، عبر تدوير سائل التبريد بين المحرك والمبرد (الرادياتير) لتفريق الحرارة في الهواء.'},
+  battery:{name:'البطارية', text:'تزوّد النظام الكهربائي بالطاقة اللازمة لتشغيل المحرك (بدء الإقلاع)، والإضاءة، والشاشات، ونظام الصوت.'},
+  transmission:{name:'ناقل الحركة (القير)', text:'ينقل الطاقة من المحرك إلى العجلات بنسب تروس مختلفة، مما يتيح التحكم في السرعة وعزم الدوران حسب ظروف القيادة.'},
+  exhaust:{name:'نظام العادم', text:'يُخرج غازات الاحتراق الناتجة عن المحرك إلى خارج السيارة، مع تقليل الضوضاء والانبعاثات الضارة عبر المحوّل الحفّاز وكاتم الصوت.'},
+  suspension:{name:'نظام التعليق', text:'يمتص الصدمات الناتجة عن مطبات الطريق، ويحافظ على ثبات إطارات السيارة على الأرض لتحسين القيادة والتحكم.'},
+  steering:{name:'نظام التوجيه (المقود)', text:'يتيح للسائق التحكم في اتجاه العجلات الأمامية، وينقل حركة عجلة القيادة إلى العجلات عبر مجموعة تروس أو مساعد هيدروليكي/كهربائي.'},
+  brakes:{name:'نظام الفرامل', text:'يبطئ أو يوقف السيارة عبر توليد احتكاك بين أقراص أو طبول الفرامل والعجلات، غالبًا بمساعدة نظام هيدروليكي.'},
+  wheels:{name:'العجلات والإطارات', text:'تنقل قوة الدفع من المحرك وناقل الحركة إلى الطريق، وتوفر الإطارات المطاطية الالتصاق اللازم للتوجيه والفرملة الآمنة.'}
+};
+
+const infoTitle = document.getElementById('info-title');
+const infoText = document.getElementById('info-text');
+const partsGrid = document.getElementById('parts-grid');
+
+function selectPart(key){
+  document.querySelectorAll('.part').forEach(p=>p.classList.remove('selected'));
+  document.querySelectorAll(`.part[data-part="${key}"]`).forEach(p=>p.classList.add('selected'));
+  document.querySelectorAll('.part-chip').forEach(c=>c.classList.toggle('active', c.dataset.part===key));
+  const info = partsInfo[key];
+  infoTitle.textContent = info.name;
+  infoText.textContent = info.text;
+  infoText.classList.remove('placeholder');
+}
+
+document.querySelectorAll('.part').forEach(el=>{
+  el.addEventListener('click', ()=> selectPart(el.dataset.part));
+});
+
+Object.keys(partsInfo).forEach(key=>{
+  const chip = document.createElement('div');
+  chip.className='part-chip';
+  chip.dataset.part = key;
+  chip.textContent = partsInfo[key].name;
+  chip.addEventListener('click', ()=> selectPart(key));
+  partsGrid.appendChild(chip);
+});
+
+// ---------- Engine running animation ----------
+let running = false;
+let animFrame = null;
+let wheelAngle = 0;
+
+const wheelFront = document.getElementById('wheel-front');
+const wheelRear = document.getElementById('wheel-rear');
+const smokeCircles = document.querySelectorAll('.smoke');
+const engineToggle = document.getElementById('engine-toggle');
+const resetBtn = document.getElementById('reset-btn');
+
+function animateCar(){
+  wheelAngle += 12;
+  wheelFront.setAttribute('transform', `rotate(${wheelAngle} 220 330)`);
+  wheelRear.setAttribute('transform', `rotate(${wheelAngle} 680 330)`);
+  smokeCircles.forEach((c,i)=>{
+    const t = (Date.now()/300 + i*0.6) % 2;
+    c.style.opacity = t<1 ? (1-t)*0.6 : 0;
+    c.setAttribute('cy', 330 - t*18);
+    c.setAttribute('cx', 110 - t*15);
+  });
+  animFrame = requestAnimationFrame(animateCar);
+}
+
+engineToggle.addEventListener('click', ()=>{
+  running = !running;
+  if(running){
+    engineToggle.textContent = '⏸ إيقاف المحرك';
+    engineToggle.classList.add('on');
+    selectPart('engine');
+    animateCar();
+    startEngineCycle();
+  } else {
+    engineToggle.textContent = '▶ تشغيل المحرك';
+    engineToggle.classList.remove('on');
+    cancelAnimationFrame(animFrame);
+    stopEngineCycle();
+  }
+});
+
+resetBtn.addEventListener('click', ()=>{
+  running = false;
+  cancelAnimationFrame(animFrame);
+  stopEngineCycle();
+  engineToggle.textContent = '▶ تشغيل المحرك';
+  engineToggle.classList.remove('on');
+  wheelFront.removeAttribute('transform');
+  wheelRear.removeAttribute('transform');
+  smokeCircles.forEach(c=>c.style.opacity=0);
+  document.querySelectorAll('.part').forEach(p=>p.classList.remove('selected'));
+  document.querySelectorAll('.part-chip').forEach(c=>c.classList.remove('active'));
+  infoTitle.textContent = 'اختر جزءًا من السيارة';
+  infoText.textContent = 'انقر على أي عنصر في الرسم أعلاه، أو اختر من القائمة بالأسفل، لعرض شرح وظيفته.';
+  infoText.classList.add('placeholder');
+  document.getElementById('stroke-label').textContent = 'اضغط "تشغيل المحرك" أعلاه لبدء المحاكاة';
+});
+
+// ---------- Engine cross-section (4-stroke cycle) ----------
+const eCanvas = document.getElementById('engine-canvas');
+const ectx = eCanvas.getContext('2d');
+const strokeLabel = document.getElementById('stroke-label');
+const strokeNames = ['شوط السحب (Intake)','شوط الانضغاط (Compression)','شوط الاحتراق (Power)','شوط العادم (Exhaust)'];
+const strokeColors = ['#4ecfa0','#f2c14e','#e8615a','#8fa0c9'];
+
+let engineCycleFrame = null;
+let cyclePhase = 0; // 0..4 (continuous)
+
+function drawEngineStatic(){
+  ectx.clearRect(0,0,eCanvas.width,eCanvas.height);
+  drawCylinder(150, 0.5, 0);
+  drawCylinder(350, 0.5, 0);
+  drawCylinder(550, 0.5, 0);
+  ectx.fillStyle='#9aa6c7';
+  ectx.font='13px Tahoma';
+  ectx.textAlign='center';
+  ectx.fillText('أسطوانة 1', 150, 240);
+  ectx.fillText('أسطوانة 2', 350, 240);
+  ectx.fillText('أسطوانة 3', 550, 240);
+}
+
+function pistonY(phaseVal){
+  // phaseVal 0..1 within a stroke; simulate up/down via sine across full 4-stroke (0..4)
+  return 60 + (Math.sin(phaseVal*Math.PI*2 - Math.PI/2)+1)/2 * 100;
+}
+
+function drawCylinder(cx, phaseOffset, globalPhase){
+  const localPhase = (globalPhase + phaseOffset*2) % 4; // stagger cylinders
+  const strokeIndex = Math.floor(localPhase);
+  const within = localPhase - strokeIndex;
+  const y = pistonY(localPhase/4);
+
+  // cylinder walls
+  ectx.strokeStyle = 'rgba(255,255,255,.25)';
+  ectx.lineWidth = 3;
+  ectx.strokeRect(cx-40, 30, 80, 170);
+
+  // color flash for combustion stroke
+  const color = strokeColors[strokeIndex];
+
+  // piston
+  ectx.fillStyle = color;
+  ectx.fillRect(cx-35, y, 70, 30);
+  ectx.strokeStyle = '#111';
+  ectx.lineWidth = 2;
+  ectx.strokeRect(cx-35, y, 70, 30);
+
+  // connecting rod
+  ectx.strokeStyle = '#888';
+  ectx.lineWidth = 5;
+  ectx.beginPath();
+  ectx.moveTo(cx, y+30);
+  ectx.lineTo(cx, 210);
+  ectx.stroke();
+
+  // crankshaft dot
+  ectx.fillStyle = '#f2c14e';
+  ectx.beginPath();
+  ectx.arc(cx, 210, 8, 0, Math.PI*2);
+  ectx.fill();
+}
+
+function startEngineCycle(){
+  let phase = 0;
+  function loop(){
+    phase += 0.035;
+    if(phase>=4) phase-=4;
+    ectx.clearRect(0,0,eCanvas.width,eCanvas.height);
+    drawCylinder(150, 0, phase);
+    drawCylinder(350, 0.66, phase);
+    drawCylinder(550, 1.33, phase);
+    ectx.fillStyle='#9aa6c7';
+    ectx.font='13px Tahoma';
+    ectx.textAlign='center';
+    ectx.fillText('أسطوانة 1', 150, 240);
+    ectx.fillText('أسطوانة 2', 350, 240);
+    ectx.fillText('أسطوانة 3', 550, 240);
+
+    const idx = Math.floor(phase) % 4;
+    strokeLabel.textContent = strokeNames[idx];
+    strokeLabel.style.color = strokeColors[idx];
+
+    engineCycleFrame = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function stopEngineCycle(){
+  cancelAnimationFrame(engineCycleFrame);
+  drawEngineStatic();
+}
+
+drawEngineStatic();
+</script>
+</body>
+</html>
