@@ -1,0 +1,393 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>لعبة الكلمات المتقاطعة</title>
+<style>
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    margin:0; min-height:100vh; padding:16px;
+    font-family:'Tahoma','Segoe UI',sans-serif;
+    background:linear-gradient(180deg,#1b1f3b,#0f1220);
+    color:#fff; display:flex; flex-direction:column; align-items:center;
+  }
+  h1 { color:#ffd166; font-size:24px; margin:6px 0 4px; text-align:center; }
+  .sub { color:rgba(255,255,255,.6); font-size:13px; margin-bottom:16px; text-align:center; }
+
+  .toolbar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; justify-content:center; }
+  .toolbar button {
+    background:linear-gradient(135deg,#ff5d73,#ff9a5d); border:none; color:#fff;
+    padding:9px 20px; border-radius:24px; font-size:14px; font-weight:bold; cursor:pointer;
+    box-shadow:0 4px 12px rgba(255,93,115,.35);
+  }
+  .toolbar button.secondary { background:#2a2f52; box-shadow:none; }
+  .toolbar button:active { transform:scale(.96); }
+
+  #msg { min-height:22px; font-size:15px; color:#7bffb0; margin-bottom:10px; text-align:center; font-weight:bold; }
+
+  .layout { display:flex; gap:26px; flex-wrap:wrap; justify-content:center; align-items:flex-start; max-width:1000px; }
+
+  #gridWrap { overflow:auto; padding:6px; background:rgba(255,255,255,.04); border-radius:10px; border:1px solid rgba(255,255,255,.08); }
+  #grid { display:grid; direction:rtl; }
+  .cell {
+    width:34px; height:34px; position:relative;
+    border:1px solid rgba(255,255,255,.15);
+  }
+  .cell.block { background:transparent; border-color:transparent; }
+  .cell input {
+    width:100%; height:100%; border:none; text-align:center; font-size:17px; font-weight:bold;
+    background:#fdfaf3; color:#1b1f3b; outline:none; border-radius:2px;
+  }
+  .cell input:focus { background:#ffe9b3; }
+  .cell input.correct { background:#bdf5c9; }
+  .cell input.wrong { background:#ffc3c3; }
+  .cell .num {
+    position:absolute; top:1px; left:2px; font-size:9px; color:#ff5d73; font-weight:bold;
+    pointer-events:none; background:#fdfaf3;
+  }
+  .cell.active input { box-shadow: inset 0 0 0 2px #ff5d73; }
+  .cell.inword input:not(:focus) { background:#fff3d6; }
+
+  .clues { min-width:230px; max-width:320px; }
+  .clues h3 { color:#ffd166; font-size:15px; margin:0 0 8px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:4px; }
+  .clues ul { list-style:none; margin:0 0 18px; padding:0; }
+  .clues li {
+    padding:6px 8px; border-radius:8px; font-size:13.5px; cursor:pointer; line-height:1.5;
+    color:rgba(255,255,255,.85);
+  }
+  .clues li:hover { background:rgba(255,255,255,.06); }
+  .clues li.selected { background:rgba(255,93,115,.25); color:#fff; }
+  .clues li b { color:#ffb74d; margin-left:6px; }
+  .clues li.done { text-decoration:line-through; opacity:.5; }
+
+  @media (max-width:640px){
+    .cell { width:28px; height:28px; }
+    .cell input { font-size:14px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🧩 لعبة الكلمات المتقاطعة</h1>
+<div class="sub">اضغط على مربع للبدء بالكتابة، أو اضغط على أحد الأسئلة لتحديد الكلمة</div>
+
+<div class="toolbar">
+  <button id="checkBtn">تحقق من الإجابات</button>
+  <button id="revealBtn" class="secondary">إظهار الحل</button>
+  <button id="newBtn" class="secondary">لعبة جديدة</button>
+</div>
+<div id="msg"></div>
+
+<div class="layout">
+  <div id="gridWrap"><div id="grid"></div></div>
+  <div class="clues">
+    <h3>أفقي →</h3>
+    <ul id="acrossList"></ul>
+    <h3>عمودي ↓</h3>
+    <ul id="downList"></ul>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  // بنك الكلمات والتلميحات (يمكن إضافة المزيد)
+  const BANK = [
+    { word:'شمس',  clue:'النجم الذي تدور حوله الأرض وتشرق كل صباح' },
+    { word:'قمر',  clue:'جرم يدور حول الأرض ويضيء ليلاً' },
+    { word:'ماء',  clue:'سائل شفاف لا لون له ولا رائحة، ضروري للحياة' },
+    { word:'نار',  clue:'ساخنة ومضيئة، تنتج عن الاحتراق' },
+    { word:'هواء', clue:'الغلاف الذي نتنفسه ولا نراه' },
+    { word:'أرض',  clue:'الكوكب الذي نعيش عليه' },
+    { word:'نجم',  clue:'جرم سماوي بعيد يشع ضوءه الخاص ليلاً' },
+    { word:'ضوء',  clue:'ما يمكّننا من رؤية الأشياء' },
+    { word:'صوت',  clue:'ما تسمعه أذناك' },
+    { word:'زمن',  clue:'الوقت الذي يمر ولا يعود' },
+    { word:'ريح',  clue:'هواء متحرك بقوة' },
+    { word:'بحر',  clue:'مسطح مائي واسع مالح' },
+
+  ];
+
+  let placed = [];   // {word, clue, row, col, dir, num}
+  let cellMap = {};  // "r,c" -> letter
+  let rows = 0, cols = 0;
+  let selected = null; // {row,col,dir}
+
+  const gridEl = document.getElementById('grid');
+  const acrossList = document.getElementById('acrossList');
+  const downList = document.getElementById('downList');
+  const msg = document.getElementById('msg');
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+
+  function canPlace(word,row,col,dir){
+    for(let k=0;k<word.length;k++){
+      const r = dir==='A' ? row : row+k;
+      const c = dir==='A' ? col+k : col;
+      const key = r+','+c;
+      if(cellMap[key] !== undefined && cellMap[key] !== word[k]) return false;
+    }
+    // تحقق من الخلية قبل البداية وبعد النهاية على نفس الاتجاه (تفادي الالتصاق)
+    const beforeR = dir==='A'? row : row-1;
+    const beforeC = dir==='A'? col-1 : col;
+    const afterR  = dir==='A'? row : row+word.length;
+    const afterC  = dir==='A'? col+word.length : col;
+    if(cellMap[beforeR+','+beforeC] !== undefined) return false;
+    if(cellMap[afterR+','+afterC] !== undefined) return false;
+    return true;
+  }
+
+  function doPlace(word,clue,row,col,dir){
+    for(let k=0;k<word.length;k++){
+      const r = dir==='A' ? row : row+k;
+      const c = dir==='A' ? col+k : col;
+      cellMap[r+','+c] = word[k];
+    }
+    placed.push({ word, clue, row, col, dir });
+  }
+
+  function generate(){
+    placed = []; cellMap = {};
+    const words = shuffle(BANK).sort((a,b)=> b.word.length - a.word.length);
+    doPlace(words[0].word, words[0].clue, 0, 0, 'A');
+
+    for(let i=1;i<words.length;i++){
+      const {word,clue} = words[i];
+      let done = false;
+      for(let p=0;p<placed.length && !done;p++){
+        const pw = placed[p];
+        for(let j=0;j<pw.word.length && !done;j++){
+          const pr = pw.dir==='A' ? pw.row : pw.row+j;
+          const pc = pw.dir==='A' ? pw.col+j : pw.col;
+          const letter = pw.word[j];
+          for(let k=0;k<word.length && !done;k++){
+            if(word[k] !== letter) continue;
+            const newDir = pw.dir==='A' ? 'D' : 'A';
+            const newRow = newDir==='A' ? pr : pr-k;
+            const newCol = newDir==='A' ? pc-k : pc;
+            if(canPlace(word,newRow,newCol,newDir)){
+              doPlace(word,clue,newRow,newCol,newDir);
+              done = true;
+            }
+          }
+        }
+      }
+      if(!done){
+        let maxRow = 0;
+        placed.forEach(p=>{
+          const endRow = p.dir==='A' ? p.row : p.row + p.word.length - 1;
+          if(endRow > maxRow) maxRow = endRow;
+        });
+        doPlace(word, clue, maxRow+2, 0, 'A');
+      }
+    }
+
+    // تطبيع الإحداثيات
+    let minR=Infinity,minC=Infinity,maxR=-Infinity,maxC=-Infinity;
+    placed.forEach(p=>{
+      const endRow = p.dir==='A' ? p.row : p.row+p.word.length-1;
+      const endCol = p.dir==='A' ? p.col+p.word.length-1 : p.col;
+      minR=Math.min(minR,p.row); minC=Math.min(minC,p.col);
+      maxR=Math.max(maxR,endRow); maxC=Math.max(maxC,endCol);
+    });
+    placed.forEach(p=>{ p.row-=minR; p.col-=minC; });
+    rows = maxR-minR+1; cols = maxC-minC+1;
+    cellMap = {};
+    placed.forEach(p=>{
+      for(let k=0;k<p.word.length;k++){
+        const r = p.dir==='A' ? p.row : p.row+k;
+        const c = p.dir==='A' ? p.col+k : p.col;
+        cellMap[r+','+c] = p.word[k];
+      }
+    });
+
+    // ترقيم الكلمات
+    const starts = [];
+    placed.forEach(p=>{
+      if(!starts.find(s=>s.row===p.row && s.col===p.col)) starts.push({row:p.row,col:p.col});
+    });
+    starts.sort((a,b)=> a.row-b.row || a.col-b.col);
+    starts.forEach((s,idx)=>{
+      placed.forEach(p=>{ if(p.row===s.row && p.col===s.col) p.num = idx+1; });
+    });
+  }
+
+  function render(){
+    gridEl.style.gridTemplateColumns = `repeat(${cols}, 34px)`;
+    gridEl.style.gridTemplateRows = `repeat(${rows}, 34px)`;
+    gridEl.innerHTML = '';
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const key = r+','+c;
+        const div = document.createElement('div');
+        if(cellMap[key] === undefined){
+          div.className = 'cell block';
+        } else {
+          div.className = 'cell';
+          div.dataset.row = r; div.dataset.col = c;
+          const starter = placed.find(p=>p.row===r && p.col===c);
+          if(starter){
+            const num = document.createElement('span');
+            num.className='num'; num.textContent = starter.num;
+            div.appendChild(num);
+          }
+          const input = document.createElement('input');
+          input.maxLength = 1;
+          input.dataset.row = r; input.dataset.col = c;
+          input.addEventListener('focus', ()=> onFocusCell(r,c));
+          input.addEventListener('input', (e)=> onInput(e,r,c));
+          input.addEventListener('keydown', (e)=> onKeydown(e,r,c));
+          div.appendChild(input);
+        }
+        gridEl.appendChild(div);
+      }
+    }
+    renderClues();
+  }
+
+  function renderClues(){
+    acrossList.innerHTML=''; downList.innerHTML='';
+    placed.filter(p=>p.dir==='A').sort((a,b)=>a.num-b.num).forEach(p=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${p.num}.</b> ${p.clue}`;
+      li.dataset.row=p.row; li.dataset.col=p.col; li.dataset.dir='A';
+      li.addEventListener('click', ()=> selectWord(p.row,p.col,'A'));
+      acrossList.appendChild(li);
+    });
+    placed.filter(p=>p.dir==='D').sort((a,b)=>a.num-b.num).forEach(p=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${p.num}.</b> ${p.clue}`;
+      li.dataset.row=p.row; li.dataset.col=p.col; li.dataset.dir='D';
+      li.addEventListener('click', ()=> selectWord(p.row,p.col,'D'));
+      downList.appendChild(li);
+    });
+  }
+
+  function wordsAt(r,c){
+    return placed.filter(p=>{
+      for(let k=0;k<p.word.length;k++){
+        const rr = p.dir==='A'? p.row : p.row+k;
+        const cc = p.dir==='A'? p.col+k : p.col;
+        if(rr===r && cc===c) return true;
+      }
+      return false;
+    });
+  }
+
+  function onFocusCell(r,c){
+    const ws = wordsAt(r,c);
+    if(ws.length===0) return;
+    let dir = selected && selected.dir ? selected.dir : ws[0].dir;
+    if(!ws.find(w=>w.dir===dir)) dir = ws[0].dir;
+    const w = ws.find(x=>x.dir===dir);
+    highlightWord(w, r, c);
+  }
+
+  function selectWord(row,col,dir){
+    const w = placed.find(p=>p.row===row && p.col===col && p.dir===dir);
+    if(!w) return;
+    const fr = w.dir==='A' ? w.row : w.row;
+    const fc = w.dir==='A' ? w.col : w.col;
+    const input = gridEl.querySelector(`input[data-row="${fr}"][data-col="${fc}"]`);
+    if(input) input.focus();
+    highlightWord(w, fr, fc);
+  }
+
+  function highlightWord(w, activeR, activeC){
+    selected = { row:w.row, col:w.col, dir:w.dir };
+    document.querySelectorAll('.cell').forEach(c=>{ c.classList.remove('inword','active'); });
+    for(let k=0;k<w.word.length;k++){
+      const rr = w.dir==='A'? w.row : w.row+k;
+      const cc = w.dir==='A'? w.col+k : w.col;
+      const cell = gridEl.querySelector(`.cell[data-row="${rr}"][data-col="${cc}"]`);
+      if(cell) cell.classList.add('inword');
+      if(rr===activeR && cc===activeC && cell) cell.classList.add('active');
+    }
+    document.querySelectorAll('.clues li').forEach(li=>{
+      li.classList.toggle('selected', +li.dataset.row===w.row && +li.dataset.col===w.col && li.dataset.dir===w.dir);
+    });
+  }
+
+  const ARABIC_RE = /^[\u0621-\u064A]$/;
+
+  function onInput(e,r,c){
+    let v = e.target.value;
+    if(v && !ARABIC_RE.test(v)){ e.target.value=''; return; }
+    e.target.classList.remove('correct','wrong');
+    if(v){ moveNext(r,c); }
+  }
+
+  function onKeydown(e,r,c){
+    if(e.key==='Backspace' && !e.target.value){ movePrev(r,c); }
+    else if(e.key==='ArrowRight'){ moveDir(r,c,selected&&selected.dir==='A'? -1:0, selected&&selected.dir==='A'?0:0); focusCell(r, c-1); }
+    else if(e.key==='ArrowLeft'){ focusCell(r, c+1); }
+    else if(e.key==='ArrowDown'){ focusCell(r+1, c); }
+    else if(e.key==='ArrowUp'){ focusCell(r-1, c); }
+  }
+
+  function focusCell(r,c){
+    const input = gridEl.querySelector(`input[data-row="${r}"][data-col="${c}"]`);
+    if(input) input.focus();
+  }
+
+  function moveNext(r,c){
+    if(!selected) return;
+    const nr = selected.dir==='A' ? r : r+1;
+    const nc = selected.dir==='A' ? c-1 : c;
+    focusCell(nr,nc);
+  }
+  function movePrev(r,c){
+    if(!selected) return;
+    const pr = selected.dir==='A' ? r : r-1;
+    const pc = selected.dir==='A' ? c+1 : c;
+    focusCell(pr,pc);
+  }
+
+  function checkAnswers(){
+    let allCorrect = true, anyFilled = false;
+    document.querySelectorAll('.cell input').forEach(input=>{
+      const r = +input.dataset.row, c = +input.dataset.col;
+      const correct = cellMap[r+','+c];
+      input.classList.remove('correct','wrong');
+      if(input.value){
+        anyFilled = true;
+        if(input.value === correct) input.classList.add('correct');
+        else { input.classList.add('wrong'); allCorrect = false; }
+      } else {
+        allCorrect = false;
+      }
+    });
+    if(!anyFilled){ msg.textContent = 'ابدأ بملء بعض المربعات أولاً 🙂'; return; }
+    msg.textContent = allCorrect ? '🎉 أحسنت! لقد حللت الكلمات المتقاطعة بالكامل!' : 'هناك بعض الإجابات غير الصحيحة، حاول مجددًا.';
+  }
+
+  function reveal(){
+    document.querySelectorAll('.cell input').forEach(input=>{
+      const r = +input.dataset.row, c = +input.dataset.col;
+      input.value = cellMap[r+','+c];
+      input.classList.remove('wrong'); input.classList.add('correct');
+    });
+    msg.textContent = 'تم إظهار الحل ✅';
+  }
+
+  function newGame(){
+    msg.textContent = '';
+    selected = null;
+    generate();
+    render();
+  }
+
+  document.getElementById('checkBtn').addEventListener('click', checkAnswers);
+  document.getElementById('revealBtn').addEventListener('click', reveal);
+  document.getElementById('newBtn').addEventListener('click', newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>

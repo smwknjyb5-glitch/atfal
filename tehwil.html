@@ -1,0 +1,193 @@
+ <!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universal Unit Converter</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    text-align:center;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:500px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 0 15px rgba(0,0,0,0.15);
+}
+
+h2{
+    color:#333;
+}
+
+input,select,button{
+    width:90%;
+    padding:10px;
+    margin:8px;
+    font-size:16px;
+}
+
+button{
+    cursor:pointer;
+}
+
+#result{
+    margin-top:15px;
+    font-size:22px;
+    font-weight:bold;
+    color:#0066cc;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>محول الوحدات</h2>
+
+<input type="number" id="value" placeholder=":ادخل قيمة">
+
+<select id="type">
+
+<optgroup label="الطول">
+<option value="m_km">m → km</option>
+<option value="km_m">km → m</option>
+<option value="m_cm">m → cm</option>
+<option value="cm_m">cm → m</option>
+<option value="m_mm">m → mm</option>
+<option value="mm_m">mm → m</option>
+</optgroup>
+
+<optgroup label="الكتلة">
+<option value="kg_g">kg → g</option>
+<option value="g_kg">g → kg</option>
+<option value="kg_lb">kg → lb</option>
+<option value="lb_kg">lb → kg</option>
+</optgroup>
+
+<optgroup label="المساحة">
+<option value="m2_cm2">m² → cm²</option>
+<option value="cm2_m2">cm² → m²</option>
+</optgroup>
+
+<optgroup label="الحجم">
+<option value="L_mL">L → mL</option>
+<option value="mL_L">mL → L</option>
+</optgroup>
+
+<optgroup label="السرعة">
+<option value="kmh_ms">km/h → m/s</option>
+<option value="ms_kmh">m/s → km/h</option>
+</optgroup>
+
+<optgroup label="الزمن">
+<option value="s_min">s → min</option>
+<option value="min_s">min → s</option>
+<option value="min_h">min → h</option>
+<option value="h_min">h → min</option>
+</optgroup>
+
+<optgroup label="الطاقة">
+<option value="J_cal">J → cal</option>
+<option value="cal_J">cal → J</option>
+</optgroup>
+
+<optgroup label="الضغط">
+<option value="Pa_bar">Pa → bar</option>
+<option value="bar_Pa">bar → Pa</option>
+</optgroup>
+
+<optgroup label="البيانات">
+<option value="KB_MB">KB → MB</option>
+<option value="MB_GB">MB → GB</option>
+<option value="GB_MB">GB → MB</option>
+</optgroup>
+
+</select>
+
+<button onclick="convert()">Convert</button>
+
+<div id="result">Result</div>
+
+</div>
+
+<script>
+
+function convert(){
+
+let v = parseFloat(document.getElementById("value").value);
+
+if(isNaN(v)){
+    document.getElementById("result").innerHTML="Enter a value";
+    return;
+}
+
+let t = document.getElementById("type").value;
+let r;
+
+switch(t){
+
+// Length
+case "m_km": r=(v/1000)+" km"; break;
+case "km_m": r=(v*1000)+" m"; break;
+case "m_cm": r=(v*100)+" cm"; break;
+case "cm_m": r=(v/100)+" m"; break;
+case "m_mm": r=(v*1000)+" mm"; break;
+case "mm_m": r=(v/1000)+" m"; break;
+
+// Mass
+case "kg_g": r=(v*1000)+" g"; break;
+case "g_kg": r=(v/1000)+" kg"; break;
+case "kg_lb": r=(v*2.20462).toFixed(4)+" lb"; break;
+case "lb_kg": r=(v/2.20462).toFixed(4)+" kg"; break;
+
+// Area
+case "m2_cm2": r=(v*10000)+" cm²"; break;
+case "cm2_m2": r=(v/10000)+" m²"; break;
+
+// Volume
+case "L_mL": r=(v*1000)+" mL"; break;
+case "mL_L": r=(v/1000)+" L"; break;
+
+// Speed
+case "kmh_ms": r=(v/3.6).toFixed(4)+" m/s"; break;
+case "ms_kmh": r=(v*3.6).toFixed(4)+" km/h"; break;
+
+// Time
+case "s_min": r=(v/60)+" min"; break;
+case "min_s": r=(v*60)+" s"; break;
+case "min_h": r=(v/60)+" h"; break;
+case "h_min": r=(v*60)+" min"; break;
+
+// Energy
+case "J_cal": r=(v/4.184).toFixed(4)+" cal"; break;
+case "cal_J": r=(v*4.184).toFixed(4)+" J"; break;
+
+// Pressure
+case "Pa_bar": r=(v/100000)+" bar"; break;
+case "bar_Pa": r=(v*100000)+" Pa"; break;
+
+// Data
+case "KB_MB": r=(v/1024).toFixed(4)+" MB"; break;
+case "MB_GB": r=(v/1024).toFixed(4)+" GB"; break;
+case "GB_MB": r=(v*1024).toFixed(4)+" MB"; break;
+
+default: r="Error";
+}
+
+document.getElementById("result").innerHTML=r;
+
+}
+
+</script>
+
+</body>
+</html>
