@@ -1,0 +1,329 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة تطوّر لغات البرمجة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0e13;
+    --bg-panel:#121822;
+    --line-base:#1c2530;
+    --cream:#e7edf3;
+    --cream-dim:#8a99a8;
+    --procedural:#64b5f6;
+    --oop:#ff8a65;
+    --functional:#ba68c8;
+    --scripting:#4dd0c4;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    background:radial-gradient(ellipse at 50% -10%, #131c28 0%, var(--bg-deep) 55%, #050708 100%);
+    color:var(--cream);
+    font-family:'Tajawal',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{ max-width:1180px; margin:0 auto; padding:36px 20px 60px; }
+  header{ text-align:center; margin-bottom:26px; }
+  .kicker{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.15em; color:#4dd0c4; text-transform:uppercase; font-weight:700; margin-bottom:10px; direction:ltr; }
+  h1{ font-weight:900; font-size:38px; margin:0 0 8px; color:var(--cream); }
+  .sub{ color:var(--cream-dim); font-size:15px; max-width:620px; margin:0 auto; line-height:1.9; }
+
+  .filters{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:22px 0 20px; }
+  .chip{
+    font-size:13px; font-weight:700; padding:8px 16px; border-radius:100px;
+    border:1px solid var(--line-base); background:var(--bg-panel); color:var(--cream-dim);
+    cursor:pointer; transition:.2s; user-select:none;
+  }
+  .chip .sw{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-left:7px; }
+  .chip.on{ color:#04121a; }
+  .chip[data-p="procedural"].on{ background:var(--procedural); border-color:var(--procedural); }
+  .chip[data-p="oop"].on{ background:var(--oop); border-color:var(--oop); }
+  .chip[data-p="functional"].on{ background:var(--functional); border-color:var(--functional); }
+  .chip[data-p="scripting"].on{ background:var(--scripting); border-color:var(--scripting); }
+
+  .stage{
+    position:relative; border-radius:16px; border:1px solid var(--line-base);
+    background:#080b0f; overflow-x:auto; overflow-y:hidden;
+    box-shadow:0 30px 60px -30px rgba(0,0,0,.8);
+  }
+  .timeline{ position:relative; display:flex; gap:26px; padding:26px 30px; min-width:max-content; }
+  .era{ display:flex; flex-direction:column; align-items:center; width:150px; flex-shrink:0; }
+  .era-label{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--cream-dim); margin-bottom:14px; letter-spacing:.05em; }
+  .nodes{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .node{
+    position:relative; z-index:2;
+    background:var(--bg-panel); border:1.5px solid var(--line-base); border-radius:10px;
+    padding:9px 12px; text-align:center; cursor:pointer; transition:.2s;
+  }
+  .node .name{ font-weight:700; font-size:14px; color:var(--cream); }
+  .node .year{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--cream-dim); direction:ltr; margin-top:2px; }
+  .node.procedural{ border-color:var(--procedural); }
+  .node.oop{ border-color:var(--oop); }
+  .node.functional{ border-color:var(--functional); }
+  .node.scripting{ border-color:var(--scripting); }
+  .node:hover{ transform:translateY(-2px); box-shadow:0 8px 18px -8px rgba(0,0,0,.6); }
+  .node.selected{ background:#1a2330; box-shadow:0 0 0 2px currentColor; }
+  .node.dimmed{ opacity:.22; }
+  svg.connectors{ position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+  svg.connectors path{ fill:none; stroke-width:1.5; opacity:.35; transition:.2s; }
+  svg.connectors path.dimmed{ opacity:.05; }
+  svg.connectors path.highlighted{ opacity:.95; stroke-width:2.5; }
+
+  .detail{
+    margin-top:22px; background:var(--bg-panel); border:1px solid var(--line-base);
+    border-radius:14px; padding:22px 24px; min-height:150px;
+  }
+  .detail .empty{ color:var(--cream-dim); font-size:14px; text-align:center; padding:20px 0; }
+  .detail-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+  .detail-head h2{ font-size:22px; margin:0; }
+  .badge{ font-family:'JetBrains Mono',monospace; font-size:11px; padding:3px 10px; border-radius:100px; border:1px solid var(--line-base); color:var(--cream-dim); direction:ltr; }
+  .detail-meta{ font-size:13.5px; color:var(--cream-dim); line-height:2; margin-bottom:14px; }
+  .detail-meta b{ color:var(--cream); font-weight:700; }
+  pre.code{
+    background:#0a0e13; border:1px solid var(--line-base); border-radius:10px;
+    padding:14px 16px; font-family:'JetBrains Mono',monospace; font-size:13px; color:#c9d6e2;
+    direction:ltr; text-align:left; overflow-x:auto; line-height:1.7; margin:0;
+  }
+  footer{ text-align:center; color:var(--cream-dim); font-size:12px; margin-top:20px; line-height:1.9; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">// language.evolution.timeline</div>
+    <h1>محاكاة تطوّر لغات البرمجة</h1>
+    <p class="sub">شجرة زمنية تفاعلية توضّح كيف تأثّرت لغات البرمجة ببعضها عبر العقود. اضغط على أي لغة لعرض تفاصيلها، أو صفِّ حسب نمط البرمجة.</p>
+  </header>
+
+  <div class="filters" id="filters">
+    <div class="chip" data-p="procedural"><span class="sw" style="background:#64b5f6"></span>إجرائية</div>
+    <div class="chip" data-p="oop"><span class="sw" style="background:#ff8a65"></span>كائنية التوجه</div>
+    <div class="chip" data-p="functional"><span class="sw" style="background:#ba68c8"></span>وظيفية</div>
+    <div class="chip" data-p="scripting"><span class="sw" style="background:#4dd0c4"></span>نصية (سكريبت)</div>
+  </div>
+
+  <div class="stage">
+    <div class="timeline" id="timeline">
+      <svg class="connectors" id="svg"></svg>
+    </div>
+  </div>
+
+  <div class="detail" id="detail">
+    <div class="empty">اضغط على أي لغة في الخط الزمني أعلاه لعرض معلوماتها ومثال كود بسيط منها.</div>
+  </div>
+
+  <footer>خريطة مبسّطة لأبرز محطات تطوّر لغات البرمجة — وليست شاملة لكل اللغات أو كل روابط التأثير.</footer>
+</div>
+
+<script>
+const LANGS = [
+  {id:'fortran', name:'Fortran', year:1957, era:'الخمسينيات', p:'procedural', creator:'John Backus / IBM', desc:'أول لغة برمجة عالية المستوى منتشرة، صُمّمت للحوسبة العلمية والهندسية.', code:`PROGRAM HELLO
+  PRINT *, 'Hello, World!'
+END PROGRAM HELLO`, infl:[]},
+  {id:'lisp', name:'Lisp', year:1958, era:'الخمسينيات', p:'functional', creator:'John McCarthy', desc:'من أقدم اللغات الوظيفية، أسّست لفكرة معالجة الكود كبيانات وأثّرت في أجيال لاحقة.', code:`(print "Hello, World!")`, infl:[]},
+
+  {id:'cobol', name:'COBOL', year:1959, era:'الستينيات', p:'procedural', creator:'Grace Hopper وآخرون', desc:'لغة موجّهة للأعمال والمعاملات المالية، ما زالت تعمل في أنظمة بنكية قديمة.', code:`DISPLAY "Hello, World!".`, infl:['fortran']},
+  {id:'basic', name:'BASIC', year:1964, era:'الستينيات', p:'procedural', creator:'Kemeny & Kurtz', desc:'صُمّمت لتبسيط تعلّم البرمجة للمبتدئين في الجامعات.', code:`10 PRINT "Hello, World!"
+20 END`, infl:['fortran']},
+  {id:'simula', name:'Simula', year:1967, era:'الستينيات', p:'oop', creator:'Dahl & Nygaard', desc:'أول لغة قدّمت مفهوم الأصناف (Classes) والكائنات، أساس البرمجة الكائنية.', code:`OutText("Hello, World!");
+OutImage;`, infl:[]},
+
+  {id:'pascal', name:'Pascal', year:1970, era:'السبعينيات', p:'procedural', creator:'Niklaus Wirth', desc:'صُمّمت لتعليم البرمجة المنظّمة (Structured Programming) بوضوح.', code:`program Hello;
+begin
+  writeln('Hello, World!');
+end.`, infl:[]},
+  {id:'c', name:'C', year:1972, era:'السبعينيات', p:'procedural', creator:'Dennis Ritchie', desc:'إحدى أكثر اللغات تأثيراً في تاريخ البرمجة، أساس أنظمة التشغيل ولغات عديدة لاحقة.', code:`#include <stdio.h>
+int main() {
+  printf("Hello, World!\\n");
+  return 0;
+}`, infl:[]},
+  {id:'smalltalk', name:'Smalltalk', year:1972, era:'السبعينيات', p:'oop', creator:'Alan Kay وآخرون', desc:'أول لغة كائنية التوجه بالكامل، أثّرت بعمق في تصميم الواجهات وOOP الحديثة.', code:`Transcript showCr: 'Hello, World!'.`, infl:['simula','lisp']},
+  {id:'prolog', name:'Prolog', year:1972, era:'السبعينيات', p:'functional', creator:'Colmerauer & Kowalski', desc:'لغة منطقية تُستخدم في الذكاء الاصطناعي وأنظمة الاستدلال.', code:`:- initialization(main).
+main :- write('Hello, World!'), nl.`, infl:['lisp']},
+
+  {id:'cpp', name:'C++', year:1983, era:'الثمانينيات', p:'oop', creator:'Bjarne Stroustrup', desc:'أضافت البرمجة الكائنية فوق C، وأصبحت أساس البرمجيات عالية الأداء والألعاب.', code:`#include <iostream>
+int main() {
+  std::cout << "Hello, World!";
+}`, infl:['c','simula']},
+  {id:'objc', name:'Objective-C', year:1984, era:'الثمانينيات', p:'oop', creator:'Brad Cox & Tom Love', desc:'لغة كائنية بُنيت فوق C، كانت لغة تطبيقات Apple الأساسية قبل Swift.', code:`#import <Foundation/Foundation.h>
+int main() {
+  NSLog(@"Hello, World!");
+}`, infl:['c','smalltalk']},
+  {id:'perl', name:'Perl', year:1987, era:'الثمانينيات', p:'scripting', creator:'Larry Wall', desc:'لغة نصية قوية في معالجة النصوص، شائعة في إدارة الأنظمة ومهام الويب المبكرة.', code:`print "Hello, World!\\n";`, infl:['c','lisp']},
+
+  {id:'python', name:'Python', year:1991, era:'التسعينيات', p:'scripting', creator:'Guido van Rossum', desc:'لغة واضحة وسهلة القراءة، منتشرة اليوم في الذكاء الاصطناعي وتحليل البيانات والويب.', code:`print("Hello, World!")`, infl:['c','lisp']},
+  {id:'java', name:'Java', year:1995, era:'التسعينيات', p:'oop', creator:'James Gosling / Sun', desc:'لغة كائنية "اكتب مرة، شغّل في أي مكان"، أساس تطبيقات المؤسسات وأندرويد.', code:`public class Hello {
+  public static void main(String[] a) {
+    System.out.println("Hello, World!");
+  }
+}`, infl:['cpp','smalltalk']},
+  {id:'js', name:'JavaScript', year:1995, era:'التسعينيات', p:'scripting', creator:'Brendan Eich', desc:'لغة الويب التفاعلي، تعمل داخل كل متصفح وأصبحت لاحقاً لغة خوادم أيضاً.', code:`console.log("Hello, World!");`, infl:['c','lisp']},
+  {id:'php', name:'PHP', year:1995, era:'التسعينيات', p:'scripting', creator:'Rasmus Lerdorf', desc:'لغة نصية مخصصة لتطوير الويب من جهة الخادم، تشغّل نسبة كبيرة من مواقع الإنترنت.', code:`<?php
+echo "Hello, World!";
+?>`, infl:['c','perl']},
+  {id:'ruby', name:'Ruby', year:1995, era:'التسعينيات', p:'scripting', creator:'Yukihiro Matsumoto', desc:'لغة كائنية أنيقة الصياغة، اشتهرت عبر إطار العمل Ruby on Rails.', code:`puts "Hello, World!"`, infl:['perl','smalltalk','lisp']},
+
+  {id:'csharp', name:'C#', year:2000, era:'الألفينيات', p:'oop', creator:'Microsoft', desc:'لغة كائنية حديثة من مايكروسوفت، أساس منصة .NET وتطوير الألعاب عبر Unity.', code:`Console.WriteLine("Hello, World!");`, infl:['cpp','java']},
+  {id:'scala', name:'Scala', year:2004, era:'الألفينيات', p:'functional', creator:'Martin Odersky', desc:'تمزج البرمجة الوظيفية بالكائنية، وتعمل على منصة جافا (JVM).', code:`object Hello extends App {
+  println("Hello, World!")
+}`, infl:['java','lisp']},
+  {id:'go', name:'Go', year:2009, era:'الألفينيات', p:'procedural', creator:'Google', desc:'لغة بسيطة وسريعة صُمّمت لأنظمة الخوادم والبرمجة المتزامنة (Concurrency).', code:`package main
+import "fmt"
+func main() {
+  fmt.Println("Hello, World!")
+}`, infl:['c']},
+
+  {id:'rust', name:'Rust', year:2010, era:'عقد 2010', p:'functional', creator:'Mozilla', desc:'لغة تركّز على الأمان في إدارة الذاكرة دون التضحية بالأداء، بديل حديث لـ C++.', code:`fn main() {
+    println!("Hello, World!");
+}`, infl:['cpp']},
+  {id:'kotlin', name:'Kotlin', year:2011, era:'عقد 2010', p:'oop', creator:'JetBrains', desc:'لغة كائنية حديثة تعمل على JVM، أصبحت اللغة الرسمية لتطوير أندرويد.', code:`fun main() {
+    println("Hello, World!")
+}`, infl:['java']},
+  {id:'ts', name:'TypeScript', year:2012, era:'عقد 2010', p:'scripting', creator:'Microsoft', desc:'امتداد لجافاسكربت يضيف الأنواع الثابتة (Types) لتطوير تطبيقات أكبر وأكثر أماناً.', code:`console.log("Hello, World!" as string);`, infl:['js']},
+  {id:'swift', name:'Swift', year:2014, era:'عقد 2010', p:'oop', creator:'Apple', desc:'لغة حديثة سريعة وآمنة حلّت محل Objective-C في تطوير تطبيقات آبل.', code:`print("Hello, World!")`, infl:['objc','rust']},
+];
+
+const infoById = {};
+LANGS.forEach(l => infoById[l.id] = l);
+
+const eraOrder = ['الخمسينيات','الستينيات','السبعينيات','الثمانينيات','التسعينيات','الألفينيات','عقد 2010'];
+const timeline = document.getElementById('timeline');
+const svg = document.getElementById('svg');
+const detail = document.getElementById('detail');
+
+let activeFilters = new Set();
+let selected = null;
+
+// build columns
+eraOrder.forEach(era => {
+  const col = document.createElement('div');
+  col.className = 'era';
+  const label = document.createElement('div');
+  label.className = 'era-label';
+  label.textContent = era;
+  col.appendChild(label);
+  const nodesWrap = document.createElement('div');
+  nodesWrap.className = 'nodes';
+  LANGS.filter(l => l.era === era).sort((a,b)=>a.year-b.year).forEach(l => {
+    const n = document.createElement('div');
+    n.className = 'node ' + l.p;
+    n.dataset.id = l.id;
+    n.innerHTML = `<div class="name">${l.name}</div><div class="year">${l.year}</div>`;
+    n.addEventListener('click', () => selectLang(l.id));
+    nodesWrap.appendChild(n);
+  });
+  col.appendChild(nodesWrap);
+  timeline.appendChild(col);
+});
+
+const paradigmColor = {procedural:'#64b5f6', oop:'#ff8a65', functional:'#ba68c8', scripting:'#4dd0c4'};
+
+function nodeEl(id){ return timeline.querySelector(`.node[data-id="${id}"]`); }
+
+function drawConnectors(){
+  const stageRect = timeline.getBoundingClientRect();
+  svg.setAttribute('width', timeline.scrollWidth);
+  svg.setAttribute('height', timeline.scrollHeight);
+  svg.innerHTML = '';
+  LANGS.forEach(l => {
+    l.infl.forEach(parentId => {
+      const a = nodeEl(parentId), b = nodeEl(l.id);
+      if(!a || !b) return;
+      const ar = a.getBoundingClientRect(), br = b.getBoundingClientRect();
+      const x1 = ar.left - stageRect.left + ar.width, y1 = ar.top - stageRect.top + ar.height/2;
+      const x2 = br.left - stageRect.left, y2 = br.top - stageRect.top + br.height/2;
+      const mx = (x1+x2)/2;
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
+      path.setAttribute('stroke', paradigmColor[l.p]);
+      path.dataset.from = parentId;
+      path.dataset.to = l.id;
+      svg.appendChild(path);
+    });
+  });
+  applyState();
+}
+
+function applyState(){
+  const nodes = timeline.querySelectorAll('.node');
+  const paths = svg.querySelectorAll('path');
+
+  nodes.forEach(n => {
+    const id = n.dataset.id;
+    const lang = infoById[id];
+    let dim = activeFilters.size > 0 && !activeFilters.has(lang.p);
+    if(selected){
+      const related = selected === id || infoById[selected].infl.includes(id) || lang.infl.includes(selected);
+      if(!related) dim = true; else dim = false;
+    }
+    n.classList.toggle('dimmed', dim);
+    n.classList.toggle('selected', selected === id);
+  });
+
+  paths.forEach(p => {
+    const from = p.dataset.from, to = p.dataset.to;
+    let dim = activeFilters.size > 0 && !activeFilters.has(infoById[to].p);
+    let hl = false;
+    if(selected){
+      const related = from === selected || to === selected;
+      dim = !related;
+      hl = related;
+    }
+    p.classList.toggle('dimmed', dim);
+    p.classList.toggle('highlighted', hl);
+  });
+}
+
+function selectLang(id){
+  selected = (selected === id) ? null : id;
+  applyState();
+  renderDetail();
+}
+
+function renderDetail(){
+  if(!selected){
+    detail.innerHTML = '<div class="empty">اضغط على أي لغة في الخط الزمني أعلاه لعرض معلوماتها ومثال كود بسيط منها.</div>';
+    return;
+  }
+  const l = infoById[selected];
+  const pLabel = {procedural:'إجرائية', oop:'كائنية التوجه', functional:'وظيفية', scripting:'نصية (سكريبت)'}[l.p];
+  const parents = l.infl.map(id => infoById[id].name).join('، ') || '—';
+  const children = LANGS.filter(x => x.infl.includes(l.id)).map(x=>x.name).join('، ') || '—';
+  detail.innerHTML = `
+    <div class="detail-head">
+      <h2>${l.name}</h2>
+      <span class="badge">${l.year}</span>
+      <span class="badge" style="color:${paradigmColor[l.p]}; border-color:${paradigmColor[l.p]}">${pLabel}</span>
+    </div>
+    <div class="detail-meta">
+      <div><b>المصمم:</b> ${l.creator}</div>
+      <div><b>تأثّرت بـ:</b> ${parents}</div>
+      <div><b>أثّرت في:</b> ${children}</div>
+      <div style="margin-top:8px;">${l.desc}</div>
+    </div>
+    <pre class="code">${escapeHtml(l.code)}</pre>
+  `;
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('filters').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  const p = chip.dataset.p;
+  if(activeFilters.has(p)){ activeFilters.delete(p); chip.classList.remove('on'); }
+  else { activeFilters.add(p); chip.classList.add('on'); }
+  applyState();
+});
+
+window.addEventListener('resize', drawConnectors);
+requestAnimationFrame(drawConnectors);
+</script>
+</body>
+</html>
