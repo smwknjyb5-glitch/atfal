@@ -184,6 +184,12 @@
     html{scroll-behavior:auto;}
     *{transition:none !important;animation:none !important;}
   }
+  .gallery{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 </style>
 </head>
 <body>
@@ -209,6 +215,19 @@
       <a href="#projects" class="btn btn-gold">تصفّح الأعمال</a>
       <a href="#about" class="btn btn-ghost">عن الموقع</a>
     </div>
+    
+
+<h2>فريق العمل</h2>
+
+<div class="gallery">
+    <img src="adem.png" width="150" height="200">
+    <img src="zeineb.png" width="150" height="200">
+    <img src="nejib.png" width="150" height="200">
+    <img src="chehd.png" width="150" height="200">
+    <img src="abdou.png" width="150" height="200">
+</div>
+
+</body>
   </section>
 
   <div class="divider"></div>
@@ -222,10 +241,19 @@
 
     <div class="filters">
       <button class="filter-btn active" data-filter="all">الكل</button>
-      <button class="filter-btn" data-filter="sciences"> علوم</button>
       <button class="filter-btn" data-filter="tools">أدوات</button>
-      <button class="filter-btn" data-filter="games">ألعاب</button>
       <button class="filter-btn" data-filter="coran">البحث القراني</button>
+      <button class="filter-btn" data-filter="programme">لغة برمجة</button>
+      <button class="filter-btn" data-filter="maths">رياضيات</button>
+      <button class="filter-btn" data-filter="physique">فيزياء</button>
+       <button class="filter-btn" data-filter="chimie">كيمياء</button>
+      <button class="filter-btn" data-filter="scinat"> علوم طبيعية</button>
+      <button class="filter-btn" data-filter="techno">تكنولوجيا</button>
+      <button class="filter-btn" data-filter="atfal">اطفال</button>
+      <button class="filter-btn" data-filter="jeux">العاب</button>
+
+
+
     </div>
 
     <div class="grid" id="grid">
@@ -255,12 +283,13 @@
       </div>
 
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="atfal">
         <div class="card-icon"></div>
-        <span class="card-tag">ادوات</span>
+        <span class="card-tag">اطفال</span>
         <h3>الحروف العربية</h3>
         <p>تعرف على ترتيب الحروف العربية</p>
-        <a href="ara_let.html" class="card-link">فتح الاداة ←</a>
+        <a href="ara_let.html" class="card-link">فتح  التطبيق ←</a>
+
       </div>
 
       <div class="card" data-cat="tools">
@@ -271,56 +300,64 @@
         <a href="moudda.html" class="card-link">فتح الاداة ←</a>
       </div>
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="maths">
         <div class="card-icon"></div>
-        <span class="card-tag">ادوات</span>
+        <span class="card-tag">رياضيات</span>
         <h3>القاسم المشترك الاكبر بالفروق المتتالية</h3>
         <p>PGCD</p>
-        <a href=" pgcd_dif.html" class="card-link">فتح  الاداة ←</a>
+        <a href=" pgcd_dif.html" class="card-link">فتح التطبيق   ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag">علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3>منحنى السيكلويد</h3>
         <p>تتبّع مسار نقطة على محيط دائرة متدحرجة لرسم منحنى السيكلويد بصريًا.</p>
-        <a href="cycloid.html" class="card-link">فتح المحاكاة ←</a>
+        <a href="cycloid.html" class="card-link">فتح  التطبيق ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="programme">
         <div class="card-icon"></div>
-        <span class="card-tag">علوم</span>
+        <span class="card-tag">لغة برمجة</span>
         <h3> الكود الثلاثي</h3>
         <p> لغات البرمجة  html وjavascriptوcss</p>
         <a href="barmaja3.html" class="card-link">فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="programme">
         <div class="card-icon"></div>
-        <span class="card-tag">علوم</span>
+         <span class="card-tag">لغة برمجة</span>
+        <h3>محاكاة مكونات كود html</h3>
+        <p>تعرف على المكونات  </p>
+        <a href="code_html.html" class="card-link">فتح المحاكاة ←</a>
+      </div>
+
+      <div class="card" data-cat="programme">
+        <div class="card-icon"></div>
+        <span class="card-tag">لغة برمجة</span>
         <h3> تطور لغات البرمجة</h3>
         <p>اضغط على اي  لغة برمجة لتعرف التفاصيل</p>
         <a href="loughet_barmaja.html" class="card-link">فتح المحاكاة ←</a>
       </div>
 
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="chimie">
         <div class="card-icon"></div>
-        <span class="card-tag">علوم</span>
+        <span class="card-tag">كيمياء</span>
         <h3> جزيئات المادة</h3>
         <p> تعرف على جزيئات المادة في الحالات الثلاثة</p>
         <a href="matiere.html" class="card-link">فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag">علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3> العلاقات الفيزيائية</h3>
         <p> اليك مجموعة من العلاقات الفيزيائية</p>
-        <a href="formulaire.html" class="card-link">فتح المحاكاة ←</a>
+        <a href="formulaire.html" class="card-link">فتح   التطبيق ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
         <span class="card-tag">العاب</span>
         <h3>لعبة تركيز</h3>
@@ -328,15 +365,15 @@
         <a href="memoir.html" class="card-link">فتح اللعبة   ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
         <span class="card-tag">العاب</span>
         <h3>مولدي</h3>
         <p>كل عام و انت بخير</p>
-        <a href="senahilwa.html" class="card-link">فتح اللعبة   ←</a>
+        <a href="senahilwa.html" class="card-link">فتح   اللعبة   ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
         <span class="card-tag">العاب</span>
         <h3> كلمات متقاطعة</h3>
@@ -344,7 +381,7 @@
         <a href="mots_croises.html" class="card-link">فتح اللعبة   ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
         <span class="card-tag">العاب</span>
         <h3> قطع الخضر و الفواكه  </h3>
@@ -362,20 +399,20 @@
         <a href="coran1.html" class="card-link">فتح البحث   ←</a>
       </div>
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="maths">
         <div class="card-icon"></div>
-        <span class="card-tag">ادوات</span>
+          <span class="card-tag">رياضيات</span>
         <h3>قواسم عدد طبيعي</h3>
         <p> قواسم.</p>
-        <a href=" diviseurs.html" class="card-link">فتح الأداة ←</a>
+        <a href=" diviseurs.html" class="card-link">فتح  التطبيق ←</a>
       </div>
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
         <span class="card-tag">ادوات</span>
         <h3>محول الوحدات</h3>
         <p>  لكل مقدار فيزيائي وحدات  </p>
-        <a href="tehwil.html" class="card-link">فتح الأداة ←</a>
+        <a href="tehwil.html" class="card-link">فتح  التطبيق ←</a>
       </div>
 
       <div class="card" data-cat="tools">
@@ -394,151 +431,151 @@
         <a href="breathing-478.html" class="card-link">فتح الأداة ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب</span>
+        <span class="card-tag">العاب</span>
         <h3>المربع السحري</h3>
         <p>لغز رياضي تفاعلي لترتيب الأرقام بحيث يتساوى مجموع كل صف وعمود وقطر.</p>
         <a href="magic-square.html" class="card-link">فتح اللعبة ←</a>
       </div>
 
-       <div class="card" data-cat="games">
+       <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب</span>
+        <span class="card-tag">العاب</span>
         <h3>ارقام وعمليات</h3>
         <p>الوصول الى الناتج بعمليات حسابية اربع فحاول </p>
         <a href="arkam.html" class="card-link">فتح اللعبة ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب</span>
+        <span class="card-tag">العاب</span>
         <h3>تكوين كلمة </h3>
         <p> كون كلمة من كل الحروف الظاهرة</p>
         <a href="kelma.html" class="card-link">فتح اللعبة ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب</span>
+        <span class="card-tag">العاب</span>
         <h3> ترتيب قطع نقدية</h3>
         <p> رتب القطع المتماثلة في انبوب واحد بالنقر.</p>
         <a href="tejrina.html " class="card-link">فتح اللعبة ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب</span>
+        <span class="card-tag">فيزياء</span>
         <h3>الفتح و الغلق</h3>
         <p>الفتح و االغلق الدوراني</p>
         <a href="feth_ghalk.html " class="card-link">فتح اللعبة ←</a>
       </div>
 
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب</span>
+        <span class="card-tag">العاب</span>
         <h3> بيانو </h3>
         <p> بيانو تفاعلي</p>
-        <a href="piano.html " class="card-link">فتح اللعبة ←</a>
+        <a href="piano.html " class="card-link">فتح  اللعبة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="chimie">
         <div class="card-icon"></div>
-        <span class="card-tag">علوم</span>
+        <span class="card-tag">كيمياء</span>
         <h3>الجدول الدوري التفاعلي</h3>
         <p>جدول دوري كامل بأسماء العناصر بالعربية مع تفاصيل كل عنصر عند الضغط عليه.</p>
         <a href="periodic-table.html" class="card-link">فتح الجدول ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon">🌈</div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3>قرص نيوتن</h3>
         <p>محاكاة لتوضيح تركيب الضوء الأبيض من الألوان.</p>
-        <a href="newton-disk.html " class="card-link"> فتح المحاكاة ←</a>
+        <a href="newton-disk.html " class="card-link"> فتح  التطبيق ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3> التناسب الطردي و العكسي</h3>
         <p>محاكاة المفهومين </p>
-        <a href="proportion.html " class="card-link"> فتح المحاكاة ←</a>
+        <a href="proportion.html " class="card-link"> فتح  التطبيق ←</a>
       </div>
 
 
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3>محاكاة قذيفة</h3>
         <p>حركة قذيفة مع امكانية تغيير مسار الحركة</p>
         <a href="kadhifa.html " class="card-link"> فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3>محاكاة سقوط ثنائي   </h3>
         <p>حركة سقوط ثنائي</p>
         <a href="kora_richa.html " class="card-link"> فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="techno">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">تكنولوجيا</span>
         <h3>   السيارة </h3>
         <p> مكونات السيارة</p>
         <a href="taxi.html " class="card-link"> فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="techno">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">تكنولوجيا</span>
         <h3>   الهاتف </h3>
         <p> مكونات الهاتف </p>
         <a href="phone.html " class="card-link"> فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3> الحركة و السكون </h3>
         <p>  تعرف على مفاهيم الحركة و السكون </p>
         <a href="hassoukoun.html " class="card-link"> فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3> الحركة المستقيمة المتغيرة بانتظام   </h3>
         <p>  تعرف على  معادلات الحركة </p>
         <a href="equa_mvt.html " class="card-link"> فتح المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat=" tools">
+      <div class="card" data-cat="maths">
         <div class="card-icon"></div>
-        <span class="card-tag">ادوات</span>
+        <span class="card-tag">رياضيات</span>
         <h3> حل معادلة من الدرجة الثانية</h3>
         <p>حل معادلة من الدرجة الثانية</p>
-        <a href="mou3edela2.html" class="card-link"> افتح  الاداة ←</a>
+        <a href="mou3edela2.html" class="card-link"> افتح  التطبيق  ←</a>
       </div>
 
-       <div class="card" data-cat="tools">
+       <div class="card" data-cat="maths">
         <div class="card-icon"></div>
-        <span class="card-tag">  ادوات </span>
+        <span class="card-tag">رياضيات</span>
         <h3>اختزال كسر</h3>
         <p>اختزال كسر</p>
-        <a href="fraction_simplifier.html" class="card-link"> افتح  الاداة ←</a>
+        <a href="fraction_simplifier.html" class="card-link"> افتح  التطبيق  ←</a>
       </div>
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="maths">
         <div class="card-icon"></div>
-        <span class="card-tag">  ادوات  </span>
+        <span class="card-tag">رياضيات</span>
         <h3>جمع و طرح الازمنة</h3>
         <p>جمع و طرح الازمنة</p>
-        <a href= "zemen.html" class="card-link"> افتح  الاداة ←</a>
+        <a href= "zemen.html" class="card-link"> افتح التطبيق   ←</a>
       </div>
 
       <div class="card" data-cat="coran">
@@ -565,9 +602,9 @@
         <a href= "coran7.html" class="card-link"> افتح  البحث   ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
-        <span class="card-tag">   العاب  </span>
+        <span class="card-tag">العاب</span>
         <h3>لعبة ذاكرة</h3>
         <p>تذكر مواقع وجود الكرة ثم انقر عليها بعد الاختفاء</p>
         <a href= "jeucon.html" class="card-link">  فتح اللعبة ←</a>
@@ -581,28 +618,28 @@
         <a href= "qr.html" class="card-link">  فتح  الاداة ←</a>
       </div>
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="maths">
         <div class="card-icon"></div>
-        <span class="card-tag">   ادوات   </span>
+        <span class="card-tag">رياضيات</span>
         <h3>ترتيب الاعداد تنازليا او تصاعديا</h3>
         <p>ادخل اعدادا من 0 الى 9 ثم انقر على ما تريده</p>
-        <a href= "tertib_e3ded.html" class="card-link">  فتح  الاداة ←</a>
+        <a href= "tertib_e3ded.html" class="card-link">  فتح   التطبيق ←</a>
       </div>
 
-      <div class="card" data-cat=" tools">
+      <div class="card" data-cat="maths">
         <div class="card-icon"></div>
         <span class="card-tag">ادوات</span>
         <h3>حاسبة الكسور</h3>
         <p>العمليات على الكسور</p>
-        <a href= "cal_frac.html" class="card-link">  فتح  الاداة ←</a>
+        <a href= "cal_frac.html" class="card-link">  فتح  التطبيق  ←</a>
       </div>
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="maths">
         <div class="card-icon"></div>
-        <span class="card-tag">  ادوات   </span>
+        <span class="card-tag">رياضيات</span>
         <h3> مكونات عدد طبيعي</h3>
         <p>تعرف على مراتب عدد طبيعي بعد ادخاله</p>
-        <a href= "routbet_3eded.html" class="card-link">  فتح  الاداة ←</a>
+        <a href= "routbet_3eded.html" class="card-link">  فتح   التطبيق ←</a>
       </div>
 
       <div class="card" data-cat="tools">
@@ -613,106 +650,107 @@
         <a href= "simu_exercice.html" class="card-link">  فتح  الاداة ←</a>
       </div>
 
-      <div class="card" data-cat="tools">
+      <div class="card" data-cat="atfal">
         <div class="card-icon"></div>
-        <span class="card-tag">  ادوات   </span>
+        <span class="card-tag">اطفال</span>
         <h3> محاكاة اللغات الثلاث</h3>
         <p>بعض الكلمات و كل الحروف</p>
         <a href= "langues.html" class="card-link">  فتح  الاداة ←</a>
+
       </div>
 
-       <div class="card" data-cat=" sciences">
+       <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3> محاكاة سقوط كرة</h3>
         <p> تعرف على زمن السقوط و سرعة الاصطدام</p>
         <a href= "sokot.html" class="card-link">  فتح  المحاكاة ←</a>
       </div>
 
-       <div class="card" data-cat=" sciences">
+       <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3> الرادار </h3>
         <p> تعرف على كيفية عمل الرادار</p>
         <a href= "radar.html" class="card-link">  فتح  المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="atfal">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب </span>
+        <span class="card-tag">اطفال</span>
         <h3>   اصوات حيوانات</h3>
         <p> تعرف على اصوات بعض الحيوانات  </p>
         <a href= "heyeouen_sawt.html" class="card-link">  فتح اللعبة   ←</a>
+
       </div>
 
-      <div class="card" data-cat="games">
+      <div class="card" data-cat="jeux">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب </span>
+        <span class="card-tag">العاب</span>
         <h3>تدوير قطعة نقدية وجه او ظهر</h3>
         <p>انقر على فتح اللعبة ثم انقر تدوير  </p>
         <a href= "tedouir_3achra.html" class="card-link">  فتح اللعبة   ←</a>
       </div>
 
-       <div class="card" data-cat="games">
+       <div class="card" data-cat="atfal">
         <div class="card-icon"></div>
-        <span class="card-tag"> العاب </span>
+        <span class="card-tag">اطفال</span>
         <h3> اطلاق سهم</h3>
         <p>انقر على  السهم   </p>
         <a href= "sehm.html" class="card-link">  فتح اللعبة   ←</a>
+
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="physique">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">فيزياء</span>
         <h3>   منحنى السيكلويد </h3>
         <p>  تعرف على مسار نقطة من محيط عجلة و مسار مركز العجلة</p>
         <a href= "cycloide.html" class="card-link">  فتح  المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="scinat">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">علوم طبيعية</span>
         <h3>   جسم الانسان </h3>
         <p>  تعرف  على مكونات جسم الانسان</p>
         <a href= "corps_hum.html" class="card-link">  فتح  المحاكاة ←</a>
       </div>
 
-        <div class="card" data-cat="sciences">
+        <div class="card" data-cat="techno">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">تكنولوجيا</span>
         <h3>تحويل الحركة مرفق-ذراع توصيل</h3>
         <p>تعرف على  تحويل الحركة الدورانية الى مستقيمة</p>
         <a href= "bielle_manivelle.html" class="card-link">  فتح  المحاكاة ←</a>
       </div>
 
 
-       <div class="card" data-cat="sciences">
+       <div class="card" data-cat="chimie">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">كيمياء</span>
         <h3>شوارد الماء المعدني</h3>
         <p>  تعرف على  مكونات الماء المعدني </p>
         <a href= "ma_ions.html" class="card-link">  فتح  المحاكاة ←</a>
       </div>
 
-      <div class="card" data-cat="sciences">
+      <div class="card" data-cat="programme">
         <div class="card-icon"></div>
-        <span class="card-tag"> علوم</span>
+        <span class="card-tag">لغة برمجة</span>
         <h3>تعلم ال html</h3>
         <p>  تعرف على مستويات  التعلم   </p>
         <a href= "simu_html.html" class="card-link">  فتح  المحاكاة ←</a>
       </div>
 
 
+
+
       <div class="card empty">
         <div class="card-icon">➕</div>
         <h3 style="color:var(--muted)">  انتظرونا في اضافات اخرى ان شاء الله</h3>
-        <p style="margin:0">بالتوفيق </p>
-
-        <img src="nejib.png"width="150" height="200">
+        <p style="margin:0">بالتوفيق <
       </div>
     </div>
-
-
 
 
   </section>

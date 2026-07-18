@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -192,6 +192,13 @@
   button:active { transform: scale(0.97); }
   button:disabled { opacity: 0.5; cursor: default; }
 
+  #stopBtn {
+    background: linear-gradient(90deg, #ef4444, #7c3aed);
+    margin-top: 10px;
+    display: none;
+  }
+  #stopBtn.show { display: block; }
+
   #result {
     margin-top: 20px;
     font-size: 1.05rem;
@@ -240,6 +247,7 @@
   </div>
 
   <button id="startBtn">🎵 ابدأ الاحتفال</button>
+  <button id="stopBtn">⏹ إيقاف</button>
 
   <div id="result">
     <div id="ageLine"></div>
@@ -250,6 +258,7 @@
 <script>
 const dobInput = document.getElementById('dob');
 const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
 const ageLine = document.getElementById('ageLine');
 const lyricsBox = document.getElementById('lyrics');
 const lightsLayer = document.getElementById('lights');
@@ -257,6 +266,20 @@ const photoInput = document.getElementById('photoInput');
 const photoInputBtn = document.getElementById('photoInputBtn');
 const photoFrame = document.getElementById('photoFrame');
 const photoImg = document.getElementById('photoImg');
+
+let isPlaying = false;
+let activeTimeouts = [];
+
+function scheduleTimeout(fn, ms) {
+  const id = setTimeout(fn, ms);
+  activeTimeouts.push(id);
+  return id;
+}
+
+function clearAllTimeouts() {
+  activeTimeouts.forEach(id => clearTimeout(id));
+  activeTimeouts = [];
+}
 
 photoInput.addEventListener('change', () => {
   const file = photoInput.files[0];
@@ -387,9 +410,12 @@ function renderLyrics() {
 }
 
 function playSong() {
+  if (!isPlaying) return;
+
   const beat = 0.42;
   let t = audioCtx.currentTime + 0.1;
   const spans = lyricsBox.querySelectorAll('span');
+  spans.forEach(s => s.classList.remove('on'));
   let noteIndexForWord = Math.floor(song.length / spans.length);
   let wordCursor = 0;
 
@@ -412,23 +438,40 @@ function playSong() {
     osc.stop(endT + 0.05);
 
     // light flash synced to each note
-    setTimeout(() => { flashLights(true); }, (startT - audioCtx.currentTime) * 1000);
-    setTimeout(() => { flashLights(false); }, (endT - audioCtx.currentTime) * 1000);
+    scheduleTimeout(() => { if (isPlaying) flashLights(true); }, (startT - audioCtx.currentTime) * 1000);
+    scheduleTimeout(() => { if (isPlaying) flashLights(false); }, (endT - audioCtx.currentTime) * 1000);
 
     // highlight lyric word roughly every couple notes
     if (i % Math.max(1, noteIndexForWord) === 0 && wordCursor < spans.length) {
       const idx = wordCursor;
-      setTimeout(() => { spans[idx].classList.add('on'); }, (startT - audioCtx.currentTime) * 1000);
+      scheduleTimeout(() => { if (isPlaying) spans[idx].classList.add('on'); }, (startT - audioCtx.currentTime) * 1000);
       wordCursor++;
     }
 
     t += dur * beat;
   });
 
-  // confetti bursts at the end
   const totalMs = (t - audioCtx.currentTime) * 1000;
-  setTimeout(() => { spawnConfetti(60); }, totalMs * 0.4);
-  setTimeout(() => { spawnConfetti(80); flashLights(false); }, totalMs);
+
+  // موجات الصور العائمة والقصاصات، تتكرر مع كل دورة
+  scheduleTimeout(() => { if (isPlaying) spawnPhotoBubbles(4); }, totalMs * 0.1);
+  scheduleTimeout(() => { if (isPlaying) spawnPhotoBubbles(5); }, totalMs * 0.45);
+  scheduleTimeout(() => { if (isPlaying) spawnConfetti(60); }, totalMs * 0.6);
+  scheduleTimeout(() => {
+    if (isPlaying) { spawnConfetti(80); spawnPhotoBubbles(6); flashLights(false); }
+  }, totalMs * 0.95);
+
+  // إعادة تشغيل الأغنية تلقائياً بعد فاصل قصير، طالما لم يتم الإيقاف
+  scheduleTimeout(() => { if (isPlaying) playSong(); }, totalMs + 600);
+}
+
+function stopCelebration() {
+  isPlaying = false;
+  clearAllTimeouts();
+  flashLights(false);
+  startBtn.disabled = false;
+  startBtn.textContent = '🎵 ابدأ الاحتفال';
+  stopBtn.classList.remove('show');
 }
 
 function calcAge(dobStr) {
@@ -455,21 +498,13 @@ startBtn.addEventListener('click', () => {
   renderLyrics();
   startBtn.disabled = true;
   startBtn.textContent = '🎶 جارٍ العزف...';
+  stopBtn.classList.add('show');
 
+  isPlaying = true;
   playSong();
-
-  // موجات من صور عائمة متزامنة مع الأغنية
-  spawnPhotoBubbles(4);
-  setTimeout(() => spawnPhotoBubbles(5), 1800);
-  setTimeout(() => spawnPhotoBubbles(6), 3600);
-  setTimeout(() => spawnPhotoBubbles(7), 5400);
-
-  setTimeout(() => {
-    startBtn.disabled = false;
-    startBtn.textContent = '🔁 أعد العزف';
-  }, 8000);
 });
 
+stopBtn.addEventListener('click', stopCelebration);
 </script>
 </body>
 </html>
