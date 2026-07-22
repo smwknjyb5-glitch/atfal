@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -21,7 +21,6 @@
       padding: 20px;
     }
 
-    /* Starfield bg */
     body::before {
       content: '';
       position: fixed;
@@ -57,10 +56,29 @@
     .subtitle {
       font-size: 0.9rem;
       color: #8a9bb0;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
-    /* Info bar */
+    .level-select {
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      color: #8a9bb0;
+    }
+
+    .level-select select {
+      background: #1a2535;
+      color: #e8d5a3;
+      border: 1px solid #c9a84c55;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .level-select select:hover { border-color: #c9a84c; }
+
     .info-bar {
       display: flex;
       justify-content: center;
@@ -75,7 +93,6 @@
       font-size: 1.1rem;
     }
 
-    /* Magic sum hint */
     .hint-box {
       background: #1a2535;
       border: 1px solid #c9a84c44;
@@ -88,7 +105,6 @@
 
     .hint-box strong { color: #c9a84c; }
 
-    /* Grid */
     .grid-wrap {
       background: linear-gradient(135deg, #1a2535, #0d1825);
       border: 2px solid #c9a84c55;
@@ -120,7 +136,6 @@
       position: relative;
     }
 
-    /* Prefilled cells */
     .cell.fixed {
       background: linear-gradient(135deg, #1e3a5f, #162d4a);
       border: 2px solid #c9a84c88;
@@ -138,7 +153,6 @@
       opacity: 0.5;
     }
 
-    /* Empty input cells */
     .cell input {
       width: 100%;
       height: 100%;
@@ -183,7 +197,6 @@
       75% { transform: translateX(4px); }
     }
 
-    /* Sum display below */
     .sums {
       display: grid;
       grid-template-columns: repeat(3, 90px);
@@ -208,7 +221,6 @@
     .sum-badge.ok { border-color: #4caf8a; color: #4caf8a; }
     .sum-badge.bad { border-color: #e05555; color: #e05555; }
 
-    /* Buttons */
     .buttons {
       display: flex;
       gap: 12px;
@@ -251,7 +263,6 @@
 
     .btn-hint:hover { border-color: #5a8fc0; }
 
-    /* Message */
     .message {
       min-height: 40px;
       font-size: 1rem;
@@ -264,7 +275,6 @@
     .message.error   { color: #e05555; }
     .message.info    { color: #5a8fc0; }
 
-    /* Win animation */
     @keyframes glow {
       0%, 100% { box-shadow: 0 0 60px #c9a84c22, inset 0 0 40px #00000044; }
       50%       { box-shadow: 0 0 100px #c9a84c66, inset 0 0 40px #00000044; }
@@ -272,7 +282,6 @@
 
     .grid-wrap.win { animation: glow 1.5s ease infinite; border-color: #c9a84c; }
 
-    /* Tries */
     .tries-dots {
       display: flex;
       gap: 6px;
@@ -294,6 +303,17 @@
 <div class="container">
   <div class="title">✦ المربع السحري ✦</div>
   <div class="subtitle">اجعل مجموع كل صف وعمود وقطر يساوي نفس العدد</div>
+
+  <div class="level-select">
+    <label for="levelSelect">اختر المستوى: </label>
+    <select id="levelSelect" onchange="newGame()">
+      <option value="0">المجموع 12 (الأرقام من 0 إلى 8)</option>
+      <option value="1" selected>المجموع 15 (الأرقام من 1 إلى 9)</option>
+      <option value="2">المجموع 18 (الأرقام من 2 إلى 10)</option>
+      <option value="3">المجموع 21 (الأرقام من 3 إلى 11)</option>
+      <option value="4">المجموع 24 (الأرقام من 4 إلى 12)</option>
+    </select>
+  </div>
 
   <div class="hint-box">
     المجموع السحري = <strong id="magicSum">—</strong> &nbsp;|&nbsp;
@@ -324,7 +344,8 @@
 </div>
 
 <script>
-// === Magic square solutions (always sum = 15, digits 1-9) ===
+// === حلول أساسية للمربع السحري 3×3 بالأرقام 1-9 (مجموعها دائمًا 15) ===
+// كل المستويات الأخرى تُشتق من هذه الحلول بإزاحة الأرقام رياضيًا
 const SOLUTIONS = [
   [2,7,6, 9,5,1, 4,3,8],
   [2,9,4, 7,5,3, 6,1,8],
@@ -336,8 +357,20 @@ const SOLUTIONS = [
   [6,7,2, 1,5,9, 8,3,4],
 ];
 
+// === تعريف المستويات: كل مستوى = أصغر رقم مسموح ===
+// المجموع السحري يُحسب تلقائيًا بالصيغة: magic = 3 * min + 12
+// لإضافة مستوى جديد: أضف {min: X} هنا وخيارًا جديدًا في <select id="levelSelect">
+const LEVELS = [
+  { min: 0 },  // مجموع 12، أرقام 0-8
+  { min: 1 },  // مجموع 15، أرقام 1-9
+  { min: 2 },  // مجموع 18، أرقام 2-10
+  { min: 3 },  // مجموع 21، أرقام 3-11
+  { min: 4 },  // مجموع 24، أرقام 4-12
+];
+
+let currentLevel = { min: 1, max: 9, magic: 15 };
 let solution = [];
-let fixed = [];   // indices of pre-filled cells
+let fixed = [];
 let tries = 0;
 let hintUsed = false;
 let won = false;
@@ -346,11 +379,23 @@ let seconds = 0;
 
 const MAX_TRIES = 5;
 
-function newGame() {
-  // Pick random solution
-  solution = SOLUTIONS[Math.floor(Math.random() * SOLUTIONS.length)];
+function getSelectedLevel() {
+  const idx = parseInt(document.getElementById('levelSelect').value);
+  const lvl = LEVELS[idx];
+  const min = lvl.min;
+  const max = min + 8;
+  const magic = 3 * min + 12;
+  return { min, max, magic };
+}
 
-  // Pick exactly 2 random positions to pre-fill
+function newGame() {
+  currentLevel = getSelectedLevel();
+
+  // اختيار حل أساسي عشوائي (بالأرقام 1-9) ثم إزاحته لمطابقة المستوى المختار
+  const base = SOLUTIONS[Math.floor(Math.random() * SOLUTIONS.length)];
+  const shift = currentLevel.min - 1;
+  solution = base.map(v => v + shift);
+
   const positions = [...Array(9).keys()];
   shuffle(positions);
   fixed = positions.slice(0, 2);
@@ -364,8 +409,8 @@ function newGame() {
   document.getElementById('message').className = 'message';
   document.getElementById('gridWrap').classList.remove('win');
 
-  document.getElementById('magicSum').textContent = '15';
-  document.getElementById('numRange').textContent = '1 → 9';
+  document.getElementById('magicSum').textContent = currentLevel.magic;
+  document.getElementById('numRange').textContent = `${currentLevel.min} → ${currentLevel.max}`;
 
   buildGrid();
   buildDots();
@@ -397,15 +442,14 @@ function buildGrid() {
     } else {
       const inp = document.createElement('input');
       inp.type = 'number';
-      inp.min = 1; inp.max = 9;
+      inp.min = currentLevel.min; inp.max = currentLevel.max;
       inp.placeholder = '؟';
       inp.dataset.idx = i;
       inp.addEventListener('input', () => {
-        // Clamp 1-9
         let v = parseInt(inp.value);
         if (isNaN(v)) { inp.value = ''; return; }
-        if (v < 1) inp.value = 1;
-        if (v > 9) inp.value = 9;
+        if (v < currentLevel.min) inp.value = currentLevel.min;
+        if (v > currentLevel.max) inp.value = currentLevel.max;
         inp.classList.remove('correct','wrong');
         updateLiveSums();
       });
@@ -418,7 +462,6 @@ function buildGrid() {
     grid.appendChild(cell);
   }
 
-  // Col sum badges
   for (let c = 0; c < 3; c++) {
     const b = document.createElement('div');
     b.className = 'sum-badge';
@@ -458,7 +501,7 @@ function updateLiveSums() {
     const b = document.getElementById(`colSum${c}`);
     const s = colSumF(vals, c);
     if (s === null) { b.textContent = ''; b.className = 'sum-badge'; }
-    else if (s === 15) { b.textContent = `↑ ${s} ✓`; b.className = 'sum-badge ok'; }
+    else if (s === currentLevel.magic) { b.textContent = `↑ ${s} ✓`; b.className = 'sum-badge ok'; }
     else { b.textContent = `↑ ${s}`; b.className = 'sum-badge bad'; }
   }
 }
@@ -469,15 +512,13 @@ function checkSolution() {
   const vals = getValues();
   const inputs = document.querySelectorAll('input[data-idx]');
 
-  // Check all filled
   if (vals.some(v => v === null)) {
     showMsg('أكمل جميع الخانات أولاً!', 'info');
     return;
   }
 
-  // Check no duplicates (must use 1-9 each once)
   const sorted = [...vals].sort((a,b)=>a-b);
-  const valid = sorted.every((v,i) => v === i+1);
+  const valid = sorted.every((v,i) => v === i + currentLevel.min);
 
   tries++;
   document.getElementById('triesCount').textContent = tries;
@@ -486,16 +527,15 @@ function checkSolution() {
   if (!valid) {
     inputs.forEach(inp => inp.classList.add('wrong'));
     setTimeout(() => inputs.forEach(inp => inp.classList.remove('wrong')), 600);
-    showMsg('يجب استخدام الأرقام من 1 إلى 9 بدون تكرار!', 'error');
+    showMsg(`يجب استخدام الأرقام من ${currentLevel.min} إلى ${currentLevel.max} بدون تكرار!`, 'error');
     return;
   }
 
-  // Check all lines sum to 15
-  const MAGIC = 15;
+  const MAGIC = currentLevel.magic;
   const lines = [
-    [0,1,2],[3,4,5],[6,7,8], // rows
-    [0,3,6],[1,4,7],[2,5,8], // cols
-    [0,4,8],[2,4,6],         // diagonals
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6],
   ];
 
   let allOk = true;
@@ -511,7 +551,6 @@ function checkSolution() {
     won = true;
     showMsg(`🎉 أحسنت! حللت المربع السحري في ${formatTime(seconds)} بـ${tries} محاولة${tries===1?'':''}`, 'success');
   } else {
-    // Mark wrong cells
     inputs.forEach(inp => {
       const i = parseInt(inp.dataset.idx);
       if (vals[i] !== solution[i]) {
@@ -533,7 +572,6 @@ function giveHint() {
     return;
   }
 
-  // Fill one random empty cell
   const target = empty[Math.floor(Math.random() * empty.length)];
   const i = parseInt(target.dataset.idx);
   target.value = solution[i];
@@ -549,7 +587,6 @@ function showMsg(text, type) {
   m.className = `message ${type}`;
 }
 
-// Timer
 function startTimer() {
   seconds = 0;
   timerInterval = setInterval(() => {
@@ -570,7 +607,6 @@ function formatTime(s) {
   return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 }
 
-// Dots
 function buildDots() {
   const d = document.getElementById('dots');
   d.innerHTML = '';
@@ -589,7 +625,6 @@ function updateDots() {
   }
 }
 
-// Start
 newGame();
 </script>
 </body>
