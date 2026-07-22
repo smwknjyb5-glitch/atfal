@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ترتيب القطع النقدية  في الأنابيب</title>
+<title>ترتيب  القطع النقدية في الأنابيب</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -229,8 +229,8 @@
 <div class="wrap">
   <header>
     <div class="eyebrow">لعبة تفكير ومنطق</div>
-    <h1>ترتيب القطع النقدية</h1>
-    <div class="sub">افرز كل  قطعة في أنبوبها الخاص — انقر أنبوباً لتحديده، ثم انقر الوجهة</div>
+    <h1>ترتيب  القطع النقدية</h1>
+    <div class="sub">افرز كل  قطعة نقدية في أنبوبها الخاص — انقر أنبوباً لتحديده، ثم انقر الوجهة</div>
   </header>
 
   <div class="panel">
@@ -257,7 +257,7 @@
 <div class="win-overlay" id="winOverlay">
   <div class="win-card">
     <h2>🏆 أحسنت!</h2>
-    <p id="winText">لقد رتبت جميع  القطع النقدية  بنجاح</p>
+    <p id="winText">لقد رتبت جميع  القطع النقدية بنجاح</p>
     <button id="playAgainBtn">لعب مرة أخرى</button>
   </div>
 </div>
@@ -398,7 +398,7 @@ function handleTubeClick(idx){
 
   if(selected === null){
     if(tubes[idx].length === 0){
-      flashMsg('الأنبوب فارغ — اختر أنبوباً به كرات');
+      flashMsg('الأنبوب فارغ — اختر أنبوباً به  قطع');
       return;
     }
     selected = idx;
@@ -426,7 +426,7 @@ function handleTubeClick(idx){
       }, 250);
     }
   } else {
-    flashMsg('لا يمكن نقل الكرة إلى هنا');
+    flashMsg('لا يمكن نقل  القطع  إلى هنا');
     selected = idx;
     render();
   }
