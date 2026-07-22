@@ -1,0 +1,275 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دمية تضحك وتبكي</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: #0a0e27;
+    color: #f0d98c;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  canvas#stars {
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    z-index: 0;
+  }
+
+  h1 {
+    z-index: 2;
+    margin-bottom: 30px;
+    font-weight: 900;
+    text-shadow: 0 0 15px rgba(240,217,140,0.5);
+    font-size: 1.8rem;
+  }
+
+  .stage {
+    z-index: 2;
+    width: 260px;
+    height: 260px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .doll {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 25px rgba(240,217,140,0.35));
+    transition: transform 0.15s ease;
+  }
+
+  .stage:active .doll {
+    transform: scale(0.92);
+  }
+
+  .face-circle {
+    fill: #ffe0b2;
+    stroke: #d4a24c;
+    stroke-width: 4;
+  }
+
+  .cheek {
+    fill: #ff9e9e;
+    opacity: 0.55;
+  }
+
+  .eye {
+    fill: #1a1a2e;
+    transform-origin: center;
+  }
+
+  /* حالة الضحك */
+  .laugh .eye {
+    animation: happyEye 0.4s ease;
+  }
+  @keyframes happyEye {
+    0% { transform: scaleY(1); }
+    50% { transform: scaleY(0.2); }
+    100% { transform: scaleY(1); }
+  }
+  .laugh .mouth-laugh { display:block; }
+  .laugh .mouth-cry { display:none; }
+  .laugh .mouth-neutral { display:none; }
+  .laugh .doll { animation: bounce 0.5s ease infinite alternate; }
+  @keyframes bounce {
+    from { transform: translateY(0) rotate(-2deg); }
+    to   { transform: translateY(-10px) rotate(2deg); }
+  }
+  .laugh .tear { display:none; }
+
+  /* حالة البكاء */
+  .cry .mouth-laugh { display:none; }
+  .cry .mouth-cry { display:block; }
+  .cry .mouth-neutral { display:none; }
+  .cry .eyebrow-l, .cry .eyebrow-r { display:block; }
+  .cry .tear { display:block; animation: fall 1s ease-in infinite; }
+  @keyframes fall {
+    0%   { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(30px); opacity: 0; }
+  }
+
+  /* حالة محايدة (بداية) */
+  .neutral .mouth-laugh { display:none; }
+  .neutral .mouth-cry { display:none; }
+  .neutral .mouth-neutral { display:block; }
+  .neutral .tear { display:none; }
+  .neutral .eyebrow-l, .neutral .eyebrow-r { display:none; }
+
+  .mouth-laugh, .mouth-cry { display:none; }
+  .eyebrow-l, .eyebrow-r { display:none; }
+  .tear { display:none; }
+
+  #hint {
+    z-index: 2;
+    margin-top: 25px;
+    font-size: 0.95rem;
+    color: #b8a670;
+    text-align: center;
+    min-height: 24px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<h1>✨ اضغط على الدمية ✨</h1>
+
+<div class="stage neutral" id="stage" onclick="toggleMood()">
+  <svg class="doll" viewBox="0 0 200 200">
+    <!-- الوجه -->
+    <circle class="face-circle" cx="100" cy="100" r="80"/>
+
+    <!-- الخدود -->
+    <circle class="cheek" cx="55" cy="115" r="14"/>
+    <circle class="cheek" cx="145" cy="115" r="14"/>
+
+    <!-- الحواجب (تظهر فقط عند البكاء) -->
+    <path class="eyebrow-l" d="M55 65 Q70 55 85 65" stroke="#5c3a1e" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path class="eyebrow-r" d="M115 65 Q130 55 145 65" stroke="#5c3a1e" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+    <!-- العيون -->
+    <ellipse class="eye" cx="70" cy="90" rx="9" ry="12"/>
+    <ellipse class="eye" cx="130" cy="90" rx="9" ry="12"/>
+
+    <!-- الدموع -->
+    <path class="tear" d="M65 100 Q60 112 65 118 Q70 112 65 100 Z" fill="#4fc3f7"/>
+    <path class="tear" d="M135 100 Q130 112 135 118 Q140 112 135 100 Z" fill="#4fc3f7" style="animation-delay:0.3s"/>
+
+    <!-- الأفواه -->
+    <path class="mouth-neutral" d="M75 135 Q100 140 125 135" stroke="#7a3b2e" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path class="mouth-laugh" d="M65 130 Q100 175 135 130 Q100 150 65 130 Z" fill="#7a3b2e"/>
+    <path class="mouth-cry" d="M65 145 Q100 115 135 145" stroke="#7a3b2e" stroke-width="6" fill="none" stroke-linecap="round"/>
+  </svg>
+</div>
+
+<div id="hint">اضغط لتبدأ 🙂</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const hint = document.getElementById('hint');
+  let mood = 'neutral'; // neutral -> laugh -> cry -> laugh -> cry ...
+
+  // ===== توليد الأصوات عبر Web Audio API =====
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const actx = new AudioCtx();
+
+  function playLaugh() {
+    // سلسلة نغمات صاعدة ونازلة تشبه "هاها ها"
+    const notes = [500, 650, 500, 700, 550];
+    notes.forEach((freq, i) => {
+      const t = actx.currentTime + i * 0.14;
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.4, t + 0.08);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+      osc.connect(gain).connect(actx.destination);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    });
+  }
+
+  function playCry() {
+    // نغمة نازلة مهتزة تشبه النحيب
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    const vibrato = actx.createOscillator();
+    const vibratoGain = actx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(420, t0);
+    osc.frequency.exponentialRampToValueAtTime(260, t0 + 0.9);
+
+    vibrato.frequency.setValueAtTime(7, t0);
+    vibratoGain.gain.setValueAtTime(18, t0);
+    vibrato.connect(vibratoGain).connect(osc.frequency);
+
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.22, t0 + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.95);
+
+    osc.connect(gain).connect(actx.destination);
+    osc.start(t0);
+    vibrato.start(t0);
+    osc.stop(t0 + 1);
+    vibrato.stop(t0 + 1);
+  }
+
+  function toggleMood() {
+    if (actx.state === 'suspended') actx.resume();
+
+    if (mood === 'laugh') {
+      mood = 'cry';
+      hint.textContent = 'الدمية حزينة الآن 😢';
+      playCry();
+    } else {
+      mood = 'laugh';
+      hint.textContent = 'الدمية سعيدة الآن 😄';
+      playLaugh();
+    }
+    stage.className = 'stage ' + mood;
+  }
+
+  // خلفية النجوم المتحركة
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 120; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.3,
+      speed: Math.random() * 0.3 + 0.05,
+      alpha: Math.random()
+    });
+  }
+
+  function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f0d98c';
+    stars.forEach(s => {
+      s.alpha += (Math.random() - 0.5) * 0.05;
+      s.alpha = Math.max(0.1, Math.min(1, s.alpha));
+      ctx.globalAlpha = s.alpha;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+      s.y += s.speed;
+      if (s.y > canvas.height) s.y = 0;
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(drawStars);
+  }
+  drawStars();
+</script>
+
+</body>
+</html>
