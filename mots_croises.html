@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -92,7 +92,7 @@
 <script>
 (function(){
 
-  // بنك الكلمات والتلميحات (يمكن إضافة المزيد)
+  // بنك الكلمات والتلميحات (يمكن إضافة المزيد بنفس الصيغة)
   const BANK = [
     { word:'شمس',  clue:'النجم الذي تدور حوله الأرض وتشرق كل صباح' },
     { word:'قمر',  clue:'جرم يدور حول الأرض ويضيء ليلاً' },
@@ -106,7 +106,15 @@
     { word:'زمن',  clue:'الوقت الذي يمر ولا يعود' },
     { word:'ريح',  clue:'هواء متحرك بقوة' },
     { word:'بحر',  clue:'مسطح مائي واسع مالح' },
-
+    // كلمات جديدة
+    { word:'ثلج',  clue:'ماء يتجمد وينزل أبيض في الشتاء' },
+    { word:'برق',  clue:'وميض ضوئي سريع يظهر أثناء العاصفة' },
+    { word:'رعد',  clue:'صوت مدوٍّ يتبع البرق' },
+    { word:'جبل',  clue:'مرتفع صخري كبير على سطح الأرض' },
+    { word:'نهر',  clue:'مجرى مائي عذب يتدفق نحو البحر' },
+    { word:'شجر',  clue:'نبات ذو ساق خشبية وأوراق' },
+    { word:'طير',  clue:'حيوان له ريش وجناحان يطير في السماء' },
+    { word:'سمك',  clue:'حيوان يعيش في الماء وله خياشيم' },
   ];
 
   let placed = [];   // {word, clue, row, col, dir, num}
@@ -132,7 +140,6 @@
       const key = r+','+c;
       if(cellMap[key] !== undefined && cellMap[key] !== word[k]) return false;
     }
-    // تحقق من الخلية قبل البداية وبعد النهاية على نفس الاتجاه (تفادي الالتصاق)
     const beforeR = dir==='A'? row : row-1;
     const beforeC = dir==='A'? col-1 : col;
     const afterR  = dir==='A'? row : row+word.length;
@@ -187,7 +194,6 @@
       }
     }
 
-    // تطبيع الإحداثيات
     let minR=Infinity,minC=Infinity,maxR=-Infinity,maxC=-Infinity;
     placed.forEach(p=>{
       const endRow = p.dir==='A' ? p.row : p.row+p.word.length-1;
@@ -206,7 +212,6 @@
       }
     });
 
-    // ترقيم الكلمات
     const starts = [];
     placed.forEach(p=>{
       if(!starts.find(s=>s.row===p.row && s.col===p.col)) starts.push({row:p.row,col:p.col});
@@ -324,7 +329,7 @@
 
   function onKeydown(e,r,c){
     if(e.key==='Backspace' && !e.target.value){ movePrev(r,c); }
-    else if(e.key==='ArrowRight'){ moveDir(r,c,selected&&selected.dir==='A'? -1:0, selected&&selected.dir==='A'?0:0); focusCell(r, c-1); }
+    else if(e.key==='ArrowRight'){ focusCell(r, c-1); }
     else if(e.key==='ArrowLeft'){ focusCell(r, c+1); }
     else if(e.key==='ArrowDown'){ focusCell(r+1, c); }
     else if(e.key==='ArrowUp'){ focusCell(r-1, c); }
