@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فكّك وركّب</title>
+<style>
+  :root{
+    --ink:#1b1710;
+    --paper:#eae3d3;
+    --line:#c9bd9e;
+    --brass:#a8763e;
+    --brass-dark:#7d5527;
+    --slot:#d8cdae;
+    --good:#4c6b3f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 10%, #f2ead8 0%, transparent 45%),
+      var(--paper);
+    font-family: "Tahoma", "Segoe UI", sans-serif;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 14px 60px;
+  }
+  h1{
+    font-size:1.6rem;
+    letter-spacing:1px;
+    margin:0 0 4px;
+    font-weight:800;
+  }
+  .tagline{
+    color:#6b6046;
+    margin:0 0 22px;
+    font-size:.92rem;
+  }
+  .panel{
+    width:100%;
+    max-width:920px;
+    background:#f6f1e4;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+    box-shadow:0 10px 26px -14px rgba(60,45,20,.45);
+  }
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin-bottom:16px;
+  }
+  .btn{
+    background:var(--brass);
+    color:#fff;
+    border:none;
+    padding:9px 16px;
+    border-radius:6px;
+    font-size:.9rem;
+    cursor:pointer;
+    font-weight:700;
+    transition:background .15s;
+  }
+  .btn:hover{background:var(--brass-dark);}
+  .btn.secondary{
+    background:transparent;
+    color:var(--brass-dark);
+    border:1px solid var(--brass);
+  }
+  .btn.secondary:hover{background:#efe4cc;}
+  select{
+    padding:8px 10px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-size:.9rem;
+  }
+  #fileInput{display:none;}
+  label.fileLabel{
+    background:#fff;
+    border:1px dashed var(--brass);
+    padding:9px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:.9rem;
+    color:var(--brass-dark);
+    font-weight:700;
+  }
+  .status{
+    margin-inline-start:auto;
+    font-size:.85rem;
+    color:#6b6046;
+  }
+  .stage{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .board-wrap, .tray-wrap{
+    flex:1 1 340px;
+  }
+  .board-title, .tray-title{
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#8a7c58;
+    margin:0 0 8px;
+    font-weight:700;
+  }
+  #board{
+    position:relative;
+    background:repeating-conic-gradient(var(--slot) 0% 25%, #ccc09b 0% 50%) 0 0/28px 28px;
+    border:2px solid var(--brass-dark);
+    border-radius:6px;
+    margin:0 auto;
+    touch-action:none;
+  }
+  .cell{
+    position:absolute;
+    border:1px solid rgba(0,0,0,.06);
+  }
+  #tray{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:10px;
+    min-height:120px;
+    align-content:flex-start;
+  }
+  .piece{
+    background-repeat:no-repeat;
+    border-radius:3px;
+    box-shadow:0 3px 8px -3px rgba(0,0,0,.4);
+    cursor:grab;
+    touch-action:none;
+    border:1px solid rgba(0,0,0,.15);
+  }
+  .piece.placed{
+    box-shadow:none;
+    cursor:default;
+  }
+  .piece.dragging{
+    opacity:.85;
+    z-index:50;
+    cursor:grabbing;
+  }
+  #win{
+    display:none;
+    margin-top:16px;
+    text-align:center;
+    font-weight:800;
+    color:var(--good);
+    font-size:1.1rem;
+  }
+  .empty-hint{
+    text-align:center;
+    color:#9a8d68;
+    font-size:.9rem;
+    padding:40px 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>فكّك وركّب</h1>
+<p class="tagline">ارفع صورة، اختر عدد القطع، وأعد تركيبها بالسحب والإفلات</p>
+
+<div class="panel">
+  <div class="controls">
+    <label class="fileLabel" for="fileInput">📁 اختيار صورة</label>
+    <input type="file" id="fileInput" accept="image/*">
+    <select id="gridSize">
+      <option value="3">3 × 3 (سهل)</option>
+      <option value="4" selected>4 × 4 (متوسط)</option>
+      <option value="5">5 × 5 (صعب)</option>
+      <option value="6">6 × 6 (صعب جداً)</option>
+    </select>
+    <button class="btn" id="startBtn" disabled>ابدأ التقطيع</button>
+    <button class="btn secondary" id="shuffleBtn" disabled>خلط جديد</button>
+    <span class="status" id="status">لم تُختر صورة بعد</span>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="empty-hint">اختر صورة من جهازك لتبدأ</div>
+  </div>
+
+  <div id="win">🎉 أحسنت! أعدت تركيب الصورة بالكامل</div>
+</div>
+
+<script>
+(function(){
+  const fileInput = document.getElementById('fileInput');
+  const gridSize = document.getElementById('gridSize');
+  const startBtn = document.getElementById('startBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const stage = document.getElementById('stage');
+  const statusEl = document.getElementById('status');
+  const winEl = document.getElementById('win');
+
+  let img = new Image();
+  let imgLoaded = false;
+  let boardSize = 560; // px, square board
+  let cols, rows, cellW, cellH;
+  let pieces = []; // {id, correctIndex, el}
+  let placedCount = 0;
+
+  fileInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      img = new Image();
+      img.onload = ()=>{
+        imgLoaded = true;
+        startBtn.disabled = false;
+        statusEl.textContent = 'الصورة جاهزة — اضغط "ابدأ التقطيع"';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  startBtn.addEventListener('click', buildPuzzle);
+  shuffleBtn.addEventListener('click', ()=>{
+    if(imgLoaded) buildPuzzle();
+  });
+
+  function buildPuzzle(){
+    if(!imgLoaded) return;
+    winEl.style.display = 'none';
+    placedCount = 0;
+
+    const n = parseInt(gridSize.value, 10);
+    cols = n; rows = n;
+
+    // fit board to image aspect ratio, max 560px on longest side
+    const ratio = img.naturalWidth / img.naturalHeight;
+    let boardW, boardH;
+    if(ratio >= 1){
+      boardW = boardSize;
+      boardH = Math.round(boardSize / ratio);
+    } else {
+      boardH = boardSize;
+      boardW = Math.round(boardSize * ratio);
+    }
+    cellW = boardW / cols;
+    cellH = boardH / rows;
+
+    stage.innerHTML = `
+      <div class="board-wrap">
+        <p class="board-title">اللوحة</p>
+        <div id="board" style="width:${boardW}px;height:${boardH}px;"></div>
+      </div>
+      <div class="tray-wrap">
+        <p class="tray-title">القطع</p>
+        <div id="tray"></div>
+      </div>
+    `;
+
+    const board = document.getElementById('board');
+    const tray = document.getElementById('tray');
+
+    // build slot cells (visual placeholders, for drop detection)
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.left = (c*cellW)+'px';
+        cell.style.top = (r*cellH)+'px';
+        cell.style.width = cellW+'px';
+        cell.style.height = cellH+'px';
+        cell.dataset.index = r*cols+c;
+        board.appendChild(cell);
+      }
+    }
+
+    // build pieces
+    pieces = [];
+    const trayPieceSize = Math.min(70, cellW, cellH);
+    let order = [];
+    for(let i=0;i<cols*rows;i++) order.push(i);
+    shuffleArray(order);
+
+    order.forEach((correctIndex)=>{
+      const r = Math.floor(correctIndex/cols);
+      const c = correctIndex % cols;
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.style.width = trayPieceSize+'px';
+      piece.style.height = trayPieceSize+'px';
+      piece.style.backgroundImage = `url(${img.src})`;
+      piece.style.backgroundSize = `${cols*trayPieceSize}px ${rows*trayPieceSize}px`;
+      piece.style.backgroundPosition = `-${c*trayPieceSize}px -${r*trayPieceSize}px`;
+      piece.dataset.correctIndex = correctIndex;
+      piece.dataset.trayPieceSize = trayPieceSize;
+      tray.appendChild(piece);
+      makeDraggable(piece, board, cellW, cellH, cols, rows);
+      pieces.push(piece);
+    });
+
+    startBtn.disabled = false;
+    shuffleBtn.disabled = false;
+    statusEl.textContent = `${cols*rows} قطعة — اسحب كل قطعة إلى مكانها`;
+  }
+
+  function shuffleArray(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+  }
+
+  function makeDraggable(piece, board, cellW, cellH, cols, rows){
+    let offsetX=0, offsetY=0;
+    let dragging=false;
+    let originParent, originNextSibling;
+
+    function pointerDown(e){
+      if(piece.classList.contains('placed')) return;
+      e.preventDefault();
+      dragging = true;
+      piece.classList.add('dragging');
+      originParent = piece.parentElement;
+      originNextSibling = piece.nextSibling;
+
+      const rect = piece.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
+      offsetX = point.clientX - rect.left;
+      offsetY = point.clientY - rect.top;
+
+      document.body.appendChild(piece);
+      piece.style.position = 'fixed';
+      piece.style.width = rect.width+'px';
+      piece.style.height = rect.height+'px';
+      movePiece(point);
+
+      document.addEventListener('mousemove', pointerMove);
+      document.addEventListener('touchmove', pointerMove, {passive:false});
+      document.addEventListener('mouseup', pointerUp);
+      document.addEventListener('touchend', pointerUp);
+    }
+
+    function pointerMove(e){
+      if(!dragging) return;
+      e.preventDefault();
+      const point = e.touches ? e.touches[0] : e;
+      movePiece(point);
+    }
+
+    function movePiece(point){
+      piece.style.left = (point.clientX - offsetX)+'px';
+      piece.style.top = (point.clientY - offsetY)+'px';
+    }
+
+    function pointerUp(e){
+      if(!dragging) return;
+      dragging = false;
+      piece.classList.remove('dragging');
+      document.removeEventListener('mousemove', pointerMove);
+      document.removeEventListener('touchmove', pointerMove);
+      document.removeEventListener('mouseup', pointerUp);
+      document.removeEventListener('touchend', pointerUp);
+
+      const boardRect = board.getBoundingClientRect();
+      const pieceRect = piece.getBoundingClientRect();
+      const centerX = pieceRect.left + pieceRect.width/2;
+      const centerY = pieceRect.top + pieceRect.height/2;
+
+      const withinBoard = centerX >= boardRect.left && centerX <= boardRect.right &&
+                           centerY >= boardRect.top && centerY <= boardRect.bottom;
+
+      if(withinBoard){
+        const relX = centerX - boardRect.left;
+        const relY = centerY - boardRect.top;
+        const c = Math.min(cols-1, Math.max(0, Math.floor(relX/cellW)));
+        const r = Math.min(rows-1, Math.max(0, Math.floor(relY/cellH)));
+        const targetIndex = r*cols+c;
+        const correctIndex = parseInt(piece.dataset.correctIndex,10);
+
+        // check target slot not already occupied
+        const occupied = board.querySelector(`.piece[data-slot="${targetIndex}"]`);
+
+        if(!occupied && targetIndex === correctIndex){
+          snapToBoard(piece, board, c, r, cellW, cellH, targetIndex);
+          return;
+        } else if(!occupied){
+          // wrong slot: place visually but not locked, snap to slot anyway for feedback then bounce back
+          returnToOrigin();
+          return;
+        } else {
+          returnToOrigin();
+          return;
+        }
+      } else {
+        returnToOrigin();
+      }
+    }
+
+    function returnToOrigin(){
+      piece.style.position = 'static';
+      piece.style.left = '';
+      piece.style.top = '';
+      piece.style.width = piece.dataset.trayPieceSize+'px';
+      piece.style.height = piece.dataset.trayPieceSize+'px';
+      if(originNextSibling){
+        originParent.insertBefore(piece, originNextSibling);
+      } else {
+        originParent.appendChild(piece);
+      }
+    }
+
+    function snapToBoard(piece, board, c, r, cellW, cellH, index){
+      piece.style.position = 'absolute';
+      piece.style.left = (c*cellW)+'px';
+      piece.style.top = (r*cellH)+'px';
+      piece.style.width = cellW+'px';
+      piece.style.height = cellH+'px';
+      piece.style.backgroundSize = `${cols*cellW}px ${rows*cellH}px`;
+      piece.style.backgroundPosition = `-${c*cellW}px -${r*cellH}px`;
+      piece.style.borderRadius = '0';
+      piece.dataset.slot = index;
+      piece.classList.add('placed');
+      board.appendChild(piece);
+
+      placedCount++;
+      statusEl.textContent = `تم وضع ${placedCount} من ${cols*rows} قطعة`;
+      if(placedCount === cols*rows){
+        winEl.style.display = 'block';
+        statusEl.textContent = 'اكتملت الصورة!';
+      }
+    }
+
+    piece.addEventListener('mousedown', pointerDown);
+    piece.addEventListener('touchstart', pointerDown, {passive:false});
+  }
+})();
+</script>
+</body>
+</html>
