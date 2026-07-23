@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة النظام الشمسي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#04050c;
+    --panel:#0d0f1c;
+    --line:rgba(255,255,255,.08);
+    --gold:#e8b94e;
+    --cyan:#5fd4e0;
+    --text:#eef0f7;
+    --muted:#8a8fa3;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; min-height:100vh;
+    background:radial-gradient(ellipse at 50% -10%, #10142a, var(--bg) 60%);
+    color:var(--text);
+    font-family:'Cairo',sans-serif;
+  }
+  .wrap{ max-width:1000px; margin:0 auto; padding:26px 16px 50px; }
+
+  header{ text-align:center; margin-bottom:16px; }
+  .eyebrow{
+    font-size:12px; letter-spacing:.35em; color:var(--cyan);
+    text-transform:uppercase; font-weight:700; margin-bottom:6px;
+  }
+  h1{
+    font-family:'Playfair Display',serif; font-weight:700; font-style:italic;
+    font-size:clamp(26px,5.5vw,42px); margin:0;
+    background:linear-gradient(90deg,var(--gold),#fff 45%,var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sub{ color:var(--muted); font-size:13.5px; margin-top:6px; }
+
+  .stage-shell{
+    position:relative;
+    border-radius:16px;
+    overflow:hidden;
+    background:#000;
+    box-shadow:0 30px 70px -25px rgba(0,0,0,.8), inset 0 0 0 1px var(--line);
+  }
+  canvas{ display:block; width:100%; height:auto; }
+
+  .info-card{
+    position:absolute;
+    top:14px; inset-inline-start:14px;
+    max-width:230px;
+    background:rgba(13,15,28,.88);
+    backdrop-filter:blur(6px);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    opacity:0; transform:translateY(-6px);
+    transition:opacity .2s ease, transform .2s ease;
+    pointer-events:none;
+  }
+  .info-card.show{ opacity:1; transform:translateY(0); }
+  .info-card h3{
+    margin:0 0 6px; font-family:'Playfair Display',serif; font-style:italic;
+    font-size:19px; color:var(--gold);
+  }
+  .info-card .fact{
+    font-size:12.5px; color:var(--muted); margin:3px 0;
+    display:flex; justify-content:space-between; gap:10px;
+  }
+  .info-card .fact b{ color:var(--text); font-weight:600; }
+
+  .panel{
+    margin-top:20px; background:var(--panel);
+    border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+  }
+  .row{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center; }
+  button.primary{
+    background:linear-gradient(90deg,var(--cyan),#3a9fb0);
+    color:#04141a; border:none; padding:10px 24px; border-radius:999px;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:13.5px; cursor:pointer;
+    transition:transform .15s ease;
+  }
+  button.primary:hover{ transform:translateY(-2px); }
+  button.ghost{
+    background:transparent; color:var(--text); border:1px solid var(--line);
+    padding:9px 18px; border-radius:999px; font-family:'Cairo',sans-serif;
+    font-weight:600; font-size:13px; cursor:pointer;
+  }
+  button.ghost.active{ border-color:var(--gold); color:var(--gold); }
+
+  .speedwrap{ display:flex; align-items:center; gap:10px; }
+  .label{ font-size:12px; color:var(--muted); }
+  input[type=range]{ accent-color:var(--cyan); width:130px; }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px;
+  }
+  .legend .pill{
+    display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted);
+    background:#111427; border:1px solid var(--line); padding:5px 10px; border-radius:999px;
+    cursor:pointer;
+  }
+  .legend .pill .dot{ width:9px; height:9px; border-radius:50%; }
+  .legend .pill.active{ color:var(--text); border-color:var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Orbital Mechanics</div>
+    <h1>محاكاة النظام الشمسي</h1>
+    <div class="sub">دوران الكواكب حول الشمس بمقياس زمني تقريبي — اضغطي على أي كوكب لعرض معلوماته</div>
+  </header>
+
+  <div class="stage-shell">
+    <canvas id="cv" width="1000" height="640"></canvas>
+    <div class="info-card" id="infoCard">
+      <h3 id="infoName"></h3>
+      <div class="fact"><span>البعد عن الشمس</span><b id="infoDist"></b></div>
+      <div class="fact"><span>مدة الدورة المدارية</span><b id="infoPeriod"></b></div>
+      <div class="fact"><span>عدد الأقمار</span><b id="infoMoons"></b></div>
+      <div class="fact"><span>القطر</span><b id="infoDiam"></b></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button class="primary" id="toggleBtn">إيقاف مؤقت</button>
+      <div class="speedwrap">
+        <span class="label">سرعة الزمن</span>
+        <input type="range" id="speed" min="1" max="10" value="4">
+      </div>
+      <button class="ghost active" id="orbitsBtn">مسارات المدار</button>
+      <button class="ghost" id="labelsBtn">أسماء الكواكب</button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height;
+const cx = W/2, cy = H/2;
+
+// relative orbital data (not to true visual scale, but ordered & proportioned for clarity)
+// distance: pixels from sun | period: relative orbital speed (days, scaled) | radius: visual planet size
+const planets = [
+  { name:"عطارد",  color:"#b7b0a6", distance:60,  periodDays:88,   radius:4,  moons:0,  diamKm:"4,879 كم" },
+  { name:"الزهرة",  color:"#e6c27a", distance:82,  periodDays:225,  radius:6,  moons:0,  diamKm:"12,104 كم" },
+  { name:"الأرض",   color:"#4fa8e0", distance:108, periodDays:365,  radius:6.4,moons:1,  diamKm:"12,742 كم" },
+  { name:"المريخ",  color:"#c1552c", distance:135, periodDays:687,  radius:5,  moons:2,  diamKm:"6,779 كم" },
+  { name:"المشتري", color:"#d9a066", distance:190, periodDays:4333, radius:16, moons:95, diamKm:"139,820 كم" },
+  { name:"زحل",    color:"#e8cf9c", distance:250, periodDays:10759,radius:14, moons:146, diamKm:"116,460 كم", ring:true },
+  { name:"أورانوس", color:"#8fd6d6", distance:305, periodDays:30687,radius:10, moons:28, diamKm:"50,724 كم" },
+  { name:"نبتون",  color:"#4d6fd6", distance:355, periodDays:60190,radius:10, moons:16, diamKm:"49,244 كم" },
+];
+
+planets.forEach((p,i)=>{
+  p.angle = Math.random()*Math.PI*2;
+  p.speed = 1 / p.periodDays; // relative angular speed
+});
+
+let running = true;
+let timeScale = 4;
+let showOrbits = true;
+let showLabels = false;
+let selected = null;
+
+// starfield
+const stars = [];
+for(let i=0;i<220;i++){
+  stars.push({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.3, a:Math.random() });
+}
+
+function distLabel(px){
+  const auApprox = (px/108).toFixed(2);
+  return auApprox + " و.ف تقريبًا";
+}
+function periodLabel(days){
+  if(days < 300) return Math.round(days) + " يومًا أرضيًا";
+  const yrs = (days/365).toFixed(1);
+  return yrs + " سنة أرضية";
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+
+  // stars
+  stars.forEach(s=>{
+    ctx.globalAlpha = 0.4 + 0.6*Math.abs(Math.sin(Date.now()/1500 + s.a*10));
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(s.x, s.y, s.r, s.r);
+  });
+  ctx.globalAlpha = 1;
+
+  // orbits
+  if(showOrbits){
+    ctx.strokeStyle = 'rgba(255,255,255,.10)';
+    ctx.lineWidth = 1;
+    planets.forEach(p=>{
+      ctx.beginPath();
+      ctx.arc(cx, cy, p.distance, 0, Math.PI*2);
+      ctx.stroke();
+    });
+  }
+
+  // sun
+  const sunGrad = ctx.createRadialGradient(cx,cy,2,cx,cy,34);
+  sunGrad.addColorStop(0,'#fff7d6');
+  sunGrad.addColorStop(.4,'#ffcf5c');
+  sunGrad.addColorStop(1,'rgba(255,140,20,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.beginPath();
+  ctx.arc(cx,cy,34,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#ffdd7a';
+  ctx.beginPath();
+  ctx.arc(cx,cy,15,0,Math.PI*2);
+  ctx.fill();
+
+  // planets
+  planets.forEach(p=>{
+    if(running){
+      p.angle += p.speed * timeScale * 0.02;
+    }
+    const x = cx + Math.cos(p.angle)*p.distance;
+    const y = cy + Math.sin(p.angle)*p.distance*0.55; // slight ellipse for perspective feel
+    p._x = x; p._y = y;
+
+    if(p.ring){
+      ctx.strokeStyle = 'rgba(232,207,156,.55)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(x,y,p.radius+7,p.radius*0.45,0,0,Math.PI*2);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(x,y,p.radius,0,Math.PI*2);
+    ctx.fill();
+
+    if(p===selected){
+      ctx.strokeStyle = '#e8b94e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(x,y,p.radius+5,0,Math.PI*2);
+      ctx.stroke();
+    }
+
+    if(showLabels){
+      ctx.font = "11px Cairo, sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,.75)";
+      ctx.textAlign = "center";
+      ctx.fillText(p.name, x, y - p.radius - 8);
+    }
+  });
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+// interaction
+function pickPlanet(mx,my){
+  let closest = null, closestD = 999;
+  planets.forEach(p=>{
+    const d = Math.hypot(p._x-mx, p._y-my);
+    if(d < p.radius+6 && d < closestD){ closest = p; closestD = d; }
+  });
+  return closest;
+}
+function getPos(e){
+  const rect = cv.getBoundingClientRect();
+  const scaleX = W/rect.width, scaleY = H/rect.height;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY };
+}
+
+const infoCard = document.getElementById('infoCard');
+function showInfo(p){
+  selected = p;
+  document.getElementById('infoName').textContent = p.name;
+  document.getElementById('infoDist').textContent = distLabel(p.distance);
+  document.getElementById('infoPeriod').textContent = periodLabel(p.periodDays);
+  document.getElementById('infoMoons').textContent = p.moons;
+  document.getElementById('infoDiam').textContent = p.diamKm;
+  infoCard.classList.add('show');
+}
+
+cv.addEventListener('click', (e)=>{
+  const {x,y} = getPos(e);
+  const p = pickPlanet(x,y);
+  if(p) showInfo(p);
+  else { selected = null; infoCard.classList.remove('show'); }
+});
+
+// controls
+const toggleBtn = document.getElementById('toggleBtn');
+toggleBtn.addEventListener('click', ()=>{
+  running = !running;
+  toggleBtn.textContent = running ? "إيقاف مؤقت" : "استئناف";
+});
+
+document.getElementById('speed').addEventListener('input', (e)=>{
+  timeScale = Number(e.target.value);
+});
+
+const orbitsBtn = document.getElementById('orbitsBtn');
+orbitsBtn.addEventListener('click', ()=>{
+  showOrbits = !showOrbits;
+  orbitsBtn.classList.toggle('active', showOrbits);
+});
+
+const labelsBtn = document.getElementById('labelsBtn');
+labelsBtn.addEventListener('click', ()=>{
+  showLabels = !showLabels;
+  labelsBtn.classList.toggle('active', showLabels);
+});
+
+// legend
+const legend = document.getElementById('legend');
+planets.forEach(p=>{
+  const pill = document.createElement('div');
+  pill.className = 'pill';
+  pill.innerHTML = `<span class="dot" style="background:${p.color}"></span>${p.name}`;
+  pill.addEventListener('click', ()=>{
+    showInfo(p);
+    [...legend.children].forEach(c=>c.classList.remove('active'));
+    pill.classList.add('active');
+  });
+  legend.appendChild(pill);
+});
+</script>
+
+</body>
+</html>
