@@ -1,0 +1,239 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مختبر التكيف الحيوي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0c1210;
+    --panel:#131b18;
+    --panel-2:#1a2420;
+    --line:#26332d;
+    --paper:#eef1ec;
+    --dim:#8ea095;
+    --dim-2:#5c6b63;
+    --accent:#e0a83e;
+    --accent-soft:#e0a83e33;
+    --structural:#5aa9e6;
+    --physio:#b083e0;
+    --behavior:#e0a83e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--ink); color:var(--paper);
+    font-family:'Tajawal',sans-serif;
+    min-height:100vh;
+    transition:background 1s ease;
+  }
+  /* biome theming via body[data-biome] */
+  body[data-biome="desert"]{ --accent:#d98a3d; background:radial-gradient(ellipse at 50% -10%, #2a1d10 0%, var(--ink) 60%); }
+  body[data-biome="arctic"]{ --accent:#6ec3e0; background:radial-gradient(ellipse at 50% -10%, #0e2430 0%, var(--ink) 60%); }
+  body[data-biome="ocean"]{ --accent:#2de1c2; background:radial-gradient(ellipse at 50% -10%, #041824 0%, #050a0c 60%); }
+  body[data-biome="rainforest"]{ --accent:#7cc47a; background:radial-gradient(ellipse at 50% -10%, #10241a 0%, var(--ink) 60%); }
+
+  header{ text-align:center; padding:44px 20px 8px; }
+  .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.2em; color:var(--dim-2); text-transform:uppercase; }
+  h1{
+    font-family:'Fraunces',serif; font-weight:700; font-size:clamp(30px,5.5vw,50px);
+    margin:8px 0 10px; color:var(--paper);
+  }
+  .sub{ max-width:600px; margin:0 auto; color:var(--dim); font-size:15px; line-height:1.85; }
+
+  /* legend / taxonomy key */
+  .legend{
+    display:flex; justify-content:center; gap:22px; flex-wrap:wrap;
+    margin:30px auto 6px; font-family:'JetBrains Mono',monospace; font-size:12px;
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:7px; color:var(--dim); }
+  .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .dot.structural{ background:var(--structural); }
+  .dot.physio{ background:var(--physio); }
+  .dot.behavior{ background:var(--behavior); }
+
+  /* biome tabs */
+  .tabs{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+    margin:26px auto 8px; padding:0 20px;
+  }
+  .tab{
+    font-family:'Fraunces',serif; font-size:15px; font-weight:500;
+    background:var(--panel); border:1px solid var(--line); color:var(--dim);
+    padding:10px 20px; border-radius:999px; cursor:pointer;
+    transition:all .3s ease;
+  }
+  .tab .ic{ margin-inline-start:6px; }
+  .tab.active{
+    color:var(--ink); background:var(--accent); border-color:var(--accent);
+    box-shadow:0 0 24px var(--accent-soft);
+  }
+
+  .biome-strip{
+    max-width:920px; margin:22px auto 0; padding:0 20px;
+    text-align:center; color:var(--dim); font-size:13px; line-height:1.8;
+  }
+  .biome-strip b{ color:var(--paper); font-family:'Fraunces',serif; font-weight:600; }
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:16px; max-width:1000px; margin:28px auto 70px; padding:0 20px;
+  }
+  .card{
+    position:relative;
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line); border-radius:14px;
+    padding:20px 18px 18px;
+    min-height:190px;
+    cursor:pointer;
+    perspective:1000px;
+  }
+  .card-inner{
+    position:relative; width:100%; height:100%;
+    transition:transform .6s cubic-bezier(.4,.2,.2,1);
+    transform-style:preserve-3d;
+  }
+  .card.flipped .card-inner{ transform:rotateY(180deg); }
+  .face{
+    backface-visibility:hidden;
+  }
+  .face.front{ position:relative; }
+  .face.back{
+    position:absolute; inset:0; transform:rotateY(180deg);
+    display:flex; align-items:center;
+  }
+  .icon{ font-size:38px; line-height:1; }
+  .name{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin-top:12px; color:var(--paper); }
+  .type-tag{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.05em;
+    color:var(--dim); margin-top:10px;
+  }
+  .flip-hint{
+    position:absolute; bottom:14px; left:18px;
+    font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--dim-2);
+  }
+  .explain{
+    font-size:13.5px; line-height:1.9; color:var(--paper);
+  }
+  .card[data-type="structural"] .type-tag .dot{ background:var(--structural); }
+  .card[data-type="physio"] .type-tag .dot{ background:var(--physio); }
+  .card[data-type="behavior"] .type-tag .dot{ background:var(--behavior); }
+  .card:hover{ border-color:var(--accent); }
+
+  footer{
+    text-align:center; color:var(--dim-2); font-size:12px;
+    padding:0 20px 44px; font-family:'JetBrains Mono',monospace;
+  }
+</style>
+</head>
+<body data-biome="desert">
+
+<header>
+  <div class="eyebrow">Adaptive Biology Field Guide</div>
+  <h1>مختبر التكيف الحيوي</h1>
+  <p class="sub">كيف تطوّرت الكائنات الحية لتلائم بيئاتها؟ اختر بيئة، ثم انقر كل بطاقة لتقرأ سر تكيّف الكائن معها.</p>
+</header>
+
+<div class="legend">
+  <span><i class="dot structural"></i> تكيف تركيبي (بنية الجسم)</span>
+  <span><i class="dot physio"></i> تكيف وظيفي (عمليات داخلية)</span>
+  <span><i class="dot behavior"></i> تكيف سلوكي (نمط الحياة)</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-biome="desert">🏜️ الصحراء</div>
+  <div class="tab" data-biome="arctic">❄️ القطب المتجمد</div>
+  <div class="tab" data-biome="ocean">🌊 أعماق المحيط</div>
+  <div class="tab" data-biome="rainforest">🌿 الغابة الاستوائية</div>
+</div>
+
+<div class="biome-strip" id="biomeStrip"></div>
+
+<div class="grid" id="grid"></div>
+
+<footer>مثال تعليمي مبسّط لأنماط التكيف الحيوي الثلاثة — التركيبي، الوظيفي، والسلوكي</footer>
+
+<script>
+const data = {
+  desert:{
+    label:"حرارة نهارية شديدة، برودة ليلية، وندرة الماء تفرض حلولًا قاسية للبقاء.",
+    items:[
+      {icon:"🐫", name:"الجمل", type:"physio", typeLabel:"وظيفي", text:"يخزّن الدهن في السنام بدل توزيعه على الجسم، فيقلل العزل الحراري ويحصل على طاقة وماء أيضي عند الحاجة."},
+      {icon:"🦊", name:"ثعلب الفنك", type:"structural", typeLabel:"تركيبي", text:"أذناه الكبيرتان الغنيتان بالأوعية الدموية تُشعّان الحرارة الزائدة خارج الجسم كمبرّد طبيعي."},
+      {icon:"🌵", name:"الصبار", type:"structural", typeLabel:"تركيبي", text:"طبقة شمعية سميكة وأشواك بدل أوراق تقلّلان من فقد الماء بالتبخر إلى الحد الأدنى."},
+      {icon:"🦂", name:"العقرب", type:"behavior", typeLabel:"سلوكي", text:"ينشط ليلًا ويختبئ تحت الرمال نهارًا، فيتجنّب ذروة الحرارة تمامًا."},
+    ]
+  },
+  arctic:{
+    label:"برد قارس، رياح قاطعة، وجليد يغطي مصادر الغذاء لأشهر طويلة.",
+    items:[
+      {icon:"🐻‍❄️", name:"الدب القطبي", type:"structural", typeLabel:"تركيبي", text:"فراء كثيف شفاف يعكس الضوء فيبدو أبيض للتمويه، وطبقة شحم تحت الجلد تصل لعدة سنتيمترات للعزل."},
+      {icon:"🐧", name:"البطريق الإمبراطوري", type:"behavior", typeLabel:"سلوكي", text:"يتجمّع مئات الأفراد معًا في كتلة متلاصقة، ويتناوبون المواقع الداخلية والخارجية لتوزيع الدفء."},
+      {icon:"🦭", name:"الفقمة", type:"physio", typeLabel:"وظيفي", text:"تُبطئ ضربات قلبها وتُعيد توجيه الدم نحو الأعضاء الحيوية أثناء الغوص الطويل تحت الجليد."},
+      {icon:"🦌", name:"الرنة", type:"structural", typeLabel:"تركيبي", text:"حوافر عريضة تتوسّع كالمجداف فوق الثلج الرخو وتمنع الغرق فيه."},
+    ]
+  },
+  ocean:{
+    label:"ظلام شبه دائم وضغط هائل وندرة الغذاء في أعماق تتجاوز الألف متر.",
+    items:[
+      {icon:"🎣", name:"سمكة الصياد", type:"structural", typeLabel:"تركيبي", text:"زائدة مضيئة حيويًا فوق رأسها تعمل كطُعم يجذب الفريسة في الظلام الدامس."},
+      {icon:"🦑", name:"الحبار العملاق", type:"structural", typeLabel:"تركيبي", text:"عينان من أكبر العيون في المملكة الحيوانية تلتقطان أضعف وميض ضوء متبقٍّ في الأعماق."},
+      {icon:"🐟", name:"أسماك المياه الباردة", type:"physio", typeLabel:"وظيفي", text:"تُنتج بروتينات مضادة للتجمد في دمها تمنع تكوّن بلورات الجليد داخل الخلايا."},
+      {icon:"🐢", name:"سلحفاة الأعماق", type:"behavior", typeLabel:"سلوكي", text:"تُبطئ حركتها ومعدل أيضها إلى أدنى حد ممكن لتوفير الطاقة النادرة."},
+    ]
+  },
+  rainforest:{
+    label:"رطوبة عالية وتزاحم كثيف للأنواع يجعل التمويه والتنافس على الضوء أمرًا حاسمًا.",
+    items:[
+      {icon:"🦎", name:"الحرباء", type:"structural", typeLabel:"تركيبي", text:"خلايا جلدية تحتوي بلورات نانوية تُغيّر ترتيبها فتعكس أطوال موجية مختلفة، فيتبدّل اللون."},
+      {icon:"🦥", name:"الكسلان", type:"behavior", typeLabel:"سلوكي", text:"يتحرك ببطء شديد ليقلل استهلاك الطاقة ويصعب رصده من الحيوانات المفترسة بين الأوراق."},
+      {icon:"🐸", name:"الضفدع السام", type:"structural", typeLabel:"تركيبي", text:"ألوانه الصارخة تحذير بصري للمفترسات من سمّية جلده، بدل الاختباء تمامًا."},
+      {icon:"🐜", name:"نمل قاطع الأوراق", type:"behavior", typeLabel:"سلوكي", text:"يعمل في مستعمرات منظمة تزرع الفطر على قطع الأوراق كمصدر غذاء ثابت رغم تبدّل المواسم."},
+    ]
+  }
+};
+
+const tabs = document.querySelectorAll('.tab');
+const grid = document.getElementById('grid');
+const strip = document.getElementById('biomeStrip');
+
+function render(biome){
+  document.body.setAttribute('data-biome', biome);
+  strip.innerHTML = `<b>${tabs[[...tabs].findIndex(t=>t.dataset.biome===biome)].textContent.trim()}</b> — ${data[biome].label}`;
+  grid.innerHTML = '';
+  data[biome].items.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.type = item.type;
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="face front">
+          <div class="icon">${item.icon}</div>
+          <div class="name">${item.name}</div>
+          <div class="type-tag"><i class="dot"></i>${item.typeLabel}</div>
+          <div class="flip-hint">انقر للتفاصيل ↺</div>
+        </div>
+        <div class="face back">
+          <div class="explain">${item.text}</div>
+        </div>
+      </div>
+    `;
+    card.addEventListener('click', ()=> card.classList.toggle('flipped'));
+    grid.appendChild(card);
+  });
+}
+
+tabs.forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    render(tab.dataset.biome);
+  });
+});
+
+render('desert');
+</script>
+</body>
+</html>
