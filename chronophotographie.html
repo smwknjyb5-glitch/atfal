@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التصوير المتعاقب مع تحكم بالفاصل الزمني</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #f5f9ff, #dce5f0);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #ffffffec;
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            padding: 25px 30px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            color: #0b2d4b;
+            margin: 0 0 8px 0;
+            letter-spacing: 1px;
+        }
+        .sub {
+            font-size: 16px;
+            color: #2a577b;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #b8cee4;
+            padding-bottom: 12px;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #fafdff;
+            border-radius: 24px;
+            box-shadow: inset 0 0 0 1px #c8daea, 0 10px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            height: auto;
+            aspect-ratio: 800 / 300;
+            touch-action: none;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px 25px;
+            margin-top: 22px;
+            background: #e8f0fa;
+            padding: 15px 25px;
+            border-radius: 60px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .control-group label {
+            font-weight: 600;
+            color: #1a3f60;
+            font-size: 16px;
+        }
+        select, button {
+            padding: 6px 18px;
+            font-size: 15px;
+            border-radius: 40px;
+            border: 1px solid #89aacb;
+            background: white;
+            color: #0a2c47;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+        }
+        select:hover, button:hover {
+            border-color: #1e6b9e;
+            box-shadow: 0 0 0 3px #c1daf5;
+        }
+        button {
+            background: #1f6390;
+            color: white;
+            border: none;
+            padding: 6px 28px;
+        }
+        button:hover {
+            background: #134b70;
+            box-shadow: 0 4px 12px rgba(26, 80, 130, 0.3);
+        }
+        input[type="range"] {
+            width: 140px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #b8cfec;
+            border-radius: 10px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #1f6390;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px 35px;
+            margin-top: 16px;
+            font-size: 17px;
+            font-weight: 500;
+            color: #124062;
+        }
+        .info span {
+            background: #e2edfb;
+            padding: 4px 18px;
+            border-radius: 40px;
+        }
+        .info .value {
+            background: #ffffff;
+            padding: 4px 18px;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            font-weight: 700;
+            color: #00315e;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px 30px;
+            margin-top: 14px;
+            font-size: 15px;
+            color: #1f3e5c;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot-sample {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #d94f4f;
+            border: 2px solid #a33;
+        }
+        .dot-sample.green {
+            background: #2a9d8f;
+            border-color: #1a6b61;
+        }
+        .dot-sample.blue {
+            background: #2e6f9e;
+            border-color: #1a4a6e;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 15px; }
+            .controls { gap: 12px; }
+            input[type="range"] { width: 100px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📸 التصوير المتعاقب — تحكم بالفاصل الزمني</h1>
+    <div class="sub">مسار مستقيم — حركة منتظمة / متسارعة / متباطئة</div>
+
+    <canvas id="canvas" width="800" height="300"></canvas>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>نوع الحركة:</label>
+            <select id="motionType">
+                <option value="uniform" selected>منتظمة</option>
+                <option value="accelerated">متسارعة</option>
+                <option value="decelerated">متباطئة</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>الفاصل الزمني (Δt):</label>
+            <input type="range" id="timeInterval" min="0.01" max="0.50" step="0.005" value="0.05">
+            <span id="intervalDisplay" style="min-width:45px; font-weight:700; color:#003d66;">0.05</span>
+        </div>
+        <div class="control-group">
+            <button id="resetBtn">▶ إعادة التشغيل</button>
+        </div>
+    </div>
+
+    <div class="info">
+        <span>⏱️ الزمن: <span id="timeDisplay" class="value">0.0</span> ث</span>
+        <span>📍 الموقع: <span id="posDisplay" class="value">0.0</span> م</span>
+        <span>🚀 السرعة: <span id="speedDisplay" class="value">0.0</span> م/ث</span>
+        <span>📷 عدد النقاط: <span id="pointsCount" class="value">0</span></span>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><span class="dot-sample"></span> النقطة الحالية</div>
+        <div class="legend-item"><span class="dot-sample green"></span> مواضع سابقة (تصوير متعاقب)</div>
+        <div class="legend-item"><span class="dot-sample blue"></span> المسار المرجعي</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const motionSelect = document.getElementById('motionType');
+        const resetBtn = document.getElementById('resetBtn');
+        const timeIntervalSlider = document.getElementById('timeInterval');
+        const intervalDisplay = document.getElementById('intervalDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const posDisplay = document.getElementById('posDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const pointsCount = document.getElementById('pointsCount');
+
+        // إعدادات الرسم
+        const w = 800, h = 300;
+        const startX = 80, endX = 720;
+        const baseY = 160;
+        const pointRadius = 12;
+
+        // حالة المحاكاة
+        let time = 0;
+        let position = 0;         // 0 → 1
+        let speed = 0.6;
+        const maxSpeed = 1.2;
+        const minSpeed = 0.1;
+        let running = true;
+        let animationId = null;
+        let lastTimestamp = 0;     // آخر وقت تم فيه تخزين نقطة
+        let history = [];
+
+        // معاملات الحركة
+        const uniformSpeed = 0.55;
+        const accelRate = 0.25;
+        const decelRate = 0.20;
+
+        // قراءة الفاصل الزمني من شريط التمرير
+        function getTimeInterval() {
+            return parseFloat(timeIntervalSlider.value);
+        }
+
+        // إعادة تعيين المحاكاة
+        function resetSimulation() {
+            time = 0;
+            position = 0;
+            history = [];
+            const type = motionSelect.value;
+            if (type === 'uniform') speed = uniformSpeed;
+            else if (type === 'accelerated') speed = 0.15;
+            else if (type === 'decelerated') speed = 0.85;
+            running = true;
+            lastTimestamp = 0;
+            updateInfo();
+            drawScene();
+        }
+
+        function updateInfo() {
+            const posM = (position * (endX - startX) + startX).toFixed(1);
+            timeDisplay.textContent = time.toFixed(1);
+            posDisplay.textContent = posM;
+            speedDisplay.textContent = speed.toFixed(2);
+            pointsCount.textContent = history.length;
+            intervalDisplay.textContent = getTimeInterval().toFixed(2);
+        }
+
+        // رسم المشهد
+        function drawScene() {
+            ctx.clearRect(0, 0, w, h);
+
+            // خلفية
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, '#f0f7ff');
+            grad.addColorStop(1, '#dfeaf5');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+
+            // خط المسار
+            ctx.beginPath();
+            ctx.moveTo(startX - 20, baseY);
+            ctx.lineTo(endX + 20, baseY);
+            ctx.strokeStyle = '#2e6f9e';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = '#1f4b73';
+            ctx.font = '15px sans-serif';
+            ctx.fillText('المسار', endX + 25, baseY + 6);
+
+            // علامات المسافة
+            for (let x = startX; x <= endX; x += 80) {
+                ctx.beginPath();
+                ctx.moveTo(x, baseY - 8);
+                ctx.lineTo(x, baseY + 8);
+                ctx.strokeStyle = '#7f9ebd';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.fillStyle = '#2c577a';
+                ctx.font = '12px sans-serif';
+                ctx.fillText(((x - startX) / 10).toFixed(0), x - 8, baseY + 26);
+            }
+
+            // رسم المواضع السابقة (التصوير المتعاقب)
+            for (let i = 0; i < history.length; i++) {
+                const frac = history[i];
+                const x = startX + frac * (endX - startX);
+                const alpha = 0.4 + 0.6 * (i / history.length);
+                const radius = 6 + 4 * (i / history.length);
+                ctx.beginPath();
+                ctx.arc(x, baseY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = `rgba(42, 157, 143, ${alpha * 0.7})`;
+                ctx.fill();
+                ctx.strokeStyle = `rgba(26, 107, 97, ${alpha * 0.5})`;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            // النقطة الحالية
+            const currentX = startX + position * (endX - startX);
+            ctx.shadowColor = 'rgba(180, 60, 60, 0.3)';
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            ctx.arc(currentX, baseY, pointRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = '#d94f4f';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#b33';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(currentX, baseY, pointRadius * 0.5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(255, 220, 220, 0.6)';
+            ctx.fill();
+
+            // نوع الحركة
+            ctx.fillStyle = '#113855';
+            ctx.font = 'bold 18px sans-serif';
+            let label = '';
+            switch (motionSelect.value) {
+                case 'uniform': label = 'حركة منتظمة'; break;
+                case 'accelerated': label = 'حركة متسارعة'; break;
+                case 'decelerated': label = 'حركة متباطئة'; break;
+            }
+            ctx.fillText(label, 30, 45);
+
+            // سهم الاتجاه
+            if (speed > 0.02) {
+                ctx.beginPath();
+                ctx.moveTo(currentX + 20, baseY - 12);
+                ctx.lineTo(currentX + 34, baseY);
+                ctx.lineTo(currentX + 20, baseY + 12);
+                ctx.fillStyle = '#1f6390';
+                ctx.fill();
+            } else if (speed < -0.02) {
+                ctx.beginPath();
+                ctx.moveTo(currentX - 20, baseY - 12);
+                ctx.lineTo(currentX - 34, baseY);
+                ctx.lineTo(currentX - 20, baseY + 12);
+                ctx.fillStyle = '#1f6390';
+                ctx.fill();
+            }
+
+            ctx.fillStyle = '#1a3f60';
+            ctx.font = '14px sans-serif';
+            ctx.fillText(`t = ${time.toFixed(1)} s`, w - 140, 40);
+            ctx.fillText(`v = ${speed.toFixed(2)} m/s`, w - 140, 65);
+            ctx.fillText(`Δt = ${getTimeInterval().toFixed(2)} s`, w - 140, 90);
+        }
+
+        // تحديث الفيزياء
+        function updatePhysics(deltaTime) {
+            if (!running) return;
+
+            const type = motionSelect.value;
+            if (type === 'uniform') {
+                speed = uniformSpeed;
+            } else if (type === 'accelerated') {
+                speed += accelRate * deltaTime;
+                if (speed > maxSpeed) speed = maxSpeed;
+            } else if (type === 'decelerated') {
+                speed -= decelRate * deltaTime;
+                if (speed < minSpeed) speed = minSpeed;
+            }
+
+            position += speed * deltaTime;
+
+            // تخزين الموضع في التاريخ بناءً على الفاصل الزمني المحدد
+            const interval = getTimeInterval();
+            if (history.length === 0 || time - lastTimestamp >= interval) {
+                history.push(position);
+                if (history.length > 50) history.shift(); // حد أقصى 50 نقطة
+                lastTimestamp = time;
+            }
+
+            time += deltaTime;
+
+            if (position >= 1.0) {
+                position = 1.0;
+                running = false;
+                if (history[history.length-1] !== 1.0) history.push(1.0);
+            } else if (position < 0) {
+                position = 0;
+                running = false;
+                if (history[history.length-1] !== 0) history.push(0);
+            }
+
+            updateInfo();
+            drawScene();
+        }
+
+        // حلقة الرسم
+        let prevTime = 0;
+        function animate(timestamp) {
+            if (!prevTime) prevTime = timestamp;
+            const delta = Math.min((timestamp - prevTime) / 1000, 0.05);
+            prevTime = timestamp;
+
+            if (running) {
+                updatePhysics(delta);
+            } else {
+                drawScene();
+            }
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function startAnimation() {
+            if (animationId) cancelAnimationFrame(animationId);
+            prevTime = 0;
+            resetSimulation();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // أحداث التحكم
+        resetBtn.addEventListener('click', startAnimation);
+        motionSelect.addEventListener('change', function() {
+            resetSimulation();
+            if (!running) {
+                running = true;
+                const type = motionSelect.value;
+                if (type === 'uniform') speed = uniformSpeed;
+                else if (type === 'accelerated') speed = 0.15;
+                else if (type === 'decelerated') speed = 0.85;
+                position = 0;
+                history = [];
+                time = 0;
+                lastTimestamp = 0;
+                updateInfo();
+                drawScene();
+            }
+        });
+        timeIntervalSlider.addEventListener('input', function() {
+            intervalDisplay.textContent = parseFloat(this.value).toFixed(2);
+            // نعيد الرسم لتحديث عدد النقاط المعروضة (التاريخ نفسه لا يتغير، لكن العرض يتجدد)
+            drawScene();
+            updateInfo();
+        });
+
+        // بدء التشغيل
+        resetSimulation();
+        animationId = requestAnimationFrame(animate);
+
+        window.addEventListener('beforeunload', function() {
+            if (animationId) cancelAnimationFrame(animationId);
+        });
+        window.addEventListener('resize', drawScene);
+
+    })();
+</script>
+</body>
+</html>
