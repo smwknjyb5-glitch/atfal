@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مثلث النار</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0906;
+    --panel:#161310;
+    --line:rgba(255,255,255,.08);
+    --ember:#ff6a2b;
+    --flame-y:#ffcf4a;
+    --smoke:#8f8a82;
+    --text:#f3ede4;
+    --muted:#9c9488;
+    --ok:#4fbf7a;
+    --off:#4a4540;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; min-height:100vh;
+    background:radial-gradient(ellipse at 50% 100%, #1c1006, var(--bg) 65%);
+    color:var(--text);
+    font-family:'Cairo',sans-serif;
+  }
+  .wrap{ max-width:820px; margin:0 auto; padding:26px 16px 50px; }
+
+  header{ text-align:center; margin-bottom:16px; }
+  .eyebrow{
+    font-size:12px; letter-spacing:.35em; color:var(--ember);
+    text-transform:uppercase; font-weight:700; margin-bottom:6px;
+  }
+  h1{
+    font-family:'Playfair Display',serif; font-weight:700; font-style:italic;
+    font-size:clamp(26px,5.5vw,42px); margin:0;
+    background:linear-gradient(90deg,var(--ember),var(--flame-y) 55%,#fff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sub{ color:var(--muted); font-size:13.5px; margin-top:6px; }
+
+  .stage{
+    position:relative;
+    background:linear-gradient(180deg,#120d09,#08070a);
+    border-radius:16px;
+    padding:30px 16px 20px;
+    box-shadow:0 30px 70px -25px rgba(0,0,0,.8), inset 0 0 0 1px var(--line);
+    overflow:hidden;
+  }
+
+  .triangle-area{
+    position:relative;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    aspect-ratio:1/0.95;
+  }
+  svg.tri{ position:absolute; inset:0; width:100%; height:100%; }
+  .tri-line{
+    stroke:var(--off);
+    stroke-width:3;
+    transition:stroke .35s ease, filter .35s ease;
+  }
+  .tri-line.active{
+    stroke:var(--ember);
+    filter:drop-shadow(0 0 6px rgba(255,106,43,.7));
+  }
+
+  .node{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    width:130px;
+  }
+  .node .btn{
+    width:64px; height:64px; border-radius:50%;
+    border:2px solid var(--off);
+    background:#1a1611;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px;
+    margin:0 auto 6px;
+    cursor:pointer;
+    transition:all .25s ease;
+  }
+  .node .btn.active{
+    border-color:var(--ember);
+    background:radial-gradient(circle,#3a2210,#1a1611);
+    box-shadow:0 0 18px rgba(255,106,43,.55);
+    transform:scale(1.06);
+  }
+  .node .name{ font-weight:700; font-size:14px; }
+  .node .state{ font-size:11px; color:var(--muted); margin-top:1px; }
+  .node .state.on{ color:var(--ok); }
+
+  .node.fuel{ top:88%; left:14%; }
+  .node.heat{ top:88%; left:86%; }
+  .node.oxy{  top:6%;  left:50%; }
+
+  .flame-zone{
+    position:absolute; left:50%; top:52%;
+    transform:translate(-50%,-50%);
+    width:90px; height:110px;
+    pointer-events:none;
+  }
+  .flame{
+    position:absolute; bottom:0; left:50%;
+    width:46px; height:70px;
+    transform:translateX(-50%) scale(0);
+    opacity:0;
+    transition:transform .5s cubic-bezier(.2,1.4,.4,1), opacity .4s ease;
+  }
+  .flame.lit{ transform:translateX(-50%) scale(1); opacity:1; }
+  .flame .core{
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at 50% 70%, var(--flame-y), var(--ember) 55%, transparent 75%);
+    border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    animation:flicker 0.9s ease-in-out infinite alternate;
+  }
+  @keyframes flicker{
+    0%{ transform:scaleY(1) scaleX(1) rotate(-1deg); }
+    50%{ transform:scaleY(1.08) scaleX(.95) rotate(1deg); }
+    100%{ transform:scaleY(.96) scaleX(1.04) rotate(-2deg); }
+  }
+  .smoke{
+    position:absolute; bottom:0; left:50%;
+    width:8px; height:8px; border-radius:50%;
+    background:var(--smoke);
+    opacity:0;
+  }
+  .smoke.show{ animation:rise 2.4s ease-out infinite; }
+  @keyframes rise{
+    0%{ opacity:0; transform:translate(-50%,0) scale(.6); }
+    15%{ opacity:.5; }
+    100%{ opacity:0; transform:translate(-80%,-90px) scale(2.2); }
+  }
+
+  .status{
+    text-align:center; margin-top:18px;
+    font-family:'Playfair Display',serif; font-style:italic; font-size:16px;
+    color:var(--muted);
+    min-height:22px;
+  }
+  .status.burning{ color:var(--flame-y); }
+
+  .panel{
+    margin-top:20px; background:var(--panel);
+    border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+  }
+  .panel h2{
+    font-family:'Playfair Display',serif; font-style:italic; font-size:17px;
+    margin:0 0 10px; color:var(--ember); font-weight:600;
+  }
+  .methods{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  button.method{
+    background:#1e1a14; color:var(--text); border:1px solid var(--line);
+    padding:10px 18px; border-radius:999px; font-family:'Cairo',sans-serif;
+    font-weight:700; font-size:13px; cursor:pointer; transition:transform .15s ease, border-color .15s ease;
+  }
+  button.method:hover{ transform:translateY(-2px); border-color:var(--ember); }
+  button.reset{
+    background:linear-gradient(90deg,var(--ember),#c9450f);
+    color:#1a0d02; border:none;
+  }
+  .explain{
+    font-size:13px; color:var(--muted); line-height:1.9; margin-top:12px;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Combustion Basics</div>
+    <h1>مثلث النار</h1>
+    <div class="sub">اضغطي على كل ركن لتفعيله أو إلغائه — الاشتعال يحدث فقط عند اجتماع العناصر الثلاثة</div>
+  </header>
+
+  <div class="stage">
+    <div class="triangle-area">
+      <svg class="tri" viewBox="0 0 100 95" preserveAspectRatio="none">
+        <line id="lineFuelHeat" class="tri-line" x1="14" y1="86" x2="86" y2="86"/>
+        <line id="lineHeatOxy"  class="tri-line" x1="86" y1="86" x2="50" y2="8"/>
+        <line id="lineOxyFuel"  class="tri-line" x1="50" y1="8"  x2="14" y2="86"/>
+      </svg>
+
+      <div class="node fuel">
+        <div class="btn" id="btnFuel">🪵</div>
+        <div class="name">الوقود</div>
+        <div class="state" id="stateFuel">غير مفعّل</div>
+      </div>
+      <div class="node heat">
+        <div class="btn" id="btnHeat">🔥</div>
+        <div class="name">الحرارة</div>
+        <div class="state" id="stateHeat">غير مفعّلة</div>
+      </div>
+      <div class="node oxy">
+        <div class="btn" id="btnOxy">💨</div>
+        <div class="name">الأكسجين</div>
+        <div class="state" id="stateOxy">غير مفعّل</div>
+      </div>
+
+      <div class="flame-zone">
+        <div class="smoke" id="smoke"></div>
+        <div class="flame" id="flame"><div class="core"></div></div>
+      </div>
+    </div>
+
+    <div class="status" id="statusText">لا يوجد اشتعال — فعّلي العناصر الثلاثة</div>
+  </div>
+
+  <div class="panel">
+    <h2>طرق الإطفاء</h2>
+    <div class="methods">
+      <button class="method" id="mCool">🧊 التبريد (إزالة الحرارة)</button>
+      <button class="method" id="mSmother">🫧 الخنق (إزالة الأكسجين)</button>
+      <button class="method" id="mStarve">✂️ التجويع (إزالة الوقود)</button>
+      <button class="method reset" id="mReset">إعادة الضبط</button>
+    </div>
+    <div class="explain">
+      يشتعل الحريق فقط عند توفّر ثلاثة عناصر معًا: <b>وقود</b> قابل للاحتراق، <b>حرارة</b> كافية لبدء التفاعل، و<b>أكسجين</b> يغذّي الاحتراق.
+      إزالة أي ضلع من المثلث — بالتبريد أو الخنق أو قطع الوقود — تُطفئ النار فورًا.
+    </div>
+  </div>
+</div>
+
+<script>
+  const state = { fuel:false, heat:false, oxy:false };
+
+  const els = {
+    fuel: document.getElementById('btnFuel'),
+    heat: document.getElementById('btnHeat'),
+    oxy: document.getElementById('btnOxy'),
+    stateFuel: document.getElementById('stateFuel'),
+    stateHeat: document.getElementById('stateHeat'),
+    stateOxy: document.getElementById('stateOxy'),
+    flame: document.getElementById('flame'),
+    smoke: document.getElementById('smoke'),
+    status: document.getElementById('statusText'),
+    lineFuelHeat: document.getElementById('lineFuelHeat'),
+    lineHeatOxy: document.getElementById('lineHeatOxy'),
+    lineOxyFuel: document.getElementById('lineOxyFuel'),
+  };
+
+  function toggle(key){
+    state[key] = !state[key];
+    render();
+  }
+
+  els.fuel.addEventListener('click', ()=>toggle('fuel'));
+  els.heat.addEventListener('click', ()=>toggle('heat'));
+  els.oxy.addEventListener('click', ()=>toggle('oxy'));
+
+  document.getElementById('mCool').addEventListener('click', ()=>{ state.heat=false; render(); });
+  document.getElementById('mSmother').addEventListener('click', ()=>{ state.oxy=false; render(); });
+  document.getElementById('mStarve').addEventListener('click', ()=>{ state.fuel=false; render(); });
+  document.getElementById('mReset').addEventListener('click', ()=>{
+    state.fuel=false; state.heat=false; state.oxy=false; render();
+  });
+
+  function render(){
+    els.fuel.classList.toggle('active', state.fuel);
+    els.heat.classList.toggle('active', state.heat);
+    els.oxy.classList.toggle('active', state.oxy);
+
+    els.stateFuel.textContent = state.fuel ? "مفعّل" : "غير مفعّل";
+    els.stateFuel.classList.toggle('on', state.fuel);
+    els.stateHeat.textContent = state.heat ? "مفعّلة" : "غير مفعّلة";
+    els.stateHeat.classList.toggle('on', state.heat);
+    els.stateOxy.textContent = state.oxy ? "مفعّل" : "غير مفعّل";
+    els.stateOxy.classList.toggle('on', state.oxy);
+
+    els.lineFuelHeat.classList.toggle('active', state.fuel && state.heat);
+    els.lineHeatOxy.classList.toggle('active', state.heat && state.oxy);
+    els.lineOxyFuel.classList.toggle('active', state.oxy && state.fuel);
+
+    const burning = state.fuel && state.heat && state.oxy;
+    els.flame.classList.toggle('lit', burning);
+    els.smoke.classList.toggle('show', burning);
+
+    if(burning){
+      els.status.textContent = "🔥 اشتعال! العناصر الثلاثة مكتملة";
+      els.status.classList.add('burning');
+    } else {
+      const missing = [];
+      if(!state.fuel) missing.push('الوقود');
+      if(!state.heat) missing.push('الحرارة');
+      if(!state.oxy) missing.push('الأكسجين');
+      els.status.textContent = missing.length===3
+        ? "لا يوجد اشتعال — فعّلي العناصر الثلاثة"
+        : "لا اشتعال — ينقص: " + missing.join('، ');
+      els.status.classList.remove('burning');
+    }
+  }
+
+  render();
+</script>
+
+</body>
+</html>
