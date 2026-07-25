@@ -1,0 +1,588 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محاكاة حركة المقذوفات</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: #1e2a3a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #2c3e50;
+            border-radius: 24px;
+            padding: 25px 30px 30px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #ecf0f1;
+            font-weight: 400;
+            font-size: 28px;
+            margin-top: 0;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        h1 span {
+            color: #f1c40f;
+            font-weight: 600;
+        }
+        .canvas-wrapper {
+            background: #34495e;
+            border-radius: 16px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #1a2632;
+            border-radius: 12px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 30px;
+            justify-content: center;
+            background: #3b4d5e;
+            padding: 18px 20px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ecf0f1;
+            font-size: 16px;
+        }
+        .control-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .control-group input[type="range"] {
+            width: 140px;
+            accent-color: #f1c40f;
+            background: #2c3e50;
+            height: 6px;
+            border-radius: 4px;
+        }
+        .control-group input[type="number"] {
+            width: 65px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: none;
+            background: #1e2a3a;
+            color: #ecf0f1;
+            font-size: 15px;
+            text-align: center;
+        }
+        .control-group .value-display {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: #f1c40f;
+        }
+        .buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 32px;
+            border: none;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #5d6d7e;
+            color: #ecf0f1;
+            box-shadow: 0 4px 0 #1e2a3a;
+        }
+        .btn-primary {
+            background: #f1c40f;
+            color: #1e2a3a;
+            box-shadow: 0 4px 0 #b7950b;
+        }
+        .btn-primary:hover {
+            background: #f39c12;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #b7950b;
+        }
+        .btn-primary:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #b7950b;
+        }
+        .btn-danger {
+            background: #e74c3c;
+            box-shadow: 0 4px 0 #a93226;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #a93226;
+        }
+        .btn-danger:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #a93226;
+        }
+        .info-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 10px 20px;
+            background: #1e2a3a;
+            padding: 12px 18px;
+            border-radius: 40px;
+            margin-top: 18px;
+            color: #bdc3c7;
+            font-size: 15px;
+        }
+        .info-panel span {
+            color: #ecf0f1;
+            font-weight: 500;
+        }
+        .info-panel .highlight {
+            color: #f1c40f;
+            font-weight: 700;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .control-group {
+                justify-content: space-between;
+            }
+            .control-group input[type="range"] {
+                width: 100px;
+            }
+            .btn {
+                padding: 8px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ <span>محاكاة</span> حركة المقذوفات</h1>
+
+    <div class="canvas-wrapper">
+        <canvas id="simCanvas" width="800" height="450"></canvas>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>🎯 الزاوية
+                <input type="range" id="angleSlider" min="5" max="85" value="45" />
+            </label>
+            <span class="value-display" id="angleDisplay">45°</span>
+        </div>
+        <div class="control-group">
+            <label>🚀 السرعة الابتدائية
+                <input type="range" id="speedSlider" min="10" max="80" value="50" />
+            </label>
+            <span class="value-display" id="speedDisplay">50</span>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-primary" id="fireBtn">🔫 إطلاق</button>
+        <button class="btn btn-danger" id="resetBtn">🔄 إعادة تعيين</button>
+    </div>
+
+    <div class="info-panel">
+        <div>⏱️ الزمن: <span id="timeDisplay" class="highlight">0.00</span> ث</div>
+        <div>📏 المسافة الأفقية: <span id="xDisplay" class="highlight">0.0</span> م</div>
+        <div>📐 الارتفاع: <span id="yDisplay" class="highlight">0.0</span> م</div>
+        <div>⚡ السرعة الحالية: <span id="vDisplay" class="highlight">0.0</span> م/ث</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // --------------------- إعدادات المحاكاة ---------------------
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // أبعاد الرسم (ثابتة)
+        const W = 800, H = 450;
+        canvas.width = W;
+        canvas.height = H;
+
+        // الثوابت الفيزيائية (مقياس: 1 بكسل = 0.1 متر تقريباً)
+        const G = 9.8;         // تسارع الجاذبية (م/ث²)
+        const SCALE = 2.2;     // تحويل المتر إلى بكسل (كل 1 متر = 2.2 بكسل)
+        const GROUND_Y = H - 40;  // مستوى الأرض (بكسل)
+
+        // عناصر التحكم
+        const angleSlider = document.getElementById('angleSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const angleDisplay = document.getElementById('angleDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const fireBtn = document.getElementById('fireBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const xDisplay = document.getElementById('xDisplay');
+        const yDisplay = document.getElementById('yDisplay');
+        const vDisplay = document.getElementById('vDisplay');
+
+        // حالة المحاكاة
+        let projectile = {
+            x: 0,           // الموقع الأفقى (متر)
+            y: 0,           // الموقع الرأسي (متر) – بالنسبة للأرض
+            vx: 0,          // سرعة أفقية (م/ث)
+            vy: 0,          // سرعة رأسية (م/ث)
+            time: 0,
+            isFlying: false,
+            trail: [],      // مصفوفة نقاط المسار (متر)
+        };
+
+        // قيم الإطلاق
+        let launchAngle = 45;   // درجة
+        let launchSpeed = 50;   // م/ث
+
+        // متغير لتحديث الطلب
+        let animId = null;
+
+        // نقطة البداية (إحداثيات البندقية)
+        const START_X_PIXEL = 70;
+        const START_Y_PIXEL = GROUND_Y;
+
+        // --------------------- دوال مساعدة ---------------------
+        function toPixelX(meters) {
+            return START_X_PIXEL + meters * SCALE;
+        }
+
+        function toPixelY(meters) {
+            // المتر يزداد للأعلى، بينما البكسل يزداد للأسفل
+            return GROUND_Y - meters * SCALE;
+        }
+
+        // إعادة ضبط المقذوف إلى نقطة البداية
+        function resetProjectile() {
+            projectile.x = 0;
+            projectile.y = 0;
+            projectile.vx = 0;
+            projectile.vy = 0;
+            projectile.time = 0;
+            projectile.isFlying = false;
+            projectile.trail = [];
+            // تحديث العرض
+            updateInfoPanel(0, 0, 0, 0);
+            draw();
+        }
+
+        // إطلاق المقذوف
+        function fireProjectile() {
+            // إنهاء أي محاكاة سابقة
+            if (animId) {
+                cancelAnimationFrame(animId);
+                animId = null;
+            }
+
+            // قراءة الزاوية والسرعة من واجهة المستخدم
+            launchAngle = parseFloat(angleSlider.value);
+            launchSpeed = parseFloat(speedSlider.value);
+
+            // تحويل الزاوية إلى راديان
+            const angleRad = launchAngle * Math.PI / 180;
+
+            // ضبط الحالة الأولية
+            projectile.x = 0;
+            projectile.y = 0;
+            projectile.vx = launchSpeed * Math.cos(angleRad);
+            projectile.vy = launchSpeed * Math.sin(angleRad);
+            projectile.time = 0;
+            projectile.isFlying = true;
+            projectile.trail = [{ x: 0, y: 0 }];
+
+            // تحديث لوحة المعلومات
+            updateInfoPanel(0, 0, launchSpeed, 0);
+
+            // بدء حلقة المحاكاة
+            if (animId) cancelAnimationFrame(animId);
+            let lastTimestamp = performance.now();
+            let accumulator = 0;
+            const step = 1 / 120; // 120 خطوة في الثانية
+
+            function simulationLoop(timestamp) {
+                const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+                lastTimestamp = timestamp;
+                accumulator += delta;
+
+                while (accumulator >= step) {
+                    updatePhysics(step);
+                    accumulator -= step;
+                }
+
+                draw();
+
+                if (projectile.isFlying) {
+                    animId = requestAnimationFrame(simulationLoop);
+                } else {
+                    animId = null;
+                }
+            }
+
+            animId = requestAnimationFrame(simulationLoop);
+        }
+
+        // تحديث الفيزياء بخطوة زمنية dt (ثانية)
+        function updatePhysics(dt) {
+            if (!projectile.isFlying) return;
+
+            // تحديث السرعة (تسارع الجاذبية للأسفل)
+            projectile.vy -= G * dt;
+
+            // تحديث الموقع
+            projectile.x += projectile.vx * dt;
+            projectile.y += projectile.vy * dt;
+
+            // تحديث الزمن
+            projectile.time += dt;
+
+            // إضافة نقطة للمسار (كل 3 خطوات لتقليل كثافة النقاط)
+            if (projectile.trail.length === 0 ||
+                (projectile.trail.length > 0 && projectile.time - projectile.trail[projectile.trail.length-1].time > 0.02)) {
+                projectile.trail.push({ x: projectile.x, y: projectile.y, time: projectile.time });
+            }
+
+            // التحقق من اصطدام الأرض (y <= 0)
+            if (projectile.y <= 0) {
+                projectile.y = 0;
+                projectile.isFlying = false;
+                // نضبط السرعة الرأسية للصفر
+                projectile.vy = 0;
+                // إضافة نقطة نهاية المسار
+                projectile.trail.push({ x: projectile.x, y: 0, time: projectile.time });
+            }
+
+            // التحقق من الخروج من الحدود الأفقية (للأمان)
+            if (projectile.x > 250) { // أقصى مسافة 250 متر (تقريباً)
+                projectile.isFlying = false;
+            }
+
+            // تحديث لوحة المعلومات
+            const speed = Math.sqrt(projectile.vx * projectile.vx + projectile.vy * projectile.vy);
+            updateInfoPanel(projectile.x, projectile.y, speed, projectile.time);
+
+            // إذا وصل للأرض أو خرج، نوقف الطيران
+            if (!projectile.isFlying) {
+                // نرسم المسار النهائي
+                draw();
+            }
+        }
+
+        // تحديث لوحة المعلومات
+        function updateInfoPanel(x, y, speed, time) {
+            xDisplay.textContent = x.toFixed(1);
+            yDisplay.textContent = y.toFixed(1);
+            vDisplay.textContent = speed.toFixed(1);
+            timeDisplay.textContent = time.toFixed(2);
+        }
+
+        // --------------------- رسم المحاكاة ---------------------
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            // ---- خلفية ----
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, '#1a2632');
+            grad.addColorStop(0.7, '#2c3e50');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // ---- شبكة إرشادية خفيفة ----
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 20; i++) {
+                const yPos = GROUND_Y - i * 20;
+                if (yPos > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, yPos);
+                    ctx.lineTo(W, yPos);
+                    ctx.stroke();
+                }
+            }
+            for (let i = 0; i < 30; i++) {
+                const xPos = START_X_PIXEL + i * 25;
+                if (xPos < W) {
+                    ctx.beginPath();
+                    ctx.moveTo(xPos, GROUND_Y);
+                    ctx.lineTo(xPos, GROUND_Y + 10);
+                    ctx.stroke();
+                }
+            }
+
+            // ---- الأرض ----
+            ctx.fillStyle = '#3d5a3d';
+            ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+            ctx.fillStyle = '#4a7a4a';
+            ctx.fillRect(0, GROUND_Y, W, 6);
+
+            // ---- خطوط مقياس المسافة (أفقية) ----
+            ctx.fillStyle = '#95a5a6';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            for (let m = 0; m <= 250; m += 20) {
+                const px = toPixelX(m);
+                if (px < W - 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(px, GROUND_Y);
+                    ctx.lineTo(px, GROUND_Y + 8);
+                    ctx.strokeStyle = '#7f8c8d';
+                    ctx.stroke();
+                    ctx.fillStyle = '#bdc3c7';
+                    ctx.fillText(m + 'm', px, GROUND_Y + 22);
+                }
+            }
+
+            // ---- مقياس الارتفاع (عمودي) ----
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#bdc3c7';
+            for (let m = 10; m <= 120; m += 10) {
+                const py = toPixelY(m);
+                if (py > 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(START_X_PIXEL - 10, py);
+                    ctx.lineTo(START_X_PIXEL - 2, py);
+                    ctx.strokeStyle = '#7f8c8d';
+                    ctx.stroke();
+                    ctx.fillStyle = '#bdc3c7';
+                    ctx.fillText(m + 'm', START_X_PIXEL - 14, py + 4);
+                }
+            }
+
+            // ---- رسم البندقية (رمز) ----
+            ctx.fillStyle = '#f1c40f';
+            ctx.beginPath();
+            ctx.arc(START_X_PIXEL, GROUND_Y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#e67e22';
+            ctx.font = '20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🚀', START_X_PIXEL - 2, GROUND_Y - 14);
+
+            // ---- رسم المسار (النقاط) ----
+            if (projectile.trail.length > 1) {
+                // رسم خط متصل
+                ctx.beginPath();
+                ctx.moveTo(toPixelX(projectile.trail[0].x), toPixelY(projectile.trail[0].y));
+                for (let i = 1; i < projectile.trail.length; i++) {
+                    ctx.lineTo(toPixelX(projectile.trail[i].x), toPixelY(projectile.trail[i].y));
+                }
+                ctx.strokeStyle = '#f1c40f';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#f1c40f';
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            // ---- رسم المقذوف (الكرة) ----
+            const px = toPixelX(projectile.x);
+            const py = toPixelY(projectile.y);
+            // تأثير ظل
+            ctx.shadowColor = 'rgba(241,196,15,0.5)';
+            ctx.shadowBlur = 20;
+            // توهج
+            const gradient = ctx.createRadialGradient(px-3, py-3, 2, px, py, 12);
+            gradient.addColorStop(0, '#f39c12');
+            gradient.addColorStop(0.7, '#e67e22');
+            gradient.addColorStop(1, '#d35400');
+            ctx.beginPath();
+            ctx.arc(px, py, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // ---- معلومات إضافية على الشاشة ----
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`الزاوية: ${launchAngle}°`, 20, 30);
+            ctx.fillText(`السرعة: ${launchSpeed} م/ث`, 20, 52);
+
+            if (!projectile.isFlying && projectile.time > 0) {
+                ctx.fillStyle = '#f1c40f';
+                ctx.font = 'bold 18px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('✓ اكتملت الحركة', W/2, 40);
+            }
+        }
+
+        // --------------------- ربط الأحداث ---------------------
+        // عند تغيير شريط الزاوية
+        angleSlider.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            angleDisplay.textContent = val + '°';
+            launchAngle = val;
+            if (!projectile.isFlying) {
+                // إعادة رسم البندقية بالزاوية الجديدة (تحديث المظهر)
+                draw();
+            }
+        });
+
+        // عند تغيير شريط السرعة
+        speedSlider.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            speedDisplay.textContent = val;
+            launchSpeed = val;
+            if (!projectile.isFlying) {
+                draw();
+            }
+        });
+
+        // زر الإطلاق
+        fireBtn.addEventListener('click', function() {
+            fireProjectile();
+        });
+
+        // زر إعادة تعيين
+        resetBtn.addEventListener('click', function() {
+            if (animId) {
+                cancelAnimationFrame(animId);
+                animId = null;
+            }
+            resetProjectile();
+            // إعادة رسم الحالة الأولية
+            draw();
+        });
+
+        // بدء المحاكاة بحالة أولية
+        resetProjectile();
+        draw();
+
+        // نافذة تغيير الحجم (للتكيف مع canvas)
+        window.addEventListener('resize', () => { draw(); });
+
+    })();
+</script>
+
+</body>
+</html>
