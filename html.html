@@ -1,0 +1,284 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة مكوّنات كود HTML</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#150f1e;
+    --bg-panel:#1d1729;
+    --line:#2d2440;
+    --cream:#f1edf7;
+    --cream-dim:#a396bf;
+    --tag:#ff7edb;
+    --attrname:#7ee8fa;
+    --attrval:#8be79b;
+    --comment:#ffb86c;
+    --punct:#bd93f9;
+    --text-tok:#f1edf7;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    background:radial-gradient(ellipse at 50% -10%, #221934 0%, var(--bg-deep) 55%, #0a0710 100%);
+    color:var(--cream);
+    font-family:'Tajawal',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{ max-width:1180px; margin:0 auto; padding:36px 20px 60px; }
+  header{ text-align:center; margin-bottom:24px; }
+  .kicker{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.15em; color:var(--attrname); text-transform:uppercase; font-weight:700; margin-bottom:10px; direction:ltr; }
+  h1{ font-weight:900; font-size:38px; margin:0 0 8px; color:var(--cream); }
+  .sub{ color:var(--cream-dim); font-size:15px; max-width:620px; margin:0 auto; line-height:1.9; }
+
+  .legend{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:22px 0 20px; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; color:var(--cream-dim); padding:5px 12px; border:1px solid var(--line); border-radius:100px; background:var(--bg-panel); }
+  .legend i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+  .grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:16px; }
+  @media(max-width:820px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{ background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .panel-head{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    border-bottom:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--cream-dim);
+  }
+  .dots{ display:flex; gap:6px; }
+  .dots i{ width:10px; height:10px; border-radius:50%; }
+
+  pre.code{
+    margin:0; padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:13.5px;
+    line-height:2; direction:ltr; text-align:left; overflow-x:auto; color:var(--text-tok);
+    max-height:520px; overflow-y:auto;
+  }
+  .tok{ cursor:pointer; border-radius:4px; padding:1px 2px; transition:.15s; }
+  .tok:hover{ background:rgba(255,255,255,.08); }
+  .tok.selected{ background:rgba(255,255,255,.16); box-shadow:0 0 0 1px currentColor; }
+  .tag{ color:var(--tag); font-weight:700; }
+  .attrname{ color:var(--attrname); }
+  .attrval{ color:var(--attrval); }
+  .comment{ color:var(--comment); font-style:italic; }
+  .punct{ color:var(--punct); }
+  .plain{ color:var(--text-tok); }
+
+  .preview-frame-wrap{ background:#0e0a15; }
+  iframe{ width:100%; height:300px; border:0; background:#fff; display:block; }
+
+  .detail{ margin-top:16px; padding:20px 22px; }
+  .detail .empty{ color:var(--cream-dim); font-size:14px; text-align:center; padding:14px 0; }
+  .detail h2{ margin:0 0 8px; font-size:20px; font-family:'JetBrains Mono',monospace; direction:ltr; text-align:left; }
+  .detail p{ color:var(--cream-dim); font-size:14.5px; line-height:2; margin:0; }
+  .detail .note{ margin-top:10px; font-size:12.5px; color:var(--attrval); }
+
+  footer{ text-align:center; color:var(--cream-dim); font-size:12px; margin-top:20px; line-height:1.9; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">&lt;/&gt; html.anatomy</div>
+    <h1>محاكاة مكوّنات كود HTML</h1>
+    <p class="sub">اضغط على أي جزء ملوّن من الكود لمعرفة ماذا يمثّل، وشاهد أثره مباشرة في المعاينة الحيّة إلى جانبه.</p>
+  </header>
+
+  <div class="legend">
+    <span><i style="background:var(--tag)"></i> وسم (Tag)</span>
+    <span><i style="background:var(--attrname)"></i> اسم خاصية (Attribute)</span>
+    <span><i style="background:var(--attrval)"></i> قيمة خاصية (Value)</span>
+    <span><i style="background:var(--comment)"></i> تعليق (Comment)</span>
+    <span><i style="background:var(--punct)"></i> رموز الصياغة</span>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="dots"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div>
+        index.html
+      </div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div>
+      <div class="panel preview-frame-wrap">
+        <div class="panel-head">
+          <div class="dots"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div>
+          المعاينة الحيّة
+        </div>
+        <iframe id="preview"></iframe>
+      </div>
+      <div class="panel detail" id="detail">
+        <div class="empty">اضغط على أي جزء من الكود على اليسار لعرض شرحه هنا.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>مثال مبسّط لصفحة HTML — الهدف توضيح المفاهيم الأساسية: الوسوم، الخصائص، التداخل، والتعليقات.</footer>
+</div>
+
+<script>
+const COMPONENTS = {
+  doctype: {
+    title: '<!DOCTYPE html>',
+    desc: 'إعلان يخبر المتصفح أن هذا مستند HTML5. يجب أن يكون أول سطر في أي صفحة، ولا يُعتبر وسماً بحد ذاته.',
+    target: null
+  },
+  'html-tag': {
+    title: 'وسم &lt;html&gt;',
+    desc: 'الوسم الجذري (Root) الذي يحتوي كل محتوى الصفحة. له وسم فتح ⟨html⟩ ووسم إغلاق ⟨/html⟩ في نهاية الملف.',
+    target: null
+  },
+  'lang-attr': {
+    title: 'الخاصية lang="ar"',
+    desc: 'خاصية (Attribute) تُكتب داخل وسم الفتح على شكل name="value"، وهنا تخبر المتصفح أن لغة الصفحة عربية — مما يساعد في النطق الصوتي واتجاه النص.',
+    target: null
+  },
+  head: {
+    title: 'وسم &lt;head&gt;',
+    desc: 'يحتوي معلومات "خلف الكواليس" عن الصفحة (الترميز، العنوان، الروابط) — لا يظهر أي منها داخل الصفحة نفسها.',
+    target: null
+  },
+  meta: {
+    title: 'وسم &lt;meta charset="UTF-8"&gt;',
+    desc: 'وسم فارغ (Void Element) — لا يحتاج وسم إغلاق ولا محتوى بينه وبين شيء. يحدّد ترميز الأحرف حتى تظهر العربية بشكل صحيح.',
+    target: null
+  },
+  title: {
+    title: 'وسم &lt;title&gt;',
+    desc: 'يحدّد النص الذي يظهر في عنوان تبويب المتصفح، وهو نص عادي محصور بين وسم الفتح والإغلاق.',
+    target: null
+  },
+  body: {
+    title: 'وسم &lt;body&gt;',
+    desc: 'يحتوي كل المحتوى المرئي للصفحة: العناوين، الفقرات، الصور... كل ما يراه الزائر.',
+    target: null
+  },
+  'h1-tag': {
+    title: 'وسم &lt;h1&gt;',
+    desc: 'وسم عنوان رئيسي (Heading). يوجد من h1 إلى h6 بترتيب أهمية تنازلي، ويُستخدم عادة مرة واحدة في الصفحة.',
+    target: 'previewTitle'
+  },
+  'id-attr': {
+    title: 'الخاصية id="title"',
+    desc: 'معرّف فريد للعنصر يُستخدم للإشارة إليه لاحقاً من CSS أو JavaScript، ويجب ألا يتكرر داخل نفس الصفحة.',
+    target: 'previewTitle'
+  },
+  'p-tag': {
+    title: 'وسم &lt;p&gt;',
+    desc: 'وسم فقرة نصية (Paragraph) — أكثر الوسوم استخداماً لعرض النصوص العادية.',
+    target: 'previewIntro'
+  },
+  'class-attr': {
+    title: 'الخاصية class="intro"',
+    desc: 'خاصية تصنيف تُستخدم لتنسيق عدة عناصر بنفس النمط عبر CSS، وعلى عكس id يمكن أن تتكرر على أكثر من عنصر.',
+    target: 'previewIntro'
+  },
+  'strong-tag': {
+    title: 'وسم &lt;strong&gt; المتداخل',
+    desc: 'وسم متداخل (Nested) داخل &lt;p&gt; — يجعل الكلمة بارزة وذات دلالة أهمية. التداخل يعني أن وسماً يقع بالكامل داخل وسم آخر.',
+    target: 'previewStrong'
+  },
+  comment: {
+    title: 'تعليق &lt;!-- --&gt;',
+    desc: 'ملاحظة داخل الكود لا يعرضها المتصفح للزائر إطلاقاً — تُستخدم لتوضيح الكود لمن يقرأه لاحقاً.',
+    target: null
+  },
+  'img-tag': {
+    title: 'وسم &lt;img&gt;',
+    desc: 'وسم فارغ آخر (بدون إغلاق) لعرض صورة. لا يحتوي نصاً بينه وبين شيء، بل يعتمد على خاصيتي src وalt.',
+    target: 'previewImg'
+  },
+  'src-attr': {
+    title: 'الخاصية src',
+    desc: 'تحدّد مسار ملف الصورة المطلوب عرضه — رابط أو مسار محلي.',
+    target: 'previewImg'
+  },
+  'alt-attr': {
+    title: 'الخاصية alt',
+    desc: 'نص بديل يظهر إن تعذّر تحميل الصورة، ويُستخدم أيضاً من قارئات الشاشة لذوي الإعاقة البصرية — مهم لإمكانية الوصول.',
+    target: 'previewImg'
+  }
+};
+
+const codeEl = document.getElementById('code');
+
+function T(cls, text, comp){
+  const c = comp ? ` data-c="${comp}"` : '';
+  return `<span class="tok ${cls}"${c}>${text}</span>`;
+}
+const P = t => T('punct', t);
+
+codeEl.innerHTML =
+T('comment','&lt;!DOCTYPE html&gt;','doctype') + '\n' +
+P('&lt;') + T('tag','html','html-tag') + ' ' + T('attrname','lang','lang-attr') + P('=') + T('attrval','"ar"','lang-attr') + P('&gt;') + '\n' +
+P('&lt;') + T('tag','head','head') + P('&gt;') + '\n' +
+'  ' + P('&lt;') + T('tag','meta','meta') + ' ' + T('attrname','charset','meta') + P('=') + T('attrval','"UTF-8"','meta') + P('&gt;') + '\n' +
+'  ' + P('&lt;') + T('tag','title','title') + P('&gt;') + T('plain','صفحتي الأولى') + P('&lt;/') + T('tag','title','title') + P('&gt;') + '\n' +
+P('&lt;/') + T('tag','head','head') + P('&gt;') + '\n' +
+P('&lt;') + T('tag','body','body') + P('&gt;') + '\n' +
+'  ' + P('&lt;') + T('tag','h1','h1-tag') + ' ' + T('attrname','id','id-attr') + P('=') + T('attrval','"title"','id-attr') + P('&gt;') + T('plain','مرحباً بالعالم') + P('&lt;/') + T('tag','h1','h1-tag') + P('&gt;') + '\n' +
+'  ' + P('&lt;') + T('tag','p','p-tag') + ' ' + T('attrname','class','class-attr') + P('=') + T('attrval','"intro"','class-attr') + P('&gt;') + T('plain','هذه أول صفحة ') + P('&lt;') + T('tag','strong','strong-tag') + P('&gt;') + T('plain','ويب','strong-tag') + P('&lt;/') + T('tag','strong','strong-tag') + P('&gt;') + T('plain',' أكتبها.') + P('&lt;/') + T('tag','p','p-tag') + P('&gt;') + '\n' +
+'  ' + T('comment','&lt;!-- هذا تعليق --&gt;','comment') + '\n' +
+'  ' + P('&lt;') + T('tag','img','img-tag') + ' ' + T('attrname','src','src-attr') + P('=') + T('attrval','"photo.jpg"','src-attr') + ' ' + T('attrname','alt','alt-attr') + P('=') + T('attrval','"صورة توضيحية"','alt-attr') + P('&gt;') + '\n' +
+P('&lt;/') + T('tag','body','body') + P('&gt;') + '\n' +
+P('&lt;/') + T('tag','html','html-tag') + P('&gt;');
+
+const preview = document.getElementById('preview');
+preview.srcdoc = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+  body{font-family:Tajawal,sans-serif;direction:rtl;padding:20px;margin:0;color:#222;}
+  #previewTitle{margin:0 0 10px;font-size:22px;}
+  #previewIntro{font-size:15px;line-height:1.8;}
+  .ph-img{margin-top:14px;width:90px;height:90px;border-radius:8px;background:linear-gradient(135deg,#ffd6ec,#c9f0ff);display:flex;align-items:center;justify-content:center;font-size:11px;color:#555;text-align:center;border:1px solid #ddd;}
+</style></head>
+<body>
+  <h1 id="previewTitle">مرحباً بالعالم</h1>
+  <p id="previewIntro">هذه أول صفحة <strong id="previewStrong">ويب</strong> أكتبها.</p>
+  <div class="ph-img" id="previewImg">📷<br>photo.jpg</div>
+</body></html>`;
+
+const detail = document.getElementById('detail');
+let selectedEl = null;
+let selectedKey = null;
+
+function clearHighlight(){
+  const doc = preview.contentDocument;
+  if(!doc) return;
+  doc.querySelectorAll('[data-hl]').forEach(el => {
+    el.style.outline = '';
+    el.style.background = '';
+    el.removeAttribute('data-hl');
+  });
+}
+
+function highlight(targetId){
+  clearHighlight();
+  const doc = preview.contentDocument;
+  if(!doc || !targetId) return;
+  const el = doc.getElementById(targetId);
+  if(el){
+    el.style.outline = '2px solid #bd93f9';
+    el.style.outlineOffset = '2px';
+    el.style.background = 'rgba(189,147,249,.12)';
+    el.setAttribute('data-hl','1');
+  }
+}
+
+codeEl.addEventListener('click', (e) => {
+  const el = e.target.closest('.tok[data-c]');
+  if(!el) return;
+  if(selectedEl) selectedEl.classList.remove('selected');
+  el.classList.add('selected');
+  selectedEl = el;
+  const key = el.dataset.c;
+  const comp = COMPONENTS[key];
+  if(!comp) return;
+  detail.innerHTML = `<h2>${comp.title}</h2><p>${comp.desc}</p>` +
+    (comp.target ? '' : `<div class="note">هذا الجزء لا يُنتج شكلاً مرئياً مباشراً في المعاينة.</div>`);
+  highlight(comp.target);
+});
+</script>
+</body>
+</html>

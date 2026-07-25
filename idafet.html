@@ -1,0 +1,186 @@
+   <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل إضافات الموقع</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#070c1f;
+    --navy-card:#121d45;
+    --gold:#d9b64c;
+    --gold-soft:#f0d685;
+    --ink:#eef1ff;
+    --ink-dim:#a7b0d6;
+    --line:rgba(217,182,76,.16);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--navy-deep); color:var(--ink);
+    font-family:'Tajawal', sans-serif; min-height:100vh;
+  }
+  #stars{position:fixed; inset:0; z-index:0;}
+  .wrap{position:relative; z-index:1; max-width:980px; margin:0 auto; padding:56px 20px 90px;}
+
+  header{text-align:center; margin-bottom:40px;}
+  .eyebrow{
+    display:inline-block; font-size:13px; letter-spacing:2px; color:var(--gold);
+    border:1px solid rgba(217,182,76,.35); padding:6px 18px; border-radius:999px;
+    margin-bottom:16px; background:rgba(217,182,76,.06);
+  }
+  h1{
+    font-family:'Cairo'; font-weight:800; font-size:clamp(26px,5vw,42px);
+    background:linear-gradient(90deg, var(--gold-soft), var(--gold) 60%, #b98f2e);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom:12px;
+  }
+  header p{color:var(--ink-dim); font-size:15px; max-width:480px; margin:0 auto; line-height:1.9;}
+
+  .toolbar{
+    display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:28px 0 30px;
+  }
+  .chip{
+    font-size:13px; color:var(--ink-dim); background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.08); padding:7px 16px; border-radius:999px;
+    cursor:pointer; transition:.2s;
+  }
+  .chip:hover{color:var(--ink); border-color:rgba(217,182,76,.4);}
+  .chip.active{color:var(--navy-deep); background:var(--gold); border-color:var(--gold); font-weight:700;}
+
+  .table-card{
+    background:var(--navy-card); border:1px solid var(--line);
+    border-radius:14px; overflow:hidden;
+  }
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  thead th{
+    text-align:right; font-family:'Cairo'; font-weight:700; font-size:13px;
+    color:var(--gold); background:rgba(217,182,76,.06);
+    padding:14px 18px; border-bottom:1px solid var(--line);
+    position:sticky; top:0;
+  }
+  thead th:first-child{width:120px;}
+  thead th:nth-child(2){width:140px;}
+  tbody td{
+    padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.06);
+    color:var(--ink); vertical-align:top;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background .2s;}
+  tbody tr:hover{background:rgba(217,182,76,.04);}
+  .date{color:var(--ink-dim); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .type-badge{
+    display:inline-block; font-size:12px; padding:4px 11px; border-radius:7px;
+    background:rgba(217,182,76,.1); border:1px solid rgba(217,182,76,.25); color:var(--gold-soft);
+    white-space:nowrap;
+  }
+  .title-cell{font-weight:500;}
+  .empty{text-align:center; color:var(--ink-dim); padding:40px 20px;}
+
+  @media (max-width:640px){
+    thead{display:none;}
+    table, tbody, tr, td{display:block; width:100%;}
+    tbody tr{border-bottom:1px solid var(--line); padding:14px 18px;}
+    tbody td{border:none; padding:4px 0;}
+    tbody td::before{content:attr(data-label); display:block; font-size:11px; color:var(--ink-dim); margin-bottom:2px;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">سجل التحديثات</span>
+    <h1>إضافات الموقع</h1>
+    <p>قائمة زمنية بكل ما أُضيف إلى الموقع، مرتّبة حسب التاريخ ونوع الإضافة.</p>
+  </header>
+
+  <div class="toolbar" id="filters"></div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>نوع الإضافة</th>
+          <th>العنوان</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ————— عدّل هذه القائمة: التاريخ، النوع، والعنوان لكل إضافة —————
+const entries = [
+  {date:"2026-07- 25", type:" اضافات الموقع", title:" اضافات الموقع"},
+  {date:"2026-07- 25", type:"ادوات", title:"محاكات علاجات الارق"},
+  {date:"2026-07- 25", type:" علوم طبيعية", title:" مؤشر نسبة السكر"},
+  {date:"2026-07- 25", type:"  لغة برمجة", title:"  مكونات برنامج javascript"},
+  {date:"2026-07- 25", type:"  لغة برمجة", title:"  مكونات  لغة css "},
+  {date:"2026-07- 25", type:"فيزياء", title:"حركة القذائف "},
+  {date:"2026-07- 25", type:"لغة برمجة", title:" مكونات برنامج html "},
+
+];
+
+const tbody = document.getElementById('tbody');
+const filtersEl = document.getElementById('filters');
+const types = ["الكل", ...new Set(entries.map(e => e.type))];
+
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('ar-DZ', {year:'numeric', month:'short', day:'numeric'});
+}
+
+function render(filter){
+  const sorted = [...entries].sort((a,b)=> new Date(b.date) - new Date(a.date));
+  const rows = sorted.filter(e => filter === "الكل" || e.type === filter);
+  tbody.innerHTML = rows.length ? rows.map(e => `
+    <tr>
+      <td class="date" data-label="التاريخ">${fmtDate(e.date)}</td>
+      <td data-label="نوع الإضافة"><span class="type-badge">${e.type}</span></td>
+      <td class="title-cell" data-label="العنوان">${e.title}</td>
+    </tr>
+  `).join('') : `<tr><td colspan="3" class="empty">لا توجد إضافات ضمن هذا النوع.</td></tr>`;
+}
+
+filtersEl.innerHTML = types.map((t,i) => `<button class="chip ${i===0?'active':''}" data-t="${t}">${t}</button>`).join('');
+filtersEl.addEventListener('click', e=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  filtersEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  e.target.classList.add('active');
+  render(e.target.dataset.t);
+});
+render("الكل");
+
+// ————— خلفية النجوم —————
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function resize(){
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  stars = Array.from({length: Math.floor(innerWidth/7)}, () => ({
+    x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+    r: Math.random()*1.2+0.2, s: Math.random()*0.5+0.15, o: Math.random()
+  }));
+}
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#d9b64c';
+  stars.forEach(st=>{
+    st.o += st.s*0.01;
+    ctx.globalAlpha = (Math.sin(st.o)+1)/2*0.6+0.12;
+    ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(loop);
+}
+resize(); addEventListener('resize', resize); loop();
+</script>
+
+</body>
+</html>

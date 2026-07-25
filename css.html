@@ -1,0 +1,268 @@
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة مكوّنات لغة CSS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a121e;
+    --bg-panel:#111c2c;
+    --line:#1f3247;
+    --cream:#eaf2f9;
+    --cream-dim:#8ba3b8;
+    --selector:#38bdf8;
+    --prop:#fbbf24;
+    --value:#34d399;
+    --unit:#f472b6;
+    --comment:#6fd6b0;
+    --punct:#a78bfa;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    background:radial-gradient(ellipse at 50% -10%, #12233a 0%, var(--bg-deep) 55%, #050a12 100%);
+    color:var(--cream);
+    font-family:'Tajawal',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{ max-width:1180px; margin:0 auto; padding:36px 20px 60px; }
+  header{ text-align:center; margin-bottom:24px; }
+  .kicker{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.15em; color:var(--selector); text-transform:uppercase; font-weight:700; margin-bottom:10px; direction:ltr; }
+  h1{ font-weight:900; font-size:38px; margin:0 0 8px; color:var(--cream); }
+  .sub{ color:var(--cream-dim); font-size:15px; max-width:640px; margin:0 auto; line-height:1.9; }
+
+  .legend{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:22px 0 20px; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; color:var(--cream-dim); padding:5px 12px; border:1px solid var(--line); border-radius:100px; background:var(--bg-panel); }
+  .legend i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+  .grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:16px; }
+  @media(max-width:820px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{ background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .panel-head{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    border-bottom:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--cream-dim);
+  }
+  .dots{ display:flex; gap:6px; }
+  .dots i{ width:10px; height:10px; border-radius:50%; }
+
+  pre.code{
+    margin:0; padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:13px;
+    line-height:1.95; direction:ltr; text-align:left; overflow-x:auto; color:var(--cream);
+    max-height:560px; overflow-y:auto;
+  }
+  .tok{ cursor:pointer; border-radius:4px; padding:1px 2px; transition:.15s; }
+  .tok:hover{ background:rgba(255,255,255,.08); }
+  .tok.selected{ background:rgba(255,255,255,.16); box-shadow:0 0 0 1px currentColor; }
+  .sel{ color:var(--selector); font-weight:700; }
+  .prop{ color:var(--prop); }
+  .val{ color:var(--value); }
+  .unit{ color:var(--unit); }
+  .cmt{ color:var(--comment); font-style:italic; }
+  .punct{ color:var(--punct); }
+  .plain{ color:var(--cream); }
+
+  .preview-frame-wrap{ background:#0a0f18; }
+  iframe{ width:100%; height:250px; border:0; background:#fff; display:block; }
+
+  .detail{ margin-top:16px; padding:20px 22px; }
+  .detail .empty{ color:var(--cream-dim); font-size:14px; text-align:center; padding:14px 0; }
+  .detail h2{ margin:0 0 8px; font-size:19px; font-family:'JetBrains Mono',monospace; direction:ltr; text-align:left; }
+  .detail p{ color:var(--cream-dim); font-size:14.5px; line-height:2; margin:0; }
+  .detail .note{ margin-top:10px; font-size:12.5px; color:var(--value); }
+
+  .boxmodel{ margin-top:16px; }
+  .bm-layer{ border-radius:6px; padding:10px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; }
+  .bm-margin{ background:rgba(244,114,182,.08); border:1.5px dashed rgba(244,114,182,.5); color:#f472b6; }
+  .bm-border{ background:rgba(167,139,250,.08); border:1.5px solid rgba(167,139,250,.6); color:#a78bfa; margin:8px; }
+  .bm-padding{ background:rgba(52,211,153,.1); border:1.5px dashed rgba(52,211,153,.5); color:#34d399; margin:8px; }
+  .bm-content{ background:rgba(251,191,36,.15); border:1.5px solid rgba(251,191,36,.6); color:#fbbf24; margin:8px; padding:14px 8px; font-weight:700; }
+  .bm-layer.hl{ box-shadow:0 0 0 2px #fff inset; }
+
+  footer{ text-align:center; color:var(--cream-dim); font-size:12px; margin-top:20px; line-height:1.9; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">{ } css.anatomy</div>
+    <h1>محاكاة مكوّنات لغة CSS</h1>
+    <p class="sub">اضغط على أي جزء ملوّن من كود CSS لمعرفة دوره، وشاهد أثره مباشرة على البطاقات في المعاينة الحيّة.</p>
+  </header>
+
+  <div class="legend">
+    <span><i style="background:var(--selector)"></i> مُحدِّد (Selector)</span>
+    <span><i style="background:var(--prop)"></i> خاصية (Property)</span>
+    <span><i style="background:var(--value)"></i> قيمة (Value)</span>
+    <span><i style="background:var(--unit)"></i> وحدة / دالة</span>
+    <span><i style="background:var(--comment)"></i> تعليق</span>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="dots"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div>
+        style.css
+      </div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div>
+      <div class="panel preview-frame-wrap">
+        <div class="panel-head">
+          <div class="dots"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div>
+          المعاينة الحيّة
+        </div>
+        <iframe id="preview"></iframe>
+      </div>
+      <div class="panel detail" id="detail">
+        <div class="empty">اضغط على أي جزء من الكود على اليسار لعرض شرحه هنا.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>مثال مبسّط لورقة أنماط CSS — الهدف توضيح المفاهيم الأساسية: المحدِّدات، الخصائص، القيم، الوحدات، ونموذج الصندوق (Box Model).</footer>
+</div>
+
+<script>
+const COMPONENTS = {
+  'container-sel': { title: 'مُحدِّد الصنف .container', desc:'يبدأ بنقطة (.) ويختار كل عنصر يحمل class="container". محدِّدات الأصناف هي الأكثر استخداماً في CSS.', target:'.container' },
+  'display-prop': { title: 'الخاصية display', desc:'خاصية تتحكم في نمط عرض العنصر داخل الصفحة، تُكتب دائماً قبل نقطتين (:) وقيمة بعدها.', target:'.container' },
+  'flex-val': { title: 'القيمة flex', desc:'قيمة نصية جاهزة (Keyword) تجعل العنصر حاوية مرنة (Flexbox) تُصفّ عناصرها الفرعية جنباً إلى جنب تلقائياً.', target:'.container' },
+  'gap-prop': { title: 'الخاصية gap مع وحدة px', desc:'تحدّد المسافة بين العناصر الفرعية داخل حاوية Flex أو Grid. الرقم 16 هو القيمة، وpx (بكسل) هي الوحدة.', target:'.container' },
+  'card-sel': { title: 'مُحدِّد الصنف .card', desc:'يختار كل عنصر يحمل class="card" — هنا البطاقتين معاً، لذا أي تعديل عليه يؤثر على الاثنتين دفعة واحدة.', target:'.card' },
+  'bg-prop': { title: 'الخاصية background مع قيمة لونية', desc:'تحدّد لون أو صورة خلفية العنصر. القيمة هنا كود لون سداسي عشري (Hex Color).', target:'.card' },
+  'border-prop': { title: 'الخاصية border', desc:'خاصية مختصرة (Shorthand) تجمع ثلاث قيم معاً: السُّمك، والنمط (solid)، واللون — وهي إحدى طبقات نموذج الصندوق.', target:'.card', box:'border' },
+  'radius-prop': { title: 'الخاصية border-radius', desc:'تُدوِّر زوايا العنصر. كلما زادت القيمة زاد الاستدارة، والوحدة px تعني عدد البكسلات بالضبط.', target:'.card' },
+  'padding-prop': { title: 'الخاصية padding', desc:'المسافة الداخلية بين حدود العنصر (border) ومحتواه — طبقة من طبقات نموذج الصندوق (Box Model).', target:'.card', box:'padding' },
+  'margin-prop': { title: 'الخاصية margin', desc:'المسافة الخارجية بين العنصر والعناصر المجاورة له — الطبقة الأبعد في نموذج الصندوق.', target:'.card', box:'margin' },
+  'color-prop': { title: 'الخاصية color', desc:'تحدّد لون النص داخل العنصر (وليس لون الخلفية).', target:'.card' },
+  'fontsize-prop': { title: 'الخاصية font-size', desc:'تحدّد حجم الخط. الوحدة px هنا تعني حجماً ثابتاً بغضّ النظر عن حجم شاشة الزائر.', target:'.card' },
+  'transition-prop': { title: 'الخاصية transition', desc:'تجعل التغييرات (كالحركة عند :hover) تحدث بسلاسة خلال مدة زمنية محددة بدل أن تقفز فجأة.', target:'.card' },
+  'hover-sel': { title: 'المُحدِّد الوهمي (Pseudo-class) :hover', desc:'يُضاف بعد نقطتين (:) لمحدِّد عادي، ويُطبَّق فقط أثناء مرور مؤشر الفأرة فوق العنصر. جرّب تمرير الفأرة فوق أي بطاقة في المعاينة!', target:'.card' },
+  'transform-prop': { title: 'الخاصية transform مع دالة translateY', desc:'تحرّك أو تُحوّل شكل العنصر بصرياً دون التأثير على العناصر الأخرى حوله. translateY(-6px) ترفع العنصر للأعلى قليلاً.', target:'.card' },
+  'descendant-sel': { title: 'مُحدِّد التحفّد .card .title', desc:'مسافة بين محدِّدين تعني "ابحث عن عنصر .title داخل عنصر .card"، وهذا ما يُسمّى محدِّد التحفّد (Descendant Combinator).', target:'.title' },
+  'weight-prop': { title: 'الخاصية font-weight', desc:'تتحكم في سماكة الخط. القيمة 700 تعني خطاً عريضاً (Bold)، مقابل 400 للخط العادي عادةً.', target:'.title' },
+  comment: { title: '/* تعليق */', desc:'ملاحظة داخل الكود لا تُطبَّق كأنماط ولا تظهر للزائر إطلاقاً، وتُستخدم لتوضيح الكود لمن يقرأه لاحقاً.', target:null },
+  'media-rule': { title: 'الاستعلام @media', desc:'قاعدة شرطية تُطبِّق الأنماط بداخلها فقط عند تحقّق شرط معيّن — هنا فقط عندما يكون عرض الشاشة 480px أو أقل، لتصميم متجاوب مع الجوّال.', target:'.card' }
+};
+
+const codeEl = document.getElementById('code');
+function T(cls, text, comp){
+  const c = comp ? ` data-c="${comp}"` : '';
+  return `<span class="tok ${cls}"${c}>${text}</span>`;
+}
+const P = t => `<span class="tok punct">${t}</span>`;
+const NL = '\n';
+
+codeEl.innerHTML =
+T('sel','.container','container-sel') + ' ' + P('{') + NL +
+'  ' + T('prop','display','display-prop') + P(': ') + T('val','flex','flex-val') + P(';') + NL +
+'  ' + T('prop','gap','gap-prop') + P(': ') + T('val','16') + T('unit','px','gap-prop') + P(';') + NL +
+'  ' + T('prop','padding','padding-prop') + P(': ') + T('val','24') + T('unit','px','padding-prop') + P(';') + NL +
+P('}') + NL + NL +
+
+T('sel','.card','card-sel') + ' ' + P('{') + NL +
+'  ' + T('prop','background','bg-prop') + P(': ') + T('val','#1f2937','bg-prop') + P(';') + NL +
+'  ' + T('prop','border','border-prop') + P(': ') + T('val','2') + T('unit','px','border-prop') + ' ' + T('val','solid','border-prop') + ' ' + T('val','#38bdf8','border-prop') + P(';') + NL +
+'  ' + T('prop','border-radius','radius-prop') + P(': ') + T('val','14') + T('unit','px','radius-prop') + P(';') + NL +
+'  ' + T('prop','padding','padding-prop') + P(': ') + T('val','18') + T('unit','px','padding-prop') + P(';') + NL +
+'  ' + T('prop','margin','margin-prop') + P(': ') + T('val','10') + T('unit','px','margin-prop') + P(';') + NL +
+'  ' + T('prop','color','color-prop') + P(': ') + T('val','#f8fafc','color-prop') + P(';') + NL +
+'  ' + T('prop','font-size','fontsize-prop') + P(': ') + T('val','16') + T('unit','px','fontsize-prop') + P(';') + NL +
+'  ' + T('prop','transition','transition-prop') + P(': ') + T('val','transform 0.3s ease','transition-prop') + P(';') + NL +
+P('}') + NL + NL +
+
+T('sel','.card:hover','hover-sel') + ' ' + P('{') + NL +
+'  ' + T('prop','transform','transform-prop') + P(': ') + T('unit','translateY(-6px)','transform-prop') + P(';') + NL +
+P('}') + NL + NL +
+
+T('sel','.card .title','descendant-sel') + ' ' + P('{') + NL +
+'  ' + T('prop','font-weight','weight-prop') + P(': ') + T('val','700','weight-prop') + P(';') + NL +
+'  ' + T('prop','color','weight-prop') + P(': ') + T('val','#fbbf24','weight-prop') + P(';') + NL +
+P('}') + NL + NL +
+
+'  ' + T('cmt','/* تنسيق خاص بالشاشات الصغيرة */','comment') + NL +
+T('sel','@media','media-rule') + ' ' + P('(') + T('prop','max-width') + P(': ') + T('val','480') + T('unit','px') + P(') {') + NL +
+'  ' + T('sel','.card') + ' ' + P('{ ') + T('prop','padding') + P(': ') + T('val','10') + T('unit','px') + P('; }') + NL +
+P('}');
+
+const preview = document.getElementById('preview');
+preview.srcdoc = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+  body{font-family:Tajawal,sans-serif;direction:rtl;margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:250px;}
+  .container{display:flex;gap:16px;padding:24px;flex-wrap:wrap;justify-content:center;}
+  .card{background:#1f2937;border:2px solid #38bdf8;border-radius:14px;padding:18px;margin:10px;color:#f8fafc;font-size:16px;transition:transform 0.3s ease;width:150px;}
+  .card:hover{transform:translateY(-6px);}
+  .title{font-weight:700;color:#fbbf24;display:block;margin-bottom:6px;}
+</style></head>
+<body>
+  <div class="container">
+    <div class="card"><span class="title">بطاقة ١</span>مرّر الفأرة هنا لترى التأثير</div>
+    <div class="card"><span class="title">بطاقة ٢</span>حاوية Flex تحتوي بطاقتين</div>
+  </div>
+</body></html>`;
+
+const detail = document.getElementById('detail');
+let selectedEl = null;
+
+function clearHighlight(){
+  const doc = preview.contentDocument;
+  if(!doc) return;
+  doc.querySelectorAll('[data-hl]').forEach(el => {
+    el.style.outline = '';
+    el.style.background = '';
+    el.removeAttribute('data-hl');
+  });
+}
+function highlight(sel){
+  clearHighlight();
+  const doc = preview.contentDocument;
+  if(!doc || !sel) return;
+  doc.querySelectorAll(sel).forEach(el => {
+    el.style.outline = '2px solid #f472b6';
+    el.style.outlineOffset = '2px';
+    el.setAttribute('data-hl','1');
+  });
+}
+
+function boxModelHtml(layer){
+  const L = n => n===layer ? ' hl' : '';
+  return `<div class="boxmodel">
+    <div class="bm-layer bm-margin${L('margin')}">margin
+      <div class="bm-layer bm-border${L('border')}">border
+        <div class="bm-layer bm-padding${L('padding')}">padding
+          <div class="bm-layer bm-content${L('content')}">content</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+codeEl.addEventListener('click', (e) => {
+  const el = e.target.closest('.tok[data-c]');
+  if(!el) return;
+  if(selectedEl) selectedEl.classList.remove('selected');
+  el.classList.add('selected');
+  selectedEl = el;
+  const key = el.dataset.c;
+  const comp = COMPONENTS[key];
+  if(!comp) return;
+  let html = `<h2>${comp.title}</h2><p>${comp.desc}</p>`;
+  if(key === 'hover-sel'){
+    html += `<div class="note">مرّر الفأرة فوق إحدى البطاقات في المعاينة لترى التأثير حيّاً.</div>`;
+  } else if(!comp.target){
+    html += `<div class="note">هذا الجزء لا يُطبَّق كنمط مرئي مباشر.</div>`;
+  }
+  if(comp.box){
+    html += boxModelHtml(comp.box);
+  }
+  detail.innerHTML = html;
+  highlight(comp.target);
+});
+</script>
+</body>
+</html>
