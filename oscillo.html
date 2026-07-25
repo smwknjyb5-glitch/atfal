@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>راسم الاهتزاز المهبطي — محاكاة تفاعلية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bezel:#232226;
+    --bezel-hi:#3a383e;
+    --bezel-lo:#141316;
+    --screen-bg:#08150f;
+    --phosphor:#54ffa0;
+    --phosphor-dim:#1d6b45;
+    --amber:#e8a33d;
+    --amber-dim:#7a5a25;
+    --text:#ece8df;
+    --text-dim:#9a958c;
+    --danger:#ff6b5e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at 50% -10%, #26242a 0%, #121114 55%, #0a0a0b 100%);
+    color:var(--text);
+    font-family:'Cairo',sans-serif;
+    min-height:100vh;
+    padding:28px 14px 60px;
+  }
+  .wrap{max-width:980px;margin:0 auto;}
+  header{text-align:center;margin-bottom:30px;}
+  header .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--amber);
+    letter-spacing:3px;
+    font-size:12px;
+    text-transform:uppercase;
+    direction:ltr;
+    display:inline-block;
+  }
+  header h1{
+    font-size:clamp(28px,5vw,44px);
+    font-weight:900;
+    margin:8px 0 6px;
+    color:var(--text);
+    text-shadow:0 0 30px rgba(84,255,160,0.15);
+  }
+  header p{color:var(--text-dim);font-size:15px;max-width:560px;margin:0 auto;line-height:1.8;}
+
+  section{margin-bottom:38px;}
+  .section-title{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:16px;
+  }
+  .section-title .num{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--amber);
+    background:var(--bezel);
+    border:1px solid var(--bezel-hi);
+    width:34px;height:34px;
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+  }
+  .section-title h2{font-size:20px;margin:0;font-weight:700;}
+
+  /* ---------- Tube diagram ---------- */
+  .tube-card{
+    background:linear-gradient(180deg,var(--bezel) 0%, var(--bezel-lo) 100%);
+    border:1px solid var(--bezel-hi);
+    border-radius:18px;
+    padding:22px 18px 18px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .tube-svg-holder{
+    direction:ltr;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:6px;
+  }
+  svg{display:block;margin:0 auto;}
+  .hotspot{cursor:pointer;transition:filter .15s ease;}
+  .hotspot:hover .part-shape, .hotspot.active .part-shape{
+    filter:drop-shadow(0 0 8px var(--amber));
+  }
+  .part-shape{transition:fill .15s ease, stroke .15s ease;}
+  .hotspot.active .part-shape{stroke:var(--amber);stroke-width:2;}
+  .part-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    fill:var(--text-dim);
+    text-anchor:middle;
+    pointer-events:none;
+  }
+  .hotspot.active .part-label{fill:var(--amber);}
+  .beam-path{
+    stroke:var(--phosphor);
+    stroke-width:2;
+    fill:none;
+    opacity:0.85;
+    filter:drop-shadow(0 0 4px var(--phosphor));
+    stroke-dasharray:4 4;
+    animation:dash 1.2s linear infinite;
+  }
+  @keyframes dash{to{stroke-dashoffset:-16;}}
+
+  .info-box{
+    margin-top:16px;
+    background:var(--bezel-lo);
+    border:1px solid var(--bezel-hi);
+    border-radius:12px;
+    padding:16px 18px;
+    min-height:74px;
+  }
+  .info-box .part-name{
+    color:var(--amber);
+    font-weight:700;
+    font-size:15px;
+    margin-bottom:6px;
+    display:block;
+  }
+  .info-box .part-desc{color:var(--text-dim);font-size:14px;line-height:1.9;}
+
+  /* ---------- Scope device ---------- */
+  .scope{
+    background:linear-gradient(180deg,var(--bezel) 0%, var(--bezel-lo) 100%);
+    border:1px solid var(--bezel-hi);
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .screen-frame{
+    background:#000;
+    border-radius:10px;
+    padding:14px;
+    border:2px solid var(--bezel-lo);
+    box-shadow:inset 0 0 40px rgba(0,0,0,0.9), inset 0 0 2px #000;
+  }
+  canvas{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:4px;
+    background:var(--screen-bg);
+  }
+  .readout{
+    direction:ltr;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--phosphor);
+    display:flex;
+    justify-content:space-between;
+    padding:8px 4px 2px;
+    opacity:0.85;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  .controls{
+    margin-top:20px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:16px 20px;
+  }
+  .ctrl{
+    background:var(--bezel-lo);
+    border:1px solid var(--bezel-hi);
+    border-radius:12px;
+    padding:12px 14px 14px;
+  }
+  .ctrl label{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:12.5px;color:var(--text-dim);margin-bottom:8px;
+  }
+  .ctrl label span.val{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--amber);
+    font-size:12px;
+  }
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;height:4px;
+    border-radius:3px;
+    background:linear-gradient(90deg,var(--phosphor-dim),var(--amber-dim));
+    outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:18px;height:18px;border-radius:50%;
+    background:var(--amber);
+    border:2px solid #1a1a1a;
+    box-shadow:0 0 8px rgba(232,163,61,0.6);
+    cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;
+    background:var(--amber);border:2px solid #1a1a1a;cursor:pointer;
+  }
+  select{
+    width:100%;
+    background:var(--bezel);
+    color:var(--text);
+    border:1px solid var(--bezel-hi);
+    border-radius:8px;
+    padding:8px 10px;
+    font-family:'Cairo',sans-serif;
+    font-size:13px;
+  }
+  .mode-toggle{
+    display:flex;gap:8px;
+  }
+  .mode-toggle button{
+    flex:1;
+    background:var(--bezel);
+    border:1px solid var(--bezel-hi);
+    color:var(--text-dim);
+    padding:8px 6px;
+    border-radius:8px;
+    font-family:'Cairo',sans-serif;
+    font-size:12.5px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .mode-toggle button.active{
+    background:linear-gradient(180deg,#2c3d33,#1a2a20);
+    color:var(--phosphor);
+    border-color:var(--phosphor-dim);
+    box-shadow:0 0 10px rgba(84,255,160,0.15) inset;
+  }
+
+  .note{
+    margin-top:18px;
+    font-size:13px;
+    color:var(--text-dim);
+    line-height:2;
+    background:var(--bezel-lo);
+    border:1px dashed var(--bezel-hi);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .note b{color:var(--text);}
+  .note code{
+    direction:ltr;display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    color:var(--phosphor);
+    background:rgba(84,255,160,0.08);
+    padding:1px 6px;border-radius:4px;
+  }
+
+  footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:40px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow">CATHODE RAY OSCILLOSCOPE</span>
+    <h1>راسم الاهتزاز المهبطي</h1>
+    <p>الجهاز الذي "يرسم" الإشارات الكهربائية كخطوط ضوئية متذبذبة على شاشة فسفورية. استكشف بنية الأنبوب من الداخل، ثم جرّب المحاكاة الحية وغيّر التردد والسعة ونمط العرض.</p>
+  </header>
+
+  <!-- ============ SECTION 1: TUBE ANATOMY ============ -->
+  <section>
+    <div class="section-title"><span class="num">١</span><h2>من الداخل: بنية أنبوب الأشعة المهبطية</h2></div>
+    <div class="tube-card">
+      <div class="tube-svg-holder">
+        <svg id="tubeSvg" width="900" height="260" viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg">
+          <!-- glass envelope -->
+          <path d="M40,130 L120,80 L680,60 Q 860,60 860,130 Q860,200 680,200 L120,180 Z"
+                fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+
+          <!-- beam path -->
+          <path class="beam-path" d="M75,130 L780,130"/>
+
+          <!-- 1: cathode / filament -->
+          <g class="hotspot" data-part="cathode">
+            <rect class="part-shape" x="60" y="112" width="24" height="36" rx="4" fill="#ff8a4d" stroke="rgba(255,255,255,0.3)"/>
+            <text class="part-label" x="72" y="168">المهبط</text>
+          </g>
+
+          <!-- 2: control grid -->
+          <g class="hotspot" data-part="grid">
+            <rect class="part-shape" x="110" y="100" width="10" height="60" fill="#8a8a8a" stroke="rgba(255,255,255,0.3)"/>
+            <text class="part-label" x="115" y="178">شبكة التحكم</text>
+          </g>
+
+          <!-- 3: focusing anode -->
+          <g class="hotspot" data-part="focus">
+            <ellipse class="part-shape" cx="175" cy="130" rx="14" ry="34" fill="none" stroke="#9db4c0" stroke-width="4"/>
+            <text class="part-label" x="175" y="188">مصعد التبئير</text>
+          </g>
+
+          <!-- 4: accelerating anode -->
+          <g class="hotspot" data-part="accel">
+            <ellipse class="part-shape" cx="225" cy="130" rx="16" ry="42" fill="none" stroke="#9db4c0" stroke-width="4"/>
+            <text class="part-label" x="228" y="198">مصعد التسريع</text>
+          </g>
+
+          <!-- 5: Y deflection plates (vertical pair) -->
+          <g class="hotspot" data-part="yplates">
+            <rect class="part-shape" x="330" y="78" width="120" height="8" rx="2" fill="#f0c05a" stroke="rgba(255,255,255,0.3)"/>
+            <rect class="part-shape" x="330" y="176" width="120" height="8" rx="2" fill="#f0c05a" stroke="rgba(255,255,255,0.3)"/>
+            <text class="part-label" x="390" y="66">صفائح الانحراف الرأسي (Y)</text>
+          </g>
+
+          <!-- 6: X deflection plates (horizontal pair) -->
+          <g class="hotspot" data-part="xplates">
+            <rect class="part-shape" x="500" y="95" width="8" height="70" rx="2" fill="#7fd1e0" stroke="rgba(255,255,255,0.3)"/>
+            <rect class="part-shape" x="590" y="95" width="8" height="70" rx="2" fill="#7fd1e0" stroke="rgba(255,255,255,0.3)"/>
+            <text class="part-label" x="552" y="185">صفائح الانحراف الأفقي (X)</text>
+          </g>
+
+          <!-- 7: phosphor screen -->
+          <g class="hotspot" data-part="screen">
+            <path class="part-shape" d="M770,66 Q848,66 848,130 Q848,194 770,194"
+                  fill="rgba(84,255,160,0.12)" stroke="#54ffa0" stroke-width="2"/>
+            <text class="part-label" x="810" y="222">الشاشة الفسفورية</text>
+          </g>
+        </svg>
+      </div>
+      <div class="info-box" id="infoBox">
+        <span class="part-name">اضغط على أي جزء في الرسم</span>
+        <span class="part-desc">تتبّع مسار الإلكترونات من اليسار إلى اليمين: تنطلق من المهبط الساخن، تمر عبر شبكة التحكم والمصاعد التي تُبئّرها وتُسرّعها، ثم تنحرف بواسطة صفائح الانحراف قبل أن تصطدم بالشاشة الفسفورية وتُنتج نقطة ضوئية.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 2: LIVE SIMULATION ============ -->
+  <section>
+    <div class="section-title"><span class="num">٢</span><h2>المحاكاة الحية</h2></div>
+    <div class="scope">
+      <div class="screen-frame">
+        <canvas id="scopeCanvas" width="880" height="440"></canvas>
+        <div class="readout">
+          <span id="roMode">MODE: Y-T</span>
+          <span id="roVdiv">CH1: 1.0 V/DIV</span>
+          <span id="roTdiv">TIME: 5 ms/DIV</span>
+          <span id="roFreq">F: 1.0 Hz</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label>نمط العرض</label>
+          <div class="mode-toggle">
+            <button id="btnYT" class="active">Y-T (زمني)</button>
+            <button id="btnXY">X-Y (ليساجو)</button>
+          </div>
+        </div>
+
+        <div class="ctrl">
+          <label>شكل الموجة <span class="val" id="waveVal">جيبية</span></label>
+          <select id="waveType">
+            <option value="sine">جيبية (Sine)</option>
+            <option value="square">مربعة (Square)</option>
+            <option value="triangle">مثلثية (Triangle)</option>
+            <option value="saw">منشارية (Sawtooth)</option>
+          </select>
+        </div>
+
+        <div class="ctrl">
+          <label>التردد Y <span class="val" id="freqVal">1.0 Hz</span></label>
+          <input type="range" id="freq" min="0.2" max="10" step="0.1" value="1">
+        </div>
+
+        <div class="ctrl" id="freqXctrl" style="display:none;">
+          <label>التردد X <span class="val" id="freqXVal">1.0 Hz</span></label>
+          <input type="range" id="freqX" min="0.2" max="10" step="0.1" value="1">
+        </div>
+
+        <div class="ctrl">
+          <label>السعة (V) <span class="val" id="ampVal">2.0 V</span></label>
+          <input type="range" id="amp" min="0.2" max="4" step="0.1" value="2">
+        </div>
+
+        <div class="ctrl">
+          <label>حساسية Volts/Div <span class="val" id="vdivVal">1.0</span></label>
+          <input type="range" id="vdiv" min="0.5" max="3" step="0.5" value="1">
+        </div>
+
+        <div class="ctrl">
+          <label>القاعدة الزمنية Time/Div <span class="val" id="tdivVal">5 ms</span></label>
+          <input type="range" id="tdiv" min="1" max="20" step="1" value="5">
+        </div>
+
+        <div class="ctrl" id="phaseCtrl" style="display:none;">
+          <label>فرق الطور (Phase) <span class="val" id="phaseVal">0°</span></label>
+          <input type="range" id="phase" min="0" max="360" step="5" value="0">
+        </div>
+      </div>
+
+      <div class="note">
+        <b>الفكرة الفيزيائية:</b> ينحرف شعاع الإلكترونات رأسياً بمقدار يتناسب طردياً مع الجهد المطبَّق على صفائح Y (نفس مبدأ حركة الشحنة في مجال كهربائي منتظم)، بينما تتحكم صفائح X في السرعة الأفقية للمسح الزمني. عندما تُغذَّى الصفيحتان بترددين مختلفين في وضع <code>X-Y</code>، ينتج عن ذلك أشكال <b>ليساجو</b> المميزة.
+      </div>
+    </div>
+  </section>
+
+  <footer>محاكاة تعليمية تفاعلية — راسم الاهتزاز المهبطي</footer>
+</div>
+
+<script>
+// ---------------- Part 1: tube anatomy ----------------
+const partData = {
+  cathode: {
+    name: "المهبط (Cathode)",
+    desc: "قطب مُسخَّن بواسطة فتيلة، يُصدر إلكترونات بالانبعاث الحراري الأيوني. هذه الإلكترونات هي التي ستُشكِّل الشعاع لاحقاً."
+  },
+  grid: {
+    name: "شبكة التحكم (Control Grid)",
+    desc: "أسطوانة معدنية مثقوبة تحيط بالمهبط، جهدها السالب يتحكم في عدد الإلكترونات المارة، وبالتالي في سطوع النقطة على الشاشة."
+  },
+  focus: {
+    name: "مصعد التبئير (Focusing Anode)",
+    desc: "يُشكِّل مع الأقطاب المجاورة عدسة كهربائية تُركِّز الإلكترونات المتشتتة في شعاع رفيع ودقيق، تماماً كما تُبئِّر العدسة الضوئية أشعة الضوء."
+  },
+  accel: {
+    name: "مصعد التسريع (Accelerating Anode)",
+    desc: "قطب موجب ذو جهد عالٍ يجذب الإلكترونات ويُسرِّعها إلى سرعات كبيرة جداً باتجاه الشاشة."
+  },
+  yplates: {
+    name: "صفائح الانحراف الرأسي (Y)",
+    desc: "زوج من الصفائح الأفقية، الجهد المطبَّق بينها يُولِّد مجالاً كهربائياً رأسياً يُحرِّف الشعاع لأعلى أو أسفل — وهذا الانحراف يتناسب طردياً مع الجهد المُقاس، وهو أساس عمل الراسم كأداة قياس."
+  },
+  xplates: {
+    name: "صفائح الانحراف الأفقي (X)",
+    desc: "زوج من الصفائح الرأسية يُحرِّف الشعاع يميناً ويساراً. في وضع المسح الزمني العادي تُغذَّى بجهد مُنشاري لتحريك النقطة أفقياً بسرعة ثابتة (المحور الزمني)."
+  },
+  screen: {
+    name: "الشاشة الفسفورية (Phosphor Screen)",
+    desc: "الوجه الداخلي للأنبوب مطلي بمادة فسفورية تتوهج عند اصطدام الإلكترونات بها، فتُرسم نقطة أو خط ضوئي يُمثِّل مسار الشعاع."
+  }
+};
+const hotspots = document.querySelectorAll('.hotspot');
+const infoBox = document.getElementById('infoBox');
+hotspots.forEach(hs=>{
+  hs.addEventListener('click', ()=>{
+    hotspots.forEach(h=>h.classList.remove('active'));
+    hs.classList.add('active');
+    const d = partData[hs.dataset.part];
+    infoBox.innerHTML = `<span class="part-name">${d.name}</span><span class="part-desc">${d.desc}</span>`;
+  });
+});
+
+// ---------------- Part 2: live oscilloscope ----------------
+const canvas = document.getElementById('scopeCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const state = {
+  mode: 'YT',
+  wave: 'sine',
+  freq: 1,
+  freqX: 1,
+  amp: 2,
+  vdiv: 1,
+  tdiv: 5, // ms
+  phase: 0
+};
+
+function waveform(type, t, f, phaseRad){
+  const x = t*f + (phaseRad||0)/(2*Math.PI);
+  const frac = x - Math.floor(x);
+  switch(type){
+    case 'sine': return Math.sin(2*Math.PI*x);
+    case 'square': return frac < 0.5 ? 1 : -1;
+    case 'triangle': return frac < 0.5 ? (4*frac-1) : (3-4*frac);
+    case 'saw': return 2*frac - 1;
+  }
+}
+
+let startTime = performance.now();
+
+function draw(now){
+  const t = (now - startTime)/1000;
+
+  // slight persistence: fade previous frame instead of hard clear
+  ctx.fillStyle = 'rgba(8,21,15,0.28)';
+  ctx.fillRect(0,0,W,H);
+
+  drawGrid();
+
+  const divs = 8; // horizontal divisions
+  const vdivs = 8;
+  const pxPerDivX = W/divs;
+  const pxPerDivY = H/vdivs;
+
+  ctx.beginPath();
+  ctx.lineWidth = 2.4;
+  ctx.strokeStyle = '#54ffa0';
+  ctx.shadowColor = '#54ffa0';
+  ctx.shadowBlur = 10;
+
+  if(state.mode === 'YT'){
+    const timeWindow = (state.tdiv * divs)/1000; // seconds shown across screen
+    const sweepT = (t % (timeWindow)); // repeating sweep window, seconds
+    const baseT = t - sweepT; // aligns start of current sweep
+    for(let px=0; px<=W; px+=2){
+      const tt = baseT + (px/W)*timeWindow;
+      const y = waveform(state.wave, tt, state.freq, state.phase*Math.PI/180);
+      const volts = y*state.amp;
+      const py = H/2 - (volts/state.vdiv)*pxPerDivY;
+      if(px===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+  } else {
+    // X-Y Lissajous mode
+    const points = 500;
+    const trail = 1.2; // seconds of history shown
+    for(let i=0;i<=points;i++){
+      const tt = t - trail + (i/points)*trail;
+      const yy = waveform(state.wave, tt, state.freq, state.phase*Math.PI/180)*state.amp;
+      const xx = waveform(state.wave, tt, state.freqX, 0)*state.amp;
+      const px = W/2 + (xx/state.vdiv)*pxPerDivX;
+      const py = H/2 - (yy/state.vdiv)*pxPerDivY;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  requestAnimationFrame(draw);
+}
+
+function drawGrid(){
+  const divs = 8, vdivs = 8;
+  ctx.strokeStyle = 'rgba(84,255,160,0.14)';
+  ctx.lineWidth = 1;
+  for(let i=1;i<divs;i++){
+    const x = i*(W/divs);
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+  }
+  for(let i=1;i<vdivs;i++){
+    const y = i*(H/vdivs);
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+  // center axes brighter
+  ctx.strokeStyle = 'rgba(84,255,160,0.35)';
+  ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+}
+
+requestAnimationFrame(draw);
+
+// ---------------- Controls wiring ----------------
+const waveNames = {sine:'جيبية', square:'مربعة', triangle:'مثلثية', saw:'منشارية'};
+document.getElementById('waveType').addEventListener('change', e=>{
+  state.wave = e.target.value;
+  document.getElementById('waveVal').textContent = waveNames[state.wave];
+});
+
+const freqEl = document.getElementById('freq');
+freqEl.addEventListener('input', e=>{
+  state.freq = parseFloat(e.target.value);
+  document.getElementById('freqVal').textContent = state.freq.toFixed(1)+' Hz';
+  document.getElementById('roFreq').textContent = 'F: '+state.freq.toFixed(1)+' Hz';
+});
+
+const freqXEl = document.getElementById('freqX');
+freqXEl.addEventListener('input', e=>{
+  state.freqX = parseFloat(e.target.value);
+  document.getElementById('freqXVal').textContent = state.freqX.toFixed(1)+' Hz';
+});
+
+const ampEl = document.getElementById('amp');
+ampEl.addEventListener('input', e=>{
+  state.amp = parseFloat(e.target.value);
+  document.getElementById('ampVal').textContent = state.amp.toFixed(1)+' V';
+});
+
+const vdivEl = document.getElementById('vdiv');
+vdivEl.addEventListener('input', e=>{
+  state.vdiv = parseFloat(e.target.value);
+  document.getElementById('vdivVal').textContent = state.vdiv.toFixed(1);
+  document.getElementById('roVdiv').textContent = 'CH1: '+state.vdiv.toFixed(1)+' V/DIV';
+});
+
+const tdivEl = document.getElementById('tdiv');
+tdivEl.addEventListener('input', e=>{
+  state.tdiv = parseFloat(e.target.value);
+  document.getElementById('tdivVal').textContent = state.tdiv+' ms';
+  document.getElementById('roTdiv').textContent = 'TIME: '+state.tdiv+' ms/DIV';
+});
+
+const phaseEl = document.getElementById('phase');
+phaseEl.addEventListener('input', e=>{
+  state.phase = parseFloat(e.target.value);
+  document.getElementById('phaseVal').textContent = state.phase+'°';
+});
+
+const btnYT = document.getElementById('btnYT');
+const btnXY = document.getElementById('btnXY');
+const freqXctrl = document.getElementById('freqXctrl');
+const phaseCtrl = document.getElementById('phaseCtrl');
+
+btnYT.addEventListener('click', ()=>{
+  state.mode='YT';
+  btnYT.classList.add('active'); btnXY.classList.remove('active');
+  freqXctrl.style.display='none';
+  phaseCtrl.style.display='none';
+  document.getElementById('roMode').textContent = 'MODE: Y-T';
+});
+btnXY.addEventListener('click', ()=>{
+  state.mode='XY';
+  btnXY.classList.add('active'); btnYT.classList.remove('active');
+  freqXctrl.style.display='block';
+  phaseCtrl.style.display='block';
+  document.getElementById('roMode').textContent = 'MODE: X-Y';
+});
+</script>
+</body>
+</html>
