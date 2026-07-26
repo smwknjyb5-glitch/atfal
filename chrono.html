@@ -1,0 +1,113 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>كرونومتر</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Tahoma, Arial;
+    background:linear-gradient(135deg,#2193b0,#6dd5ed);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.container{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 0 20px rgba(0,0,0,.25);
+    text-align:center;
+    width:350px;
+}
+
+h1{
+    margin-top:0;
+    color:#333;
+}
+
+#display{
+    font-size:48px;
+    font-weight:bold;
+    margin:25px 0;
+    color:#0d47a1;
+    letter-spacing:2px;
+}
+
+button{
+    padding:12px 20px;
+    margin:5px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    color:white;
+}
+
+.start{background:#28a745;}
+.stop{background:#dc3545;}
+.reset{background:#ff9800;}
+
+button:hover{
+    opacity:.9;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>⏱ كرونومتر</h1>
+
+    <div id="display">00:00:00.000</div>
+
+    <button class="start" onclick="start()">بدء</button>
+    <button class="stop" onclick="stop()">إيقاف</button>
+    <button class="reset" onclick="reset()">إعادة</button>
+</div>
+
+<script>
+let startTime = 0;
+let elapsed = 0;
+let timer = null;
+
+function update(){
+    elapsed = Date.now() - startTime;
+
+    let ms = elapsed % 1000;
+    let sec = Math.floor(elapsed/1000)%60;
+    let min = Math.floor(elapsed/60000)%60;
+    let hr = Math.floor(elapsed/3600000);
+
+    document.getElementById("display").textContent =
+        String(hr).padStart(2,"0")+":"+
+        String(min).padStart(2,"0")+":"+
+        String(sec).padStart(2,"0")+"."+
+        String(ms).padStart(3,"0");
+}
+
+function start(){
+    if(timer!==null) return;
+
+    startTime = Date.now() - elapsed;
+    timer = setInterval(update,10);
+}
+
+function stop(){
+    clearInterval(timer);
+    timer=null;
+}
+
+function reset(){
+    stop();
+    elapsed=0;
+    document.getElementById("display").textContent="00:00:00.000";
+}
+</script>
+
+</body>
+</html>
