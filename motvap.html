@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة المحرك البخاري</title>
+<style>
+  :root{
+    --bg1:#0e1a26; --bg2:#1c2f3f; --brass:#c9a24b; --brass-dark:#8a6d2f;
+    --steel:#8fa3ad; --steel-dark:#4a5c66; --steam:#eaf4f7; --fire:#ff6a3d;
+    --panel:#132433; --accent:#4fd1c5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; font-family:'Segoe UI', Tahoma, Arial, sans-serif;
+    background:radial-gradient(circle at 50% 0%, var(--bg2), var(--bg1));
+    color:#eef4f7; display:flex; flex-direction:column; align-items:center; padding:16px;
+  }
+  h1{margin:6px 0 2px; font-size:1.5rem; color:var(--brass); text-shadow:0 0 12px rgba(201,162,75,.4);}
+  p.sub{margin:0 0 14px; color:#9fb2bd; font-size:.9rem; text-align:center; max-width:640px;}
+  .wrap{
+    background:var(--panel); border:1px solid #24404f; border-radius:16px;
+    box-shadow:0 10px 40px rgba(0,0,0,.5); padding:14px; width:100%; max-width:900px;
+  }
+  canvas{width:100%; height:auto; display:block; border-radius:10px; background:linear-gradient(180deg,#0a1620,#111f2b);}
+  .controls{
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center;
+    margin-top:14px; padding:12px; background:#0f1e2a; border-radius:12px; border:1px solid #22394a;
+  }
+  .ctrl{display:flex; flex-direction:column; gap:4px; min-width:140px;}
+  .ctrl label{font-size:.8rem; color:var(--accent);}
+  input[type=range]{accent-color:var(--brass); width:100%;}
+  button{
+    background:linear-gradient(180deg,var(--brass),var(--brass-dark)); border:none; color:#1a1204;
+    font-weight:700; padding:10px 18px; border-radius:10px; cursor:pointer; font-size:.95rem;
+    box-shadow:0 3px 0 #5c481f; transition:transform .1s;
+  }
+  button:active{transform:translateY(2px); box-shadow:0 1px 0 #5c481f;}
+  button.secondary{background:linear-gradient(180deg,#41606d,#2a4451); color:#eaf4f7; box-shadow:0 3px 0 #1c2d35;}
+  .stats{
+    display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:12px;
+    font-size:.85rem; color:#bcd0d9;
+  }
+  .stats span b{color:var(--accent);}
+  .legend{
+    display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:10px; font-size:.78rem; color:#8fa3ad;
+  }
+  .legend i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-inline-end:5px; vertical-align:middle;}
+  footer{margin-top:16px; color:#5f7683; font-size:.75rem; text-align:center;}
+</style>
+</head>
+<body>
+
+<h1>⚙️ محاكاة المحرك البخاري</h1>
+<p class="sub">توضّح هذه المحاكاة كيف يتحوّل الضغط الناتج عن غلي الماء إلى حركة خطية للمكبس (بستون)، ثم إلى حركة دورانية عبر ذراع التوصيل وعمود المرفق (الكرنك) والدولاب الموازن.</p>
+
+<div class="wrap">
+  <canvas id="c" width="860" height="440"></canvas>
+
+  <div class="controls">
+    <button id="toggle">⏸ إيقاف</button>
+    <div class="ctrl">
+      <label>🔥 شدّة النار (حرارة الغلاية)</label>
+      <input type="range" id="heat" min="0" max="100" value="55">
+    </div>
+    <div class="ctrl">
+      <label>⚙️ الحمل على المحرك</label>
+      <input type="range" id="load" min="0" max="100" value="20">
+    </div>
+    <button id="reset" class="secondary">↺ إعادة ضبط</button>
+  </div>
+
+  <div class="stats">
+    <span>الضغط: <b id="pStat">0</b> بار</span>
+    <span>سرعة الدوران: <b id="rpmStat">0</b> دورة/د</span>
+    <span>الحالة: <b id="stateStat">تشغيل</b></span>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--fire)"></i>النار / الوقود</span>
+    <span><i style="background:#3a6b8a"></i>الماء</span>
+    <span><i style="background:var(--steam)"></i>البخار المضغوط</span>
+    <span><i style="background:var(--brass)"></i>الأجزاء النحاسية / المكبس</span>
+    <span><i style="background:var(--steel)"></i>عمود المرفق والدولاب</span>
+  </div>
+</div>
+
+<footer>محاكاة تعليمية مبسّطة لتوضيح مبدأ عمل المحرك البخاري ذي الأسطوانة الواحدة.</footer>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const heatSlider = document.getElementById('heat');
+const loadSlider = document.getElementById('load');
+const toggleBtn = document.getElementById('toggle');
+const resetBtn = document.getElementById('reset');
+const pStat = document.getElementById('pStat');
+const rpmStat = document.getElementById('rpmStat');
+const stateStat = document.getElementById('stateStat');
+
+let running = true;
+let crankAngle = 0;      // زاوية عمود المرفق (راديان)
+let angularVel = 0;      // السرعة الزاوية
+let pressure = 0;        // ضغط البخار (تراكمي تقريبي)
+let flame = [];
+let steamParticles = [];
+let smokeParticles = [];
+let time = 0;
+
+// هندسة الآلة (إحداثيات على الكانفاس)
+const geo = {
+  cylY: 150,
+  cylX1: 430, cylX2: 640,     // حدود الأسطوانة أفقياً
+  cylH: 46,
+  crankX: 300, crankY: 300,   // مركز عمود المرفق / الدولاب
+  crankR: 60,                 // نصف قطر ذراع الكرنك
+  rodLen: 210,                // طول ذراع التوصيل
+  wheelR: 78,
+  boilerX: 90, boilerY: 300, boilerW: 190, boilerH: 90
+};
+
+function pistonXFromAngle(a){
+  // موضع مسمار المكبس (نهاية ذراع التوصيل) بناءً على آلية كرنك-مكبس بسيطة موازية للمحور السيني
+  const cy = geo.crankY;
+  const px = geo.crankX + geo.crankR*Math.cos(a);
+  const py = cy + geo.crankR*Math.sin(a);
+  // إسقاط أفقي: نفترض المكبس يتحرك أفقياً عند ارتفاع الأسطوانة
+  const dy = geo.cylY + geo.cylH/2 - py;
+  const dx = Math.sqrt(Math.max(geo.rodLen*geo.rodLen - dy*dy, 0));
+  return { x: px + dx, y: py, jointX: px, jointY: py };
+}
+
+function reset(){
+  crankAngle = 0; angularVel = 0; pressure = 0; time = 0;
+  heatSlider.value = 55; loadSlider.value = 20;
+  running = true; toggleBtn.textContent = '⏸ إيقاف';
+}
+
+toggleBtn.addEventListener('click', ()=>{
+  running = !running;
+  toggleBtn.textContent = running ? '⏸ إيقاف' : '▶ تشغيل';
+});
+resetBtn.addEventListener('click', reset);
+
+function spawnFlame(){
+  const heat = +heatSlider.value;
+  if(Math.random() < heat/100 * 0.9){
+    flame.push({
+      x: geo.boilerX + 20 + Math.random()*(geo.boilerW-40),
+      y: geo.boilerY + geo.boilerH + 6,
+      vy: -(1+Math.random()*1.5),
+      life: 30+Math.random()*20,
+      r: 3+Math.random()*4
+    });
+  }
+}
+
+function spawnSmoke(){
+  const heat = +heatSlider.value;
+  if(Math.random() < heat/100*0.35){
+    smokeParticles.push({
+      x: geo.boilerX+30, y: geo.boilerY-14,
+      vx: -0.15+Math.random()*0.3, vy: -0.6-Math.random()*0.5,
+      life: 80+Math.random()*40, r: 4+Math.random()*6
+    });
+  }
+}
+
+function spawnSteam(px, py, dir){
+  for(let i=0;i<3;i++){
+    steamParticles.push({
+      x: px, y: py,
+      vx: dir*(0.6+Math.random()*1.2),
+      vy: -0.3+Math.random()*0.6,
+      life: 26+Math.random()*20,
+      r: 2+Math.random()*3
+    });
+  }
+}
+
+function update(dt){
+  const heat = +heatSlider.value;
+  const load = +loadSlider.value;
+
+  // بناء الضغط تدريجياً حسب الحرارة
+  const targetPressure = heat/100 * 8; // حتى 8 بار تقريباً
+  pressure += (targetPressure - pressure) * 0.01 * dt;
+
+  if(running){
+    // عزم دوران يعتمد على الضغط، ومقاومة تعتمد على الحمل
+    const drivingTorque = pressure * 0.9;
+    const resistTorque = 0.15 + load/100 * 2.2;
+    const netTorque = drivingTorque - resistTorque - angularVel*0.04;
+    angularVel += netTorque * 0.0025 * dt;
+    if(angularVel < 0) angularVel = 0;
+    crankAngle += angularVel * dt * 0.06;
+    time += dt;
+  }
+
+  spawnFlame();
+  spawnSmoke();
+
+  flame = flame.filter(f=>{ f.y += f.vy; f.life--; return f.life>0; });
+  smokeParticles = smokeParticles.filter(s=>{ s.x+=s.vx; s.y+=s.vy; s.life--; return s.life>0; });
+
+  // بخار يتسرب من صمام الأسطوانة عند كل شوط تقريباً
+  const pist = pistonXFromAngle(crankAngle);
+  if(running && Math.random() < 0.15 + pressure*0.01){
+    const dir = Math.cos(crankAngle) > 0 ? 1 : -1;
+    spawnSteam(geo.cylX2+6, geo.cylY+geo.cylH/2, dir);
+  }
+  steamParticles = steamParticles.filter(s=>{ s.x+=s.vx; s.y+=s.vy; s.vy-=0.01; s.life--; return s.life>0; });
+
+  // إحصائيات
+  const rpm = Math.round(angularVel * 9.55 * 3); // تحويل تقريبي لعرض تفاعلي مرضٍ
+  pStat.textContent = pressure.toFixed(1);
+  rpmStat.textContent = Math.max(0, rpm);
+  stateStat.textContent = running ? (angularVel>0.05 ? 'يعمل' : 'يبني ضغطاً') : 'متوقف';
+}
+
+function drawBoiler(){
+  const {boilerX:x, boilerY:y, boilerW:w, boilerH:h} = geo;
+  // جسم الغلاية
+  let grad = ctx.createLinearGradient(x,y,x,y+h);
+  grad.addColorStop(0,'#5a4726'); grad.addColorStop(1,'#2c2210');
+  ctx.fillStyle = grad;
+  roundRect(x,y,w,h,14); ctx.fill();
+  ctx.strokeStyle = '#8a6d2f'; ctx.lineWidth=3; roundRect(x,y,w,h,14); ctx.stroke();
+
+  // أحزمة نحاسية
+  ctx.fillStyle = 'rgba(201,162,75,0.5)';
+  for(let i=1;i<4;i++){ ctx.fillRect(x+ i*w/4 -3, y, 6, h); }
+
+  // مقياس الضغط
+  const gx = x+w-24, gy = y-18, gr=16;
+  ctx.beginPath(); ctx.arc(gx,gy,gr,0,Math.PI*2);
+  ctx.fillStyle = '#eee'; ctx.fill(); ctx.strokeStyle='#333'; ctx.lineWidth=2; ctx.stroke();
+  const needleA = -Math.PI/2 + (pressure/10)*Math.PI*1.5;
+  ctx.beginPath(); ctx.moveTo(gx,gy);
+  ctx.lineTo(gx+Math.cos(needleA)*(gr-3), gy+Math.sin(needleA)*(gr-3));
+  ctx.strokeStyle = pressure>6.5 ? '#ff4d4d' : '#c0392b'; ctx.lineWidth=2; ctx.stroke();
+
+  // فرن أسفل الغلاية
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(x+10, y+h, w-20, 16);
+
+  // مدخنة
+  ctx.fillStyle = '#3a3a3a';
+  ctx.fillRect(x+30, y-46, 16, 32);
+
+  // أنبوب بخار من الغلاية إلى الأسطوانة
+  ctx.strokeStyle = '#7d8f99'; ctx.lineWidth=10; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(x+w, y+22);
+  ctx.lineTo(geo.cylX1-10, geo.cylY+geo.cylH/2);
+  ctx.stroke();
+  ctx.strokeStyle = '#4a5c66'; ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.moveTo(x+w, y+22);
+  ctx.lineTo(geo.cylX1-10, geo.cylY+geo.cylH/2);
+  ctx.stroke();
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawFlame(){
+  flame.forEach(f=>{
+    const a = Math.max(f.life/50,0);
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+    const g = ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r);
+    g.addColorStop(0, `rgba(255,220,120,${a})`);
+    g.addColorStop(1, `rgba(255,90,40,0)`);
+    ctx.fillStyle = g;
+    ctx.fill();
+  });
+}
+
+function drawSmoke(){
+  smokeParticles.forEach(s=>{
+    const a = Math.max(s.life/120, 0)*0.35;
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(180,180,180,${a})`;
+    ctx.fill();
+  });
+}
+
+function drawSteamParticles(){
+  steamParticles.forEach(s=>{
+    const a = Math.max(s.life/46, 0)*0.7;
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(234,244,247,${a})`;
+    ctx.fill();
+  });
+}
+
+function drawCylinderAndPiston(){
+  const {cylX1,cylX2,cylY,cylH} = geo;
+  // جسم الأسطوانة
+  ctx.fillStyle = '#3d4b52';
+  ctx.fillRect(cylX1, cylY, cylX2-cylX1, cylH);
+  ctx.strokeStyle = '#1c262b'; ctx.lineWidth=3;
+  ctx.strokeRect(cylX1, cylY, cylX2-cylX1, cylH);
+
+  // أرجل دعم
+  ctx.fillStyle = '#2a343a';
+  ctx.fillRect(cylX1+20, cylY+cylH, 14, 40);
+  ctx.fillRect(cylX2-40, cylY+cylH, 14, 40);
+
+  const pist = pistonXFromAngle(crankAngle);
+
+  // مكبس داخل الأسطوانة
+  const pistonW = 26;
+  const pistonDrawX = Math.min(Math.max(pist.x, cylX1+10), cylX2-pistonW-10);
+  let pg = ctx.createLinearGradient(pistonDrawX,0,pistonDrawX+pistonW,0);
+  pg.addColorStop(0,'#e8c874'); pg.addColorStop(0.5,'#c9a24b'); pg.addColorStop(1,'#8a6d2f');
+  ctx.fillStyle = pg;
+  ctx.fillRect(pistonDrawX, cylY+4, pistonW, cylH-8);
+
+  // ساق المكبس يمتد يميناً حتى المفصلة
+  ctx.strokeStyle = '#c9a24b'; ctx.lineWidth=7; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(pistonDrawX+pistonW, cylY+cylH/2);
+  ctx.lineTo(pist.x, pist.y);
+  ctx.stroke();
+
+  // ذراع التوصيل (Connecting rod) من المكبس إلى ذراع الكرنك
+  ctx.strokeStyle = '#8fa3ad'; ctx.lineWidth=8; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(pist.x, pist.y);
+  ctx.lineTo(pist.jointX, pist.jointY);
+  ctx.stroke();
+
+  // مفصلات
+  drawJoint(pist.x, pist.y);
+  drawJoint(pist.jointX, pist.jointY);
+}
+
+function drawJoint(x,y){
+  ctx.beginPath();
+  ctx.arc(x,y,6,0,Math.PI*2);
+  ctx.fillStyle = '#eee';
+  ctx.fill();
+  ctx.strokeStyle = '#333'; ctx.lineWidth=1.5; ctx.stroke();
+}
+
+function drawCrankAndWheel(){
+  const {crankX,crankY,wheelR,crankR} = geo;
+
+  // الدولاب الموازن (Flywheel)
+  let wg = ctx.createRadialGradient(crankX-15,crankY-15,10,crankX,crankY,wheelR);
+  wg.addColorStop(0,'#b9ccd4'); wg.addColorStop(1,'#4a5c66');
+  ctx.beginPath();
+  ctx.arc(crankX,crankY,wheelR,0,Math.PI*2);
+  ctx.fillStyle = wg; ctx.fill();
+  ctx.strokeStyle = '#2b3a41'; ctx.lineWidth=4; ctx.stroke();
+
+  // قضبان زخرفية تدور مع الدولاب
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth=5;
+  for(let i=0;i<6;i++){
+    const a = crankAngle + i*Math.PI/3;
+    ctx.beginPath();
+    ctx.moveTo(crankX + Math.cos(a)*18, crankY + Math.sin(a)*18);
+    ctx.lineTo(crankX + Math.cos(a)*(wheelR-10), crankY + Math.sin(a)*(wheelR-10));
+    ctx.stroke();
+  }
+
+  // مركز الدولاب
+  ctx.beginPath(); ctx.arc(crankX,crankY,10,0,Math.PI*2);
+  ctx.fillStyle='#c9a24b'; ctx.fill();
+
+  // ذراع الكرنك
+  const cx = crankX + crankR*Math.cos(crankAngle);
+  const cy = crankY + crankR*Math.sin(crankAngle);
+  ctx.strokeStyle = '#c9a24b'; ctx.lineWidth=7; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(crankX,crankY);
+  ctx.lineTo(cx,cy);
+  ctx.stroke();
+  drawJoint(cx,cy);
+
+  // قاعدة
+  ctx.fillStyle = '#20292e';
+  ctx.fillRect(crankX-100, crankY+wheelR+4, 200, 14);
+}
+
+function drawLabels(){
+  ctx.fillStyle = '#9fb2bd';
+  ctx.font = '13px Tahoma';
+  ctx.textAlign = 'center';
+  ctx.fillText('الغلاية (تسخين الماء)', geo.boilerX+geo.boilerW/2, geo.boilerY-56);
+  ctx.fillText('الأسطوانة والمكبس', (geo.cylX1+geo.cylX2)/2, geo.cylY-14);
+  ctx.fillText('عمود المرفق والدولاب الموازن', geo.crankX, geo.crankY+geo.wheelR+38);
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // أرضية
+  ctx.fillStyle = '#0d1922';
+  ctx.fillRect(0,0,W,H);
+
+  drawSmoke();
+  drawBoiler();
+  drawFlame();
+  drawCylinderAndPiston();
+  drawSteamParticles();
+  drawCrankAndWheel();
+  drawLabels();
+}
+
+let lastT = performance.now();
+function loop(now){
+  const dt = Math.min(now-lastT, 40);
+  lastT = now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
