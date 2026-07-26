@@ -1,0 +1,309 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة التجاذب والتنافر بين مغناطيسين</title>
+<style>
+  :root{
+    --bg1:#0e1a26; --bg2:#1c2f3f; --magN:#e74c3c; --magS:#2e86de;
+    --accent:#4fd1c5; --panel:#132433; --ok:#2ecc71; --warn:#e67e22;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; font-family:'Segoe UI', Tahoma, Arial, sans-serif;
+    background:radial-gradient(circle at 50% 0%, var(--bg2), var(--bg1));
+    color:#eef4f7; display:flex; flex-direction:column; align-items:center; padding:16px;
+  }
+  h1{margin:6px 0 2px; font-size:1.5rem; color:var(--accent); text-shadow:0 0 12px rgba(79,209,197,.35);}
+  p.sub{margin:0 0 14px; color:#9fb2bd; font-size:.9rem; text-align:center; max-width:640px;}
+  .wrap{
+    background:var(--panel); border:1px solid #24404f; border-radius:16px;
+    box-shadow:0 10px 40px rgba(0,0,0,.5); padding:14px; width:100%; max-width:900px;
+  }
+  canvas{width:100%; height:auto; display:block; border-radius:10px; background:#0a141c; touch-action:none; cursor:grab;}
+  canvas:active{cursor:grabbing;}
+  .controls{
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center;
+    margin-top:14px; padding:12px; background:#0f1e2a; border-radius:12px; border:1px solid #22394a;
+  }
+  .ctrl{display:flex; flex-direction:column; gap:4px; min-width:150px;}
+  .ctrl label{font-size:.8rem; color:var(--accent);}
+  input[type=range]{accent-color:var(--magN); width:100%;}
+  button{
+    background:linear-gradient(180deg,#3a7bd5,#1c4e8a); border:none; color:#eef4f7;
+    font-weight:700; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:.9rem;
+    box-shadow:0 3px 0 #123055; transition:transform .1s;
+  }
+  button:active{transform:translateY(2px); box-shadow:0 1px 0 #123055;}
+  button.secondary{background:linear-gradient(180deg,#41606d,#2a4451); box-shadow:0 3px 0 #1c2d35;}
+  button.warn{background:linear-gradient(180deg,#c0392b,#7a1f14); box-shadow:0 3px 0 #4d130c;}
+  .stats{
+    display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:12px;
+    font-size:.85rem; color:#bcd0d9;
+  }
+  .stats span b{color:var(--accent);}
+  .result-banner{
+    margin-top:10px; text-align:center; font-weight:700; font-size:1rem; padding:8px; border-radius:10px;
+    transition:background .2s, color .2s;
+  }
+  .hint{margin-top:8px; font-size:.78rem; color:#6d838d; text-align:center;}
+  footer{margin-top:16px; color:#5f7683; font-size:.75rem; text-align:center;}
+</style>
+</head>
+<body>
+
+<h1>🧲 التجاذب والتنافر بين مغناطيسين</h1>
+<p class="sub">اسحب أحد المغناطيسين ليتحرك حراً نحو الآخر أو بعيداً عنه حسب القطبين المتقابلين. انقر نقراً مزدوجاً على أي مغناطيس لعكس قطبيته وشاهد التأثير فوراً.</p>
+
+<div class="wrap">
+  <canvas id="c" width="860" height="420"></canvas>
+
+  <div id="banner" class="result-banner">اسحب مغناطيساً لتقريبه من الآخر</div>
+
+  <div class="controls">
+    <button id="flip1" class="secondary">🔁 عكس المغناطيس الأيسر</button>
+    <button id="flip2" class="secondary">🔁 عكس المغناطيس الأيمن</button>
+    <div class="ctrl">
+      <label>💪 قوة المغانط</label>
+      <input type="range" id="strength" min="20" max="100" value="60">
+    </div>
+    <button id="reset" class="warn">↺ إعادة ضبط</button>
+  </div>
+
+  <div class="stats">
+    <span>المسافة: <b id="distStat">0</b> px</span>
+    <span>القوة: <b id="forceStat">0</b></span>
+    <span>الاتجاه: <b id="dirStat">—</b></span>
+  </div>
+  <p class="hint">💡 أفلت المغناطيس وشاهده يتحرك تلقائياً بفعل قوة الجذب أو التنافر — تماماً كما يحدث في الواقع.</p>
+</div>
+
+<footer>محاكاة تعليمية مبسّطة لقانون تجاذب/تنافر الأقطاب المغناطيسية مع محاكاة فيزيائية حقيقية للحركة.</footer>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const strengthSlider = document.getElementById('strength');
+const flip1Btn = document.getElementById('flip1');
+const flip2Btn = document.getElementById('flip2');
+const resetBtn = document.getElementById('reset');
+const distStat = document.getElementById('distStat');
+const forceStat = document.getElementById('forceStat');
+const dirStat = document.getElementById('dirStat');
+const banner = document.getElementById('banner');
+
+// كل مغناطيس أفقي: leftPole عند x-w/2، rightPole عند x+w/2
+function makeMagnet(x, leftIsN){
+  return { x, y: H/2, w: 140, h: 50, vx:0, leftIsN, dragging:false };
+}
+
+let m1 = makeMagnet(260, true);   // N | S  (N يسار)
+let m2 = makeMagnet(600, true);   // N | S  (N يسار) -> متقابلان N-N في البداية عبر الفجوة => الأقرب: S(m1 يمين) مقابل N(m2 يسار)
+
+function poleColor(isN){ return isN ? 'var(--magN)' : 'var(--magS)'; }
+
+function magPoles(m){
+  return {
+    left: { x: m.x-m.w/2, y: m.y, isN: m.leftIsN },
+    right:{ x: m.x+m.w/2, y: m.y, isN: !m.leftIsN }
+  };
+}
+
+function computeForce(){
+  const p1 = magPoles(m1), p2 = magPoles(m2);
+  // القطبان المتقابلان مباشرة: يمين m1 ويسار m2 (بافتراض m1 على يسار m2)
+  const leftIsM1 = m1.x < m2.x;
+  const A = leftIsM1 ? p1.right : p2.right;
+  const B = leftIsM1 ? p2.left  : p1.left;
+  const dist = Math.abs((leftIsM1 ? m2.x-m2.w/2 : m1.x-m1.w/2) - (leftIsM1 ? m1.x+m1.w/2 : m2.x+m2.w/2));
+  const strength = +strengthSlider.value;
+  const sameSign = (A.isN === B.isN);
+  // قوة كولوم-مانند: تنافر إذا نفس القطبية، تجاذب إذا مختلفة
+  const raw = (strength*strength) / Math.max(dist*dist, 400) * 3000;
+  const force = sameSign ? raw : -raw; // موجب=يدفع بعيداً (تنافر)، سالب=يسحب (تجاذب)
+  return { dist, force, sameSign, A, B };
+}
+
+function update(dt){
+  const { dist, force, sameSign } = computeForce();
+
+  const leftM = m1.x < m2.x ? m1 : m2;
+  const rightM = m1.x < m2.x ? m2 : m1;
+
+  if(!leftM.dragging){
+    leftM.vx += (-force) * 0.00006 * dt;
+  }
+  if(!rightM.dragging){
+    rightM.vx += (force) * 0.00006 * dt;
+  }
+
+  [m1,m2].forEach(m=>{
+    if(!m.dragging){
+      m.vx *= Math.pow(0.9, dt/16);
+      m.x += m.vx*dt*0.06;
+    } else {
+      m.vx = 0;
+    }
+  });
+
+  // منع التداخل الكامل والخروج من الحدود
+  const minGap = 6;
+  if(leftM.x + leftM.w/2 + minGap > rightM.x - rightM.w/2){
+    const overlap = (leftM.x + leftM.w/2 + minGap) - (rightM.x - rightM.w/2);
+    if(!leftM.dragging) leftM.x -= overlap/2;
+    if(!rightM.dragging) rightM.x += overlap/2;
+  }
+  [m1,m2].forEach(m=>{
+    m.x = Math.min(Math.max(m.x, m.w/2+20), W-m.w/2-20);
+  });
+
+  distStat.textContent = Math.round(dist);
+  forceStat.textContent = Math.abs(force).toFixed(0);
+  dirStat.textContent = sameSign ? 'تنافر' : 'تجاذب';
+
+  banner.textContent = sameSign
+    ? '⇦ ⇨  تنافر: القطبان المتقابلان متشابهان'
+    : '⇨ ⇦  تجاذب: القطبان المتقابلان مختلفان';
+  banner.style.background = sameSign ? 'rgba(230,126,34,0.15)' : 'rgba(46,204,113,0.15)';
+  banner.style.color = sameSign ? '#f0a35f' : '#6fe0a0';
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawMagnet(m){
+  const halfW = m.w/2;
+  ctx.save();
+  ctx.translate(m.x, m.y);
+
+  let gL = ctx.createLinearGradient(-halfW,0,0,0);
+  const leftColor1 = m.leftIsN ? '#ff8a75' : '#3a7bd5';
+  const leftColor2 = m.leftIsN ? '#c0392b' : '#1c4e8a';
+  gL.addColorStop(0, leftColor2); gL.addColorStop(1, leftColor1);
+  ctx.fillStyle = gL;
+  ctx.fillRect(-halfW, -m.h/2, halfW, m.h);
+
+  let gR = ctx.createLinearGradient(0,0,halfW,0);
+  const rightColor1 = !m.leftIsN ? '#ff8a75' : '#3a7bd5';
+  const rightColor2 = !m.leftIsN ? '#c0392b' : '#1c4e8a';
+  gR.addColorStop(0, rightColor1); gR.addColorStop(1, rightColor2);
+  ctx.fillStyle = gR;
+  ctx.fillRect(0, -m.h/2, halfW, m.h);
+
+  ctx.strokeStyle = '#111'; ctx.lineWidth=3;
+  roundRect(-halfW,-m.h/2,m.w,m.h,8); ctx.stroke();
+
+  ctx.fillStyle = '#fff'; ctx.font='bold 22px Tahoma'; ctx.textAlign='center';
+  ctx.fillText(m.leftIsN?'N':'S', -halfW/2, 8);
+  ctx.fillText(m.leftIsN?'S':'N', halfW/2, 8);
+
+  ctx.restore();
+}
+
+function drawForceArrows(){
+  const { dist, force, sameSign } = computeForce();
+  const leftM = m1.x < m2.x ? m1 : m2;
+  const rightM = m1.x < m2.x ? m2 : m1;
+  const gapMid = (leftM.x+leftM.w/2 + rightM.x-rightM.w/2)/2;
+  const arrowLen = Math.min(Math.abs(force)*0.02, 70);
+
+  ctx.strokeStyle = sameSign ? '#e67e22' : '#2ecc71';
+  ctx.fillStyle = sameSign ? '#e67e22' : '#2ecc71';
+  ctx.lineWidth = 4;
+
+  function arrow(x1,y,dir){
+    const x2 = x1 + dir*arrowLen;
+    ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2,y);
+    ctx.lineTo(x2-dir*9, y-6);
+    ctx.lineTo(x2-dir*9, y+6);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  const y = m1.y - m1.h/2 - 26;
+  if(sameSign){
+    // تنافر: سهمان يبتعدان عن الوسط
+    arrow(gapMid-6, y, -1);
+    arrow(gapMid+6, y, 1);
+  } else {
+    // تجاذب: سهمان يتجهان نحو الوسط
+    arrow(leftM.x+leftM.w/2+8, y, 1);
+    arrow(rightM.x-rightM.w/2-8, y, -1);
+  }
+}
+
+// ---- سحب بالماوس / اللمس ----
+function getPos(e){
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width/rect.width;
+  const cx = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+  return cx*scaleX;
+}
+
+canvas.addEventListener('pointerdown', e=>{
+  const x = getPos(e);
+  [m1,m2].forEach(m=>{
+    if(Math.abs(x-m.x) < m.w/2 && Math.abs((e.touches?e.touches[0].clientY:e.clientY) - canvas.getBoundingClientRect().top - m.y*canvas.getBoundingClientRect().height/H) < m.h){
+      m.dragging = true;
+    }
+  });
+});
+window.addEventListener('pointermove', e=>{
+  const x = getPos(e);
+  [m1,m2].forEach(m=>{ if(m.dragging) m.x = Math.min(Math.max(x, m.w/2+20), W-m.w/2-20); });
+});
+window.addEventListener('pointerup', ()=>{ m1.dragging=false; m2.dragging=false; });
+
+flip1Btn.addEventListener('click', ()=>{ m1.leftIsN = !m1.leftIsN; });
+flip2Btn.addEventListener('click', ()=>{ m2.leftIsN = !m2.leftIsN; });
+resetBtn.addEventListener('click', ()=>{
+  m1 = makeMagnet(260, true);
+  m2 = makeMagnet(600, true);
+  strengthSlider.value = 60;
+});
+
+function drawLabels(){
+  ctx.fillStyle = '#6d838d';
+  ctx.font = '12px Tahoma';
+  ctx.textAlign = 'center';
+  ctx.fillText('اسحب أي مغناطيس • انقر نقراً مزدوجاً لعكس قطبيته', W/2, H-14);
+}
+
+canvas.addEventListener('dblclick', e=>{
+  const x = getPos(e);
+  [m1,m2].forEach(m=>{ if(Math.abs(x-m.x) < m.w/2) m.leftIsN = !m.leftIsN; });
+});
+
+let lastT = performance.now();
+function loop(now){
+  const dt = Math.min(now-lastT, 40);
+  lastT = now;
+  update(dt);
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#0a141c';
+  ctx.fillRect(0,0,W,H);
+
+  drawForceArrows();
+  drawMagnet(m1);
+  drawMagnet(m2);
+  drawLabels();
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
