@@ -1,0 +1,497 @@
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بلاغات المدينة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Cairo:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2b39;
+    --ink-2:#233b4d;
+    --paper:#f2ecd9;
+    --paper-dark:#e3d9be;
+    --brass:#b08b57;
+    --brass-light:#c9a870;
+    --wax:#7a2e2e;
+    --sage:#4f6b52;
+    --text:#2a2118;
+    --text-soft:#5a4f3f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(176,139,87,0.08), transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(176,139,87,0.06), transparent 45%),
+      var(--ink);
+    font-family:'Cairo', sans-serif;
+    color:var(--text);
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px;}
+
+  /* ===== Header ===== */
+  header{
+    text-align:center;
+    color:var(--paper);
+    padding:10px 0 26px;
+    position:relative;
+  }
+  .seal-logo{
+    width:64px;height:64px;margin:0 auto 10px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--brass-light), var(--brass) 70%);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.4);
+  }
+  .seal-logo svg{width:34px;height:34px;fill:var(--ink);}
+  header h1{
+    font-family:'Amiri', serif;
+    font-weight:700;
+    font-size:2.1rem;
+    margin:2px 0 4px;
+    letter-spacing:0.5px;
+  }
+  #cityNameInput{
+    background:transparent;border:none;border-bottom:1px dashed rgba(242,236,217,0.4);
+    color:var(--brass-light);font-family:'Amiri',serif;font-size:1.15rem;text-align:center;
+    padding:2px 6px;width:auto;max-width:280px;
+  }
+  #cityNameInput:focus{outline:none;border-bottom-color:var(--brass-light);}
+  .clock{
+    margin-top:8px;font-size:0.85rem;color:rgba(242,236,217,0.65);
+    letter-spacing:0.5px; font-variant-numeric: tabular-nums;
+  }
+  .divider{
+    width:120px;height:1px;margin:16px auto 0;
+    background:linear-gradient(90deg, transparent, var(--brass), transparent);
+  }
+
+  /* ===== Category tabs ===== */
+  .tabs{
+    display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+    margin:22px 0 20px;
+  }
+  .tab{
+    display:flex;align-items:center;gap:6px;
+    padding:8px 14px;border-radius:20px;
+    background:rgba(242,236,217,0.06);
+    border:1px solid rgba(176,139,87,0.35);
+    color:var(--paper);font-size:0.88rem;cursor:pointer;
+    transition:all .18s ease;
+  }
+  .tab svg{width:16px;height:16px;fill:currentColor;opacity:0.9;}
+  .tab:hover{background:rgba(176,139,87,0.18);}
+  .tab.active{
+    background:var(--brass);color:var(--ink);border-color:var(--brass);
+    font-weight:600;
+  }
+
+  /* ===== Form panel ===== */
+  .panel{
+    background:var(--paper);
+    border-radius:8px;
+    padding:22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(176,139,87,0.25);
+    position:relative;
+    margin-bottom:30px;
+  }
+  .panel::before{
+    content:"";position:absolute;inset:6px;border:1px solid rgba(176,139,87,0.35);
+    border-radius:4px;pointer-events:none;
+  }
+  .panel h2{
+    font-family:'Amiri',serif;font-size:1.25rem;margin:0 0 14px;color:var(--text);
+    display:flex;align-items:center;gap:8px;
+  }
+  .panel h2 svg{width:20px;height:20px;fill:var(--wax);}
+  .illustration{
+    width:100%;display:flex;justify-content:center;margin-bottom:6px;
+  }
+  .illustration-frame{
+    width:132px;height:132px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), rgba(176,139,87,0.12) 70%);
+    border:1px solid rgba(176,139,87,0.4);
+    animation:illustrationIn .4s ease;
+  }
+  .illustration-frame svg{width:78px;height:78px;}
+  @keyframes illustrationIn{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
+  label{
+    display:block;font-size:0.82rem;color:var(--text-soft);margin:12px 0 5px;
+  }
+  input[type=text], textarea, select{
+    width:100%;padding:9px 11px;border-radius:5px;
+    border:1px solid var(--paper-dark);background:#fffdf6;
+    font-family:'Cairo',sans-serif;font-size:0.95rem;color:var(--text);
+    resize:vertical;
+  }
+  input[type=text]:focus, textarea:focus, select:focus{
+    outline:none;border-color:var(--brass);
+  }
+  textarea{min-height:70px;}
+  .submit-row{
+    margin-top:18px;display:flex;align-items:center;gap:14px;
+  }
+  button.submit{
+    background:var(--ink);color:var(--paper);border:none;
+    padding:11px 22px;border-radius:24px;font-family:'Amiri',serif;
+    font-size:1rem;cursor:pointer;letter-spacing:0.5px;
+    transition:transform .12s ease;
+  }
+  button.submit:hover{transform:translateY(-1px);}
+  button.submit:active{transform:translateY(1px);}
+  .hint{font-size:0.78rem;color:var(--text-soft);}
+
+  /* ===== Feed ===== */
+  .feed-title{
+    color:rgba(242,236,217,0.75);font-size:0.85rem;text-align:center;margin:0 0 16px;
+    letter-spacing:1px;
+  }
+  .empty{
+    text-align:center;color:rgba(242,236,217,0.5);padding:40px 10px;font-size:0.95rem;
+  }
+  .card{
+    background:var(--paper);border-radius:8px;padding:16px 18px;margin-bottom:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.28);
+    position:relative;overflow:hidden;
+    animation:riseIn .35s ease;
+  }
+  @keyframes riseIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .card-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .card-cat{
+    display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-soft);
+    font-weight:600;
+  }
+  .card-badge{
+    width:34px;height:34px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card-badge svg{width:18px;height:18px;fill:#fff;}
+  .card-name{font-family:'Amiri',serif;font-weight:700;font-size:1.05rem;margin:6px 0 4px;color:var(--text);}
+  .card-photo{
+    max-width:100%;max-height:220px;border-radius:6px;margin:8px 0;
+    border:1px solid var(--paper-dark);display:block;
+  }
+  .card-details{font-size:0.92rem;color:var(--text-soft);line-height:1.6;}
+  .card-time{font-size:0.72rem;color:#8a7d63;margin-top:8px;font-variant-numeric:tabular-nums;}
+  .delete-btn{
+    background:none;border:none;color:#8a7d63;cursor:pointer;font-size:0.75rem;
+    padding:2px 6px;
+  }
+  .delete-btn:hover{color:var(--wax);}
+
+  /* ===== Wax seal stamp overlay ===== */
+  #stampOverlay{
+    position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.35);z-index:50;
+  }
+  #stampOverlay.show{display:flex;}
+  .stamp-mark{
+    width:120px;height:120px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--brass-light), var(--brass) 65%, #8a6c3f 100%);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    animation:stampDown .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  .stamp-mark svg{width:56px;height:56px;fill:var(--ink);}
+  @keyframes stampDown{
+    0%{transform:scale(2.6) translateY(-40px);opacity:0;}
+    55%{transform:scale(0.92) translateY(0);opacity:1;}
+    75%{transform:scale(1.06);}
+    100%{transform:scale(1);}
+  }
+  .stamp-label{
+    position:absolute;bottom:30%;color:var(--paper);font-family:'Amiri',serif;
+    font-size:1.1rem;background:rgba(0,0,0,0.4);padding:6px 16px;border-radius:20px;
+  }
+
+  footer{text-align:center;color:rgba(242,236,217,0.35);font-size:0.75rem;margin-top:30px;}
+
+  @media (max-width:480px){
+    header h1{font-size:1.7rem;}
+    .tabs{gap:6px;}
+    .tab{padding:7px 11px;font-size:0.8rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="seal-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2 L14.5 9 L22 9.5 L16 14 L18 21.5 L12 17 L6 21.5 L8 14 L2 9.5 L9.5 9 Z"/></svg>
+    </div>
+    <h1>  ناس  المدينة <input id="cityNameInput" type="text" value="و بلاغاتهم" maxlength="24"></h1>
+    <div class="clock" id="clockDisplay">—</div>
+    <div class="divider"></div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="panel">
+    <div class="illustration" id="illustrationHost"></div>
+    <h2 id="formTitle"></h2>
+    <label for="reporterName">اسم المُبلِّغ</label>
+    <input type="text" id="reporterName" placeholder="مثال: أبو محمد">
+    <label for="detailsInput">تفاصيل البلاغ</label>
+    <textarea id="detailsInput" placeholder="اكتب تفاصيل الخبر هنا..."></textarea>
+    <label for="photoInput">صورة مرفقة (اختياري)</label>
+    <input type="file" id="photoInput" accept="image/*">
+    <div id="photoPreviewWrap" style="display:none;margin-top:10px;">
+      <img id="photoPreview" style="max-width:140px;border-radius:6px;border:1px solid var(--paper-dark);">
+      <button type="button" id="removePhotoBtn" class="delete-btn">إزالة الصورة</button>
+    </div>
+    <div class="submit-row">
+      <button class="submit" id="submitBtn">سجّل البلاغ</button>
+      <span class="hint">سيُعرض بلاغك في السجل العام لجميع الزوار</span>
+    </div>
+  </div>
+
+  <div class="feed-title">سجل البلاغات — الأحدث أولاً</div>
+  <div id="feed"></div>
+</div>
+
+<div id="stampOverlay">
+  <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+    <div class="stamp-mark" id="stampIcon"></div>
+    <div class="stamp-label">تم تسجيل البلاغ</div>
+  </div>
+</div>
+
+<footer>سجل عام مشترك — تُعرض البلاغات لجميع من يزور هذه الصفحة</footer>
+
+<script>
+const CATEGORIES = {
+  marriage: { label:"زواج", color:"#4f6b52",
+    icon:'<svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 100-8 4 4 0 000 8zm10-4a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM9 14c-3.3 0-6 2.2-6 5v1h9v-1c0-1.2.4-2.3 1.1-3.2C11.7 14.7 10.4 14 9 14zm10-1.6c-2.6 0-6 1.4-6 4.6v1h11v-1c0-3-2.9-4.6-5-4.6z"/></svg>' },
+  death: { label:"وفاة", color:"#5a5347",
+    icon:'<svg viewBox="0 0 24 24"><path d="M12 2c-1.1 0-2 .9-2 2v1.06A6.99 6.99 0 005 12v5l-2 2v1h18v-1l-2-2v-5a6.99 6.99 0 00-5-6.94V4c0-1.1-.9-2-2-2zm0 4a1 1 0 11.001 2.001A1 1 0 0112 6z"/></svg>' },
+  lost: { label:"اعلام", color:"#7a2e2e",
+    icon:'<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 5L20.5 19zm-6 0a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/></svg>' },
+  buy: { label:"شراء", color:"#b08b57",
+    icon:'<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.2 14h9.6c.75 0 1.4-.4 1.75-1.03l3.24-5.88A1 1 0 0020.9 5.6L18 8.5V6H6.21l-.94-2H2v2h2l3.6 7.59-1.35 2.44C5.16 17.34 6 19 7.4 19H19v-2H7.2l1-1.99z"/></svg>' },
+  sell: { label:" بيع", color:"#233b4d",
+    icon:'<svg viewBox="0 0 24 24"><path d="M21.4 11.6L12.4 2.6c-.4-.4-.9-.6-1.4-.6H4c-1.1 0-2 .9-2 2v7c0 .5.2 1 .6 1.4l9 9c.4.4.9.6 1.4.6s1-.2 1.4-.6l7-7c.4-.4.6-.9.6-1.4s-.2-1-.6-1.4zM6.5 8A1.5 1.5 0 118 6.5 1.5 1.5 0 016.5 8z"/></svg>' }
+};
+
+let currentCat = "marriage";
+const STORAGE_KEY = "town-bulletins";
+
+const tabsEl = document.getElementById('tabs');
+Object.entries(CATEGORIES).forEach(([key, c]) => {
+  const btn = document.createElement('div');
+  btn.className = 'tab' + (key===currentCat ? ' active' : '');
+  btn.dataset.key = key;
+  btn.innerHTML = c.icon + '<span>'+c.label+'</span>';
+  btn.addEventListener('click', () => {
+    currentCat = key;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    updateFormTitle();
+  });
+  tabsEl.appendChild(btn);
+});
+
+const ILLUSTRATIONS = {
+  marriage: `<svg viewBox="0 0 100 100" fill="none" stroke="#4f6b52" stroke-width="3.5">
+      <circle cx="38" cy="55" r="18"/><circle cx="62" cy="55" r="18"/>
+      <path d="M50 30 L54 20 L58 30" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M42 22 L50 12 L58 22" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+    </svg>`,
+  death: `<svg viewBox="0 0 100 100" fill="none" stroke="#5a5347" stroke-width="3.5" stroke-linecap="round">
+      <rect x="45" y="45" width="10" height="38" rx="2" fill="#5a5347" stroke="none"/>
+      <path d="M50 45 C40 35 40 25 50 15 C60 25 60 35 50 45 Z" fill="#c98a3a" stroke="none"/>
+      <path d="M30 83 H70" />
+    </svg>`,
+  lost: `<svg viewBox="0 0 100 100" fill="none" stroke="#7a2e2e" stroke-width="3.5" stroke-linecap="round">
+      <circle cx="42" cy="42" r="20"/>
+      <path d="M57 57 L75 75"/>
+      <path d="M35 42 Q42 32 49 42" opacity="0.7"/>
+      <text x="60" y="30" font-size="22" fill="#7a2e2e" stroke="none" font-family="Amiri, serif">؟</text>
+    </svg>`,
+  buy: `<svg viewBox="0 0 100 100" fill="none" stroke="#b08b57" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M28 35 H72 L68 82 H32 Z"/>
+      <path d="M38 35 V28 a12 12 0 0 1 24 0 v7"/>
+      <path d="M50 50 V64 M43 57 H57" stroke="#4f6b52"/>
+    </svg>`,
+  sell: `<svg viewBox="0 0 100 100" fill="none" stroke="#233b4d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 22 H52 L82 52 L52 82 L20 52 Z"/>
+      <circle cx="34" cy="36" r="5" fill="#233b4d" stroke="none"/>
+      <text x="45" y="66" font-size="16" fill="#233b4d" stroke="none" font-family="Cairo, sans-serif">%</text>
+    </svg>`
+};
+
+function updateFormTitle(){
+  const c = CATEGORIES[currentCat];
+  document.getElementById('formTitle').innerHTML = c.icon + ' بلاغ ' + c.label;
+  document.getElementById('illustrationHost').innerHTML =
+    '<div class="illustration-frame">' + ILLUSTRATIONS[currentCat] + '</div>';
+}
+updateFormTitle();
+
+function formatArabicDate(date){
+  const dayName = date.toLocaleDateString('ar-EG', { weekday:'long' });
+  const dd = String(date.getDate()).padStart(2,'0');
+  const mm = String(date.getMonth()+1).padStart(2,'0');
+  const yyyy = date.getFullYear();
+  return `${dayName} ${dd}/${mm}/${yyyy}`;
+}
+
+function formatArabicTime(date){
+  let h = date.getHours();
+  const m = String(date.getMinutes()).padStart(2,'0');
+  const suffix = h >= 12 ? 'م' : 'ص';
+  h = h % 12;
+  if(h === 0) h = 12;
+  return `${h}:${m} ${suffix}`;
+}
+
+function updateClock(){
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent =
+    formatArabicDate(now) + ' — ' + formatArabicTime(now);
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+async function loadFeed(){
+  const feedEl = document.getElementById('feed');
+  feedEl.innerHTML = '<div class="empty">جارٍ تحميل السجل…</div>';
+  let entries = [];
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    if(res && res.value) entries = JSON.parse(res.value);
+  }catch(e){
+    entries = [];
+  }
+  renderFeed(entries);
+}
+
+function renderFeed(entries){
+  const feedEl = document.getElementById('feed');
+  feedEl.innerHTML = '';
+  if(!entries.length){
+    feedEl.innerHTML = '<div class="empty">لا توجد بلاغات مسجلة بعد. كن أول من يسجل خبرًا.</div>';
+    return;
+  }
+  entries.slice().reverse().forEach(entry => {
+    const c = CATEGORIES[entry.cat] || CATEGORIES.buy;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.borderRight = '4px solid ' + c.color;
+    const d = new Date(entry.time);
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-cat">
+          <div class="card-badge" style="background:${c.color}">${c.icon}</div>
+          <span>${c.label}</span>
+        </div>
+        <button class="delete-btn" data-id="${entry.id}">حذف</button>
+      </div>
+      <div class="card-name">${escapeHtml(entry.name || 'مجهول')}</div>
+      ${entry.photo ? `<img src="${entry.photo}" class="card-photo">` : ''}
+      <div class="card-details">${escapeHtml(entry.details)}</div>
+      <div class="card-time">${formatArabicDate(d)} — ${formatArabicTime(d)}</div>
+    `;
+    feedEl.appendChild(card);
+  });
+
+  feedEl.querySelectorAll('.delete-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      try{
+        const res = await window.storage.get(STORAGE_KEY, true);
+        let entries = res && res.value ? JSON.parse(res.value) : [];
+        entries = entries.filter(e=>e.id !== btn.dataset.id);
+        await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
+        renderFeed(entries);
+      }catch(e){ console.error(e); }
+    });
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+let pendingPhoto = null;
+
+document.getElementById('photoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const maxW = 480;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      pendingPhoto = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('photoPreview').src = pendingPhoto;
+      document.getElementById('photoPreviewWrap').style.display = 'flex';
+      document.getElementById('photoPreviewWrap').style.alignItems = 'center';
+      document.getElementById('photoPreviewWrap').style.gap = '10px';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('removePhotoBtn').addEventListener('click', ()=>{
+  pendingPhoto = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('photoPreviewWrap').style.display = 'none';
+});
+
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('reporterName').value.trim();
+  const details = document.getElementById('detailsInput').value.trim();
+  if(!details){
+    document.getElementById('detailsInput').focus();
+    return;
+  }
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    cat: currentCat,
+    name, details,
+    photo: pendingPhoto,
+    time: new Date().toISOString()
+  };
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true).catch(()=>null);
+    let entries = res && res.value ? JSON.parse(res.value) : [];
+    entries.push(entry);
+    await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
+    renderFeed(entries);
+  }catch(e){
+    console.error('storage error', e);
+  }
+
+  document.getElementById('detailsInput').value = '';
+  document.getElementById('reporterName').value = '';
+  document.getElementById('photoInput').value = '';
+  document.getElementById('photoPreviewWrap').style.display = 'none';
+  pendingPhoto = null;
+  showStamp(currentCat);
+});
+
+function showStamp(catKey){
+  const overlay = document.getElementById('stampOverlay');
+  const iconHost = document.getElementById('stampIcon');
+  iconHost.innerHTML = CATEGORIES[catKey].icon;
+  overlay.classList.add('show');
+  setTimeout(()=> overlay.classList.remove('show'), 1100);
+}
+
+loadFeed();
+</script>
+</body>
+</html>
