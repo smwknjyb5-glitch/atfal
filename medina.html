@@ -1,497 +1,1270 @@
  <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>بلاغات المدينة</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Cairo:ital@0;1&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#1c2b39;
-    --ink-2:#233b4d;
-    --paper:#f2ecd9;
-    --paper-dark:#e3d9be;
-    --brass:#b08b57;
-    --brass-light:#c9a870;
-    --wax:#7a2e2e;
-    --sage:#4f6b52;
-    --text:#2a2118;
-    --text-soft:#5a4f3f;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    min-height:100vh;
-    background:
-      radial-gradient(circle at 20% 10%, rgba(176,139,87,0.08), transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(176,139,87,0.06), transparent 45%),
-      var(--ink);
-    font-family:'Cairo', sans-serif;
-    color:var(--text);
-  }
-  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px;}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>بلاغات المدينة - مع الصور</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  /* ===== Header ===== */
-  header{
-    text-align:center;
-    color:var(--paper);
-    padding:10px 0 26px;
-    position:relative;
-  }
-  .seal-logo{
-    width:64px;height:64px;margin:0 auto 10px;
-    display:flex;align-items:center;justify-content:center;
-    border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, var(--brass-light), var(--brass) 70%);
-    box-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.4);
-  }
-  .seal-logo svg{width:34px;height:34px;fill:var(--ink);}
-  header h1{
-    font-family:'Amiri', serif;
-    font-weight:700;
-    font-size:2.1rem;
-    margin:2px 0 4px;
-    letter-spacing:0.5px;
-  }
-  #cityNameInput{
-    background:transparent;border:none;border-bottom:1px dashed rgba(242,236,217,0.4);
-    color:var(--brass-light);font-family:'Amiri',serif;font-size:1.15rem;text-align:center;
-    padding:2px 6px;width:auto;max-width:280px;
-  }
-  #cityNameInput:focus{outline:none;border-bottom-color:var(--brass-light);}
-  .clock{
-    margin-top:8px;font-size:0.85rem;color:rgba(242,236,217,0.65);
-    letter-spacing:0.5px; font-variant-numeric: tabular-nums;
-  }
-  .divider{
-    width:120px;height:1px;margin:16px auto 0;
-    background:linear-gradient(90deg, transparent, var(--brass), transparent);
-  }
+        body {
+            font-family: 'Tajawal', 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            padding: 0 0 80px 0;
+            min-height: 100vh;
+        }
 
-  /* ===== Category tabs ===== */
-  .tabs{
-    display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
-    margin:22px 0 20px;
-  }
-  .tab{
-    display:flex;align-items:center;gap:6px;
-    padding:8px 14px;border-radius:20px;
-    background:rgba(242,236,217,0.06);
-    border:1px solid rgba(176,139,87,0.35);
-    color:var(--paper);font-size:0.88rem;cursor:pointer;
-    transition:all .18s ease;
-  }
-  .tab svg{width:16px;height:16px;fill:currentColor;opacity:0.9;}
-  .tab:hover{background:rgba(176,139,87,0.18);}
-  .tab.active{
-    background:var(--brass);color:var(--ink);border-color:var(--brass);
-    font-weight:600;
-  }
+        /* ===== HEADER ===== */
+        .app-header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #fff;
+            padding: 20px 18px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            border-radius: 0 0 28px 28px;
+        }
 
-  /* ===== Form panel ===== */
-  .panel{
-    background:var(--paper);
-    border-radius:8px;
-    padding:22px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(176,139,87,0.25);
-    position:relative;
-    margin-bottom:30px;
-  }
-  .panel::before{
-    content:"";position:absolute;inset:6px;border:1px solid rgba(176,139,87,0.35);
-    border-radius:4px;pointer-events:none;
-  }
-  .panel h2{
-    font-family:'Amiri',serif;font-size:1.25rem;margin:0 0 14px;color:var(--text);
-    display:flex;align-items:center;gap:8px;
-  }
-  .panel h2 svg{width:20px;height:20px;fill:var(--wax);}
-  .illustration{
-    width:100%;display:flex;justify-content:center;margin-bottom:6px;
-  }
-  .illustration-frame{
-    width:132px;height:132px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), rgba(176,139,87,0.12) 70%);
-    border:1px solid rgba(176,139,87,0.4);
-    animation:illustrationIn .4s ease;
-  }
-  .illustration-frame svg{width:78px;height:78px;}
-  @keyframes illustrationIn{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
-  label{
-    display:block;font-size:0.82rem;color:var(--text-soft);margin:12px 0 5px;
-  }
-  input[type=text], textarea, select{
-    width:100%;padding:9px 11px;border-radius:5px;
-    border:1px solid var(--paper-dark);background:#fffdf6;
-    font-family:'Cairo',sans-serif;font-size:0.95rem;color:var(--text);
-    resize:vertical;
-  }
-  input[type=text]:focus, textarea:focus, select:focus{
-    outline:none;border-color:var(--brass);
-  }
-  textarea{min-height:70px;}
-  .submit-row{
-    margin-top:18px;display:flex;align-items:center;gap:14px;
-  }
-  button.submit{
-    background:var(--ink);color:var(--paper);border:none;
-    padding:11px 22px;border-radius:24px;font-family:'Amiri',serif;
-    font-size:1rem;cursor:pointer;letter-spacing:0.5px;
-    transition:transform .12s ease;
-  }
-  button.submit:hover{transform:translateY(-1px);}
-  button.submit:active{transform:translateY(1px);}
-  .hint{font-size:0.78rem;color:var(--text-soft);}
+        .app-header .top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-  /* ===== Feed ===== */
-  .feed-title{
-    color:rgba(242,236,217,0.75);font-size:0.85rem;text-align:center;margin:0 0 16px;
-    letter-spacing:1px;
-  }
-  .empty{
-    text-align:center;color:rgba(242,236,217,0.5);padding:40px 10px;font-size:0.95rem;
-  }
-  .card{
-    background:var(--paper);border-radius:8px;padding:16px 18px;margin-bottom:14px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.28);
-    position:relative;overflow:hidden;
-    animation:riseIn .35s ease;
-  }
-  @keyframes riseIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-  .card-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
-  .card-cat{
-    display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-soft);
-    font-weight:600;
-  }
-  .card-badge{
-    width:34px;height:34px;border-radius:50%;flex:none;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .card-badge svg{width:18px;height:18px;fill:#fff;}
-  .card-name{font-family:'Amiri',serif;font-weight:700;font-size:1.05rem;margin:6px 0 4px;color:var(--text);}
-  .card-photo{
-    max-width:100%;max-height:220px;border-radius:6px;margin:8px 0;
-    border:1px solid var(--paper-dark);display:block;
-  }
-  .card-details{font-size:0.92rem;color:var(--text-soft);line-height:1.6;}
-  .card-time{font-size:0.72rem;color:#8a7d63;margin-top:8px;font-variant-numeric:tabular-nums;}
-  .delete-btn{
-    background:none;border:none;color:#8a7d63;cursor:pointer;font-size:0.75rem;
-    padding:2px 6px;
-  }
-  .delete-btn:hover{color:var(--wax);}
+        .app-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-  /* ===== Wax seal stamp overlay ===== */
-  #stampOverlay{
-    position:fixed;inset:0;display:none;align-items:center;justify-content:center;
-    background:rgba(0,0,0,0.35);z-index:50;
-  }
-  #stampOverlay.show{display:flex;}
-  .stamp-mark{
-    width:120px;height:120px;border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, var(--brass-light), var(--brass) 65%, #8a6c3f 100%);
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.5);
-    animation:stampDown .5s cubic-bezier(.2,1.4,.4,1);
-  }
-  .stamp-mark svg{width:56px;height:56px;fill:var(--ink);}
-  @keyframes stampDown{
-    0%{transform:scale(2.6) translateY(-40px);opacity:0;}
-    55%{transform:scale(0.92) translateY(0);opacity:1;}
-    75%{transform:scale(1.06);}
-    100%{transform:scale(1);}
-  }
-  .stamp-label{
-    position:absolute;bottom:30%;color:var(--paper);font-family:'Amiri',serif;
-    font-size:1.1rem;background:rgba(0,0,0,0.4);padding:6px 16px;border-radius:20px;
-  }
+        .app-header h1 i {
+            color: #facc15;
+            font-size: 26px;
+        }
 
-  footer{text-align:center;color:rgba(242,236,217,0.35);font-size:0.75rem;margin-top:30px;}
+        .app-header .badge-count {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
 
-  @media (max-width:480px){
-    header h1{font-size:1.7rem;}
-    .tabs{gap:6px;}
-    .tab{padding:7px 11px;font-size:0.8rem;}
-  }
-</style>
+        .app-header .subhead {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 300;
+        }
+
+        /* ===== التصنيفات (TABS) ===== */
+        .categories-wrapper {
+            background: #ffffff;
+            padding: 14px 12px 8px;
+            margin: -10px 14px 16px;
+            border-radius: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 80px;
+            z-index: 99;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .categories-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 2px 12px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .categories-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-btn {
+            flex: 0 0 auto;
+            padding: 10px 18px;
+            border-radius: 40px;
+            border: none;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .cat-btn i {
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .cat-btn.active {
+            background: #0f172a;
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
+            transform: scale(1.02);
+        }
+
+        .cat-btn.active i {
+            opacity: 1;
+            color: #facc15;
+        }
+
+        .cat-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* ===== قسم الإعلانات ===== */
+        .container {
+            padding: 0 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0 12px;
+        }
+
+        .section-title h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .section-title span {
+            font-size: 13px;
+            color: #94a3b8;
+            background: #eef2f6;
+            padding: 2px 14px;
+            border-radius: 30px;
+        }
+
+        /* ===== بطاقة البلاغ ===== */
+        .announcement-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .announcement-card {
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 18px 18px 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+            position: relative;
+            animation: fadeUp 0.35s ease;
+        }
+
+        .announcement-card:active {
+            transform: scale(0.99);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card-category-badge {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 40px;
+            background: #eef2f6;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .card-category-badge i {
+            font-size: 13px;
+        }
+
+        /* شارة "مثال" */
+        .example-badge {
+            background: #fef9c3;
+            color: #854d0e;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid #fde68a;
+        }
+
+        .card-date {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-right: auto;
+            background: #f8fafc;
+            padding: 2px 12px;
+            border-radius: 30px;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .card-desc {
+            font-size: 15px;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+
+        .announcement-image {
+            margin: 8px 0 12px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #f1f5f9;
+            border: 1px solid #eef2f6;
+        }
+
+        .announcement-image img {
+            width: 100%;
+            max-height: 280px;
+            object-fit: cover;
+            display: block;
+            transition: 0.2s;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 12px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .card-footer i {
+            margin-left: 4px;
+        }
+
+        .card-footer .contact {
+            color: #0f172a;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .delete-btn {
+            margin-right: auto;
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+            padding: 4px 8px;
+            border-radius: 30px;
+        }
+
+        .delete-btn:hover {
+            color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            background: #f8fafc;
+            border-radius: 28px;
+            border: 2px dashed #e2e8f0;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        /* ===== زر الإضافة العائم ===== */
+        .fab {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #fff;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            z-index: 200;
+            font-family: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            width: calc(100% - 32px);
+            max-width: 360px;
+            justify-content: center;
+        }
+
+        .fab:active {
+            transform: translateX(-50%) scale(0.94);
+        }
+
+        .fab i {
+            font-size: 20px;
+            color: #facc15;
+        }
+
+        /* زر مسح الكل */
+        .clear-all-btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+
+        .clear-all-btn:hover {
+            background: #dc2626;
+        }
+
+        /* ===== مودال الإضافة ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(6px);
+            z-index: 500;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            animation: modalFade 0.25s ease;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-box {
+            background: #ffffff;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 32px 32px 0 0;
+            padding: 28px 24px 32px;
+            box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.15);
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+
+        .modal-box .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+
+        .modal-box .modal-header h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .modal-box .modal-header button {
+            background: #f1f5f9;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 40px;
+            font-size: 22px;
+            cursor: pointer;
+            color: #475569;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box .modal-header button:hover {
+            background: #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .form-group label i {
+            margin-left: 6px;
+            color: #94a3b8;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 15px;
+            font-family: inherit;
+            background: #f8fafc;
+            transition: 0.2s;
+            color: #0f172a;
+            appearance: none;
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 16px center;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #0f172a;
+            background: #fff;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            color: #475569;
+            font-weight: 600;
+            transition: 0.25s;
+            width: 100%;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .file-upload-btn i {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        .file-upload-btn:hover {
+            background: #e9edf2;
+            border-color: #94a3b8;
+        }
+
+        #imagePreviewContainer {
+            margin: 10px 0 4px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #eef2f6;
+            background: #f8fafc;
+            display: none;
+        }
+
+        #imagePreviewContainer img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .form-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: #0f172a;
+            color: #fff;
+            border: none;
+            border-radius: 60px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+            font-family: inherit;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.96);
+        }
+
+        .btn-submit i {
+            color: #facc15;
+        }
+
+        /* ===== ألوان التصنيفات ===== */
+        .cat-زواج .card-category-badge {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .cat-اعلام .card-category-badge {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .cat-وفاة .card-category-badge {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        .cat-بيع .card-category-badge {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .cat-شراء .card-category-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .cat-ضياع .card-category-badge {
+            background: #fce4ec;
+            color: #9a1f3c;
+        }
+
+        /* ===== رسالة نجاح ===== */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            opacity: 0;
+            transition: 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            bottom: 120px;
+        }
+
+        .toast i {
+            color: #facc15;
+        }
+
+        /* ===== استجابة ===== */
+        @media (max-width: 480px) {
+            .app-header h1 {
+                font-size: 19px;
+            }
+            .cat-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .card-title {
+                font-size: 16px;
+            }
+            .modal-box {
+                padding: 22px 18px 28px;
+            }
+            .form-row-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 <body>
 
-<div class="wrap">
-  <header>
-    <div class="seal-logo">
-      <svg viewBox="0 0 24 24"><path d="M12 2 L14.5 9 L22 9.5 L16 14 L18 21.5 L12 17 L6 21.5 L8 14 L2 9.5 L9.5 9 Z"/></svg>
-    </div>
-    <h1>بلاغات <input id="cityNameInput" type="text" value="المدينة" maxlength="24"></h1>
-    <div class="clock" id="clockDisplay">—</div>
-    <div class="divider"></div>
-  </header>
-
-  <div class="tabs" id="tabs"></div>
-
-  <div class="panel">
-    <div class="illustration" id="illustrationHost"></div>
-    <h2 id="formTitle"></h2>
-    <label for="reporterName">اسم المُبلِّغ</label>
-    <input type="text" id="reporterName" placeholder="مثال: أبو محمد">
-    <label for="detailsInput">تفاصيل البلاغ</label>
-    <textarea id="detailsInput" placeholder="اكتب تفاصيل الخبر هنا..."></textarea>
-    <label for="photoInput">صورة مرفقة (اختياري)</label>
-    <input type="file" id="photoInput" accept="image/*">
-    <div id="photoPreviewWrap" style="display:none;margin-top:10px;">
-      <img id="photoPreview" style="max-width:140px;border-radius:6px;border:1px solid var(--paper-dark);">
-      <button type="button" id="removePhotoBtn" class="delete-btn">إزالة الصورة</button>
-    </div>
-    <div class="submit-row">
-      <button class="submit" id="submitBtn">سجّل البلاغ</button>
-      <span class="hint">سيُعرض بلاغك في السجل العام لجميع الزوار</span>
-    </div>
-  </div>
-
-  <div class="feed-title">سجل البلاغات — الأحدث أولاً</div>
-  <div id="feed"></div>
-</div>
-
-<div id="stampOverlay">
-  <div style="position:relative;display:flex;align-items:center;justify-content:center;">
-    <div class="stamp-mark" id="stampIcon"></div>
-    <div class="stamp-label">تم تسجيل البلاغ</div>
-  </div>
-</div>
-
-<footer>سجل عام مشترك — تُعرض البلاغات لجميع من يزور هذه الصفحة</footer>
-
-<script>
-const CATEGORIES = {
-  marriage: { label:"زواج", color:"#4f6b52",
-    icon:'<svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 100-8 4 4 0 000 8zm10-4a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM9 14c-3.3 0-6 2.2-6 5v1h9v-1c0-1.2.4-2.3 1.1-3.2C11.7 14.7 10.4 14 9 14zm10-1.6c-2.6 0-6 1.4-6 4.6v1h11v-1c0-3-2.9-4.6-5-4.6z"/></svg>' },
-  death: { label:"وفاة", color:"#5a5347",
-    icon:'<svg viewBox="0 0 24 24"><path d="M12 2c-1.1 0-2 .9-2 2v1.06A6.99 6.99 0 005 12v5l-2 2v1h18v-1l-2-2v-5a6.99 6.99 0 00-5-6.94V4c0-1.1-.9-2-2-2zm0 4a1 1 0 11.001 2.001A1 1 0 0112 6z"/></svg>' },
-  lost: { label:"اعلام", color:"#7a2e2e",
-    icon:'<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 5L20.5 19zm-6 0a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/></svg>' },
-  buy: { label:"شراء", color:"#b08b57",
-    icon:'<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.2 14h9.6c.75 0 1.4-.4 1.75-1.03l3.24-5.88A1 1 0 0020.9 5.6L18 8.5V6H6.21l-.94-2H2v2h2l3.6 7.59-1.35 2.44C5.16 17.34 6 19 7.4 19H19v-2H7.2l1-1.99z"/></svg>' },
-  sell: { label:"بيع", color:"#233b4d",
-    icon:'<svg viewBox="0 0 24 24"><path d="M21.4 11.6L12.4 2.6c-.4-.4-.9-.6-1.4-.6H4c-1.1 0-2 .9-2 2v7c0 .5.2 1 .6 1.4l9 9c.4.4.9.6 1.4.6s1-.2 1.4-.6l7-7c.4-.4.6-.9.6-1.4s-.2-1-.6-1.4zM6.5 8A1.5 1.5 0 118 6.5 1.5 1.5 0 016.5 8z"/></svg>' }
-};
-
-let currentCat = "marriage";
-const STORAGE_KEY = "town-bulletins";
-
-const tabsEl = document.getElementById('tabs');
-Object.entries(CATEGORIES).forEach(([key, c]) => {
-  const btn = document.createElement('div');
-  btn.className = 'tab' + (key===currentCat ? ' active' : '');
-  btn.dataset.key = key;
-  btn.innerHTML = c.icon + '<span>'+c.label+'</span>';
-  btn.addEventListener('click', () => {
-    currentCat = key;
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    btn.classList.add('active');
-    updateFormTitle();
-  });
-  tabsEl.appendChild(btn);
-});
-
-const ILLUSTRATIONS = {
-  marriage: `<svg viewBox="0 0 100 100" fill="none" stroke="#4f6b52" stroke-width="3.5">
-      <circle cx="38" cy="55" r="18"/><circle cx="62" cy="55" r="18"/>
-      <path d="M50 30 L54 20 L58 30" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M42 22 L50 12 L58 22" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
-    </svg>`,
-  death: `<svg viewBox="0 0 100 100" fill="none" stroke="#5a5347" stroke-width="3.5" stroke-linecap="round">
-      <rect x="45" y="45" width="10" height="38" rx="2" fill="#5a5347" stroke="none"/>
-      <path d="M50 45 C40 35 40 25 50 15 C60 25 60 35 50 45 Z" fill="#c98a3a" stroke="none"/>
-      <path d="M30 83 H70" />
-    </svg>`,
-  lost: `<svg viewBox="0 0 100 100" fill="none" stroke="#7a2e2e" stroke-width="3.5" stroke-linecap="round">
-      <circle cx="42" cy="42" r="20"/>
-      <path d="M57 57 L75 75"/>
-      <path d="M35 42 Q42 32 49 42" opacity="0.7"/>
-      <text x="60" y="30" font-size="22" fill="#7a2e2e" stroke="none" font-family="Amiri, serif">؟</text>
-    </svg>`,
-  buy: `<svg viewBox="0 0 100 100" fill="none" stroke="#b08b57" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M28 35 H72 L68 82 H32 Z"/>
-      <path d="M38 35 V28 a12 12 0 0 1 24 0 v7"/>
-      <path d="M50 50 V64 M43 57 H57" stroke="#4f6b52"/>
-    </svg>`,
-  sell: `<svg viewBox="0 0 100 100" fill="none" stroke="#233b4d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M20 22 H52 L82 52 L52 82 L20 52 Z"/>
-      <circle cx="34" cy="36" r="5" fill="#233b4d" stroke="none"/>
-      <text x="45" y="66" font-size="16" fill="#233b4d" stroke="none" font-family="Cairo, sans-serif">%</text>
-    </svg>`
-};
-
-function updateFormTitle(){
-  const c = CATEGORIES[currentCat];
-  document.getElementById('formTitle').innerHTML = c.icon + ' بلاغ ' + c.label;
-  document.getElementById('illustrationHost').innerHTML =
-    '<div class="illustration-frame">' + ILLUSTRATIONS[currentCat] + '</div>';
-}
-updateFormTitle();
-
-function formatArabicDate(date){
-  const dayName = date.toLocaleDateString('ar-EG', { weekday:'long' });
-  const dd = String(date.getDate()).padStart(2,'0');
-  const mm = String(date.getMonth()+1).padStart(2,'0');
-  const yyyy = date.getFullYear();
-  return `${dayName} ${dd}/${mm}/${yyyy}`;
-}
-
-function formatArabicTime(date){
-  let h = date.getHours();
-  const m = String(date.getMinutes()).padStart(2,'0');
-  const suffix = h >= 12 ? 'م' : 'ص';
-  h = h % 12;
-  if(h === 0) h = 12;
-  return `${h}:${m} ${suffix}`;
-}
-
-function updateClock(){
-  const now = new Date();
-  document.getElementById('clockDisplay').textContent =
-    formatArabicDate(now) + ' — ' + formatArabicTime(now);
-}
-updateClock();
-setInterval(updateClock, 30000);
-
-async function loadFeed(){
-  const feedEl = document.getElementById('feed');
-  feedEl.innerHTML = '<div class="empty">جارٍ تحميل السجل…</div>';
-  let entries = [];
-  try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    if(res && res.value) entries = JSON.parse(res.value);
-  }catch(e){
-    entries = [];
-  }
-  renderFeed(entries);
-}
-
-function renderFeed(entries){
-  const feedEl = document.getElementById('feed');
-  feedEl.innerHTML = '';
-  if(!entries.length){
-    feedEl.innerHTML = '<div class="empty">لا توجد بلاغات مسجلة بعد. كن أول من يسجل خبرًا.</div>';
-    return;
-  }
-  entries.slice().reverse().forEach(entry => {
-    const c = CATEGORIES[entry.cat] || CATEGORIES.buy;
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.style.borderRight = '4px solid ' + c.color;
-    const d = new Date(entry.time);
-    card.innerHTML = `
-      <div class="card-top">
-        <div class="card-cat">
-          <div class="card-badge" style="background:${c.color}">${c.icon}</div>
-          <span>${c.label}</span>
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+        <div class="top-row">
+            <h1>
+                <i class="fas fa-bullhorn"></i>
+                بلاغات المدينة
+            </h1>
+            <span class="badge-count" id="totalCount">0</span>
         </div>
-        <button class="delete-btn" data-id="${entry.id}">حذف</button>
-      </div>
-      <div class="card-name">${escapeHtml(entry.name || 'مجهول')}</div>
-      ${entry.photo ? `<img src="${entry.photo}" class="card-photo">` : ''}
-      <div class="card-details">${escapeHtml(entry.details)}</div>
-      <div class="card-time">${formatArabicDate(d)} — ${formatArabicTime(d)}</div>
-    `;
-    feedEl.appendChild(card);
-  });
+        <div class="subhead">
+            <i class="fas fa-map-pin" style="opacity:0.6;"></i>
+            أضف بلاغك وانشر خبرك بين أهل الحي
+        </div>
+    </header>
 
-  feedEl.querySelectorAll('.delete-btn').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      try{
-        const res = await window.storage.get(STORAGE_KEY, true);
-        let entries = res && res.value ? JSON.parse(res.value) : [];
-        entries = entries.filter(e=>e.id !== btn.dataset.id);
-        await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
-        renderFeed(entries);
-      }catch(e){ console.error(e); }
-    });
-  });
-}
+    <!-- ===== التصنيفات ===== -->
+    <div class="categories-wrapper">
+        <div class="categories-scroll" id="categoriesContainer">
+            <!-- سيتم توليدها عبر JS -->
+        </div>
+    </div>
 
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str || '';
-  return div.innerHTML;
-}
+    <!-- ===== قائمة الإعلانات ===== -->
+    <div class="container">
+        <div class="section-title">
+            <h2><i class="fas fa-list-ul" style="color:#0f172a; margin-left:8px;"></i>آخر البلاغات</h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <span id="filterLabel">الكل</span>
+                <button class="clear-all-btn" id="clearAllBtn" title="حذف جميع البلاغات">
+                    <i class="fas fa-trash-alt"></i> مسح الكل
+                </button>
+            </div>
+        </div>
 
-let pendingPhoto = null;
+        <div class="announcement-list" id="announcementList">
+            <!-- سيتم توليدها عبر JS -->
+        </div>
+    </div>
 
-document.getElementById('photoInput').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev)=>{
-    const img = new Image();
-    img.onload = ()=>{
-      const maxW = 480;
-      const scale = Math.min(1, maxW / img.width);
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      pendingPhoto = canvas.toDataURL('image/jpeg', 0.7);
-      document.getElementById('photoPreview').src = pendingPhoto;
-      document.getElementById('photoPreviewWrap').style.display = 'flex';
-      document.getElementById('photoPreviewWrap').style.alignItems = 'center';
-      document.getElementById('photoPreviewWrap').style.gap = '10px';
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-});
+    <!-- ===== زر الإضافة ===== -->
+    <button class="fab" id="openModalBtn">
+        <i class="fas fa-plus-circle"></i>
+        أضف بلاغ جديد
+    </button>
 
-document.getElementById('removePhotoBtn').addEventListener('click', ()=>{
-  pendingPhoto = null;
-  document.getElementById('photoInput').value = '';
-  document.getElementById('photoPreviewWrap').style.display = 'none';
-});
+    <!-- ===== مودال الإضافة ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-pen-fancy" style="color:#facc15; margin-left:10px;"></i>بلاغ جديد</h3>
+                <button id="closeModalBtn"><i class="fas fa-times"></i></button>
+            </div>
 
-document.getElementById('submitBtn').addEventListener('click', async ()=>{
-  const name = document.getElementById('reporterName').value.trim();
-  const details = document.getElementById('detailsInput').value.trim();
-  if(!details){
-    document.getElementById('detailsInput').focus();
-    return;
-  }
-  const entry = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-    cat: currentCat,
-    name, details,
-    photo: pendingPhoto,
-    time: new Date().toISOString()
-  };
-  try{
-    const res = await window.storage.get(STORAGE_KEY, true).catch(()=>null);
-    let entries = res && res.value ? JSON.parse(res.value) : [];
-    entries.push(entry);
-    await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
-    renderFeed(entries);
-  }catch(e){
-    console.error('storage error', e);
-  }
+            <form id="announcementForm">
+                <div class="form-group">
+                    <label><i class="fas fa-tags"></i>نوع البلاغ</label>
+                    <select id="formCategory" required>
+                        <option value="زواج">💍 زواج</option>
+                        <option value="اعلام">📢 إعلام</option>
+                        <option value="وفاة">🕊️ وفاة</option>
+                        <option value="بيع">🛒 بيع</option>
+                        <option value="شراء">🛍️ شراء</option>
+                        <option value="ضياع">🔍 ضياع</option>
+                    </select>
+                </div>
 
-  document.getElementById('detailsInput').value = '';
-  document.getElementById('reporterName').value = '';
-  document.getElementById('photoInput').value = '';
-  document.getElementById('photoPreviewWrap').style.display = 'none';
-  pendingPhoto = null;
-  showStamp(currentCat);
-});
+                <div class="form-group">
+                    <label><i class="fas fa-heading"></i>العنوان</label>
+                    <input type="text" id="formTitle" placeholder="مثال: حفل زفاف عائلة الفلاني" required />
+                </div>
 
-function showStamp(catKey){
-  const overlay = document.getElementById('stampOverlay');
-  const iconHost = document.getElementById('stampIcon');
-  iconHost.innerHTML = CATEGORIES[catKey].icon;
-  overlay.classList.add('show');
-  setTimeout(()=> overlay.classList.remove('show'), 1100);
-}
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i>التفاصيل</label>
+                    <textarea id="formDesc" placeholder="اكتب تفاصيل البلاغ هنا..." required></textarea>
+                </div>
 
-loadFeed();
-</script>
+                <!-- ===== حقل رفع الصورة ===== -->
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i>صورة البلاغ (اختياري)</label>
+                    <div class="file-upload-wrapper">
+                        <button type="button" class="file-upload-btn">
+                            <i class="fas fa-cloud-upload-alt"></i> اختر صورة من الجهاز
+                        </button>
+                        <input type="file" id="formImage" accept="image/*" />
+                    </div>
+                    <div id="imagePreviewContainer">
+                        <img id="imagePreview" src="#" alt="معاينة الصورة" />
+                    </div>
+                    <small style="color:#94a3b8; display:block; margin-top:4px;">يتم ضغط الصورة تلقائياً لحفظ المساحة</small>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i>اسم الناشر</label>
+                        <input type="text" id="formName" placeholder="أحمد" required />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i>رقم التواصل</label>
+                        <input type="text" id="formPhone" placeholder="05xxxxxxxx" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane"></i>
+                    نشر البلاغ
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== Toast ===== -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">تم النشر بنجاح!</span>
+    </div>
+
+    <script>
+        // ============================================================
+        //  البيانات الأولية (نماذج) — يمكنك تعديلها أو إفراغها
+        // ============================================================
+        // إذا أردت إزالة الأمثلة تماماً، اجعل الدالة ترجع [] (مصفوفة فارغة)
+        // وإذا أردت الاحتفاظ بها كأمثلة، اتركها كما هي مع حقل isExample: true
+        function getDefaultData() {
+            // ===== الأمثلة التوضيحية (يمكنك حذفها أو تعديلها) =====
+            const now = new Date().toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+            return [{
+                id: 1,
+                category: 'زواج',
+                title: 'حفل زفاف محمد وعائشة',
+                desc: 'يشرفنا دعوتكم لحفل زفاف ابننا محمد على كريمة عائلة العبدالله، يوم الجمعة القادم في قاعة الزهور.',
+                name: 'أبو محمد',
+                phone: '0501234567',
+                date: now,
+                image: null,
+                isExample: true   // 👈 هذه العلامة تجعل البلاغ يظهر كـ "مثال"
+            }, {
+                id: 2,
+                category: 'اعلام',
+                title: 'إعلان عن مسابقة ثقافية',
+                desc: 'تقيم جمعية الحي مسابقة ثقافية للشباب يوم الخميس القادم، جوائز قيمة للفائزين.',
+                name: 'لجنة الحي',
+                phone: '0559876543',
+                date: now,
+                image: null,
+                isExample: true
+            }, {
+                id: 3,
+                category: 'وفاة',
+                title: 'وفاة المغفور له عبدالله الفلاني',
+                desc: 'انتقل إلى رحمة الله تعالى المرحوم عبدالله بن سعد، وسيُقام العزاء في منزل العائلة.',
+                name: 'أسرة الفلاني',
+                phone: '0561237890',
+                date: now,
+                image: null,
+                isExample: true
+            }, {
+                id: 4,
+                category: 'بيع',
+                title: 'سيارة للبيع - تويوتا كامري',
+                desc: 'سيارة كامري 2020 بحالة ممتازة، صيانة وكالة، السعر مناسب للتواصل.',
+                name: 'سعد',
+                phone: '0509876543',
+                date: now,
+                image: null,
+                isExample: true
+            }, {
+                id: 5,
+                category: 'ضياع',
+                title: 'فقدان هاتف آيفون',
+                desc: 'فُقد هاتف آيفون 13 باللون الأزرق في منطقة السوق القديم، من وجده يتواصل معنا.',
+                name: 'خالد',
+                phone: '0551237890',
+                date: now,
+                image: null,
+                isExample: true
+            }];
+            // ===== لإزالة الأمثلة تماماً، استخدم السطر التالي بدلاً من أعلاه =====
+            // return [];
+        }
+
+        // ============================================================
+        //  باقي الكود (المتغيرات، الدوال، إلخ)
+        // ============================================================
+        const CATEGORIES = [
+            { id: 'الكل', icon: 'fa-th-large', label: 'الكل' },
+            { id: 'زواج', icon: 'fa-ring', label: 'زواج' },
+            { id: 'اعلام', icon: 'fa-bullhorn', label: 'إعلام' },
+            { id: 'وفاة', icon: 'fa-dove', label: 'وفاة' },
+            { id: 'بيع', icon: 'fa-tag', label: 'بيع' },
+            { id: 'شراء', icon: 'fa-shopping-bag', label: 'شراء' },
+            { id: 'ضياع', icon: 'fa-search', label: 'ضياع' },
+        ];
+
+        const CAT_ICONS = {
+            'زواج': 'fa-ring',
+            'اعلام': 'fa-bullhorn',
+            'وفاة': 'fa-dove',
+            'بيع': 'fa-tag',
+            'شراء': 'fa-shopping-bag',
+            'ضياع': 'fa-search'
+        };
+
+        let announcements = [];
+        let currentFilter = 'الكل';
+        let nextId = 1;
+
+        // ============================================================
+        //  تحميل البيانات من localStorage
+        // ============================================================
+        function loadData() {
+            try {
+                const stored = localStorage.getItem('city_announcements');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    announcements = parsed.announcements || [];
+                    nextId = parsed.nextId || 1;
+                } else {
+                    announcements = getDefaultData();
+                    nextId = announcements.length + 1;
+                }
+            } catch {
+                announcements = getDefaultData();
+                nextId = announcements.length + 1;
+            }
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem('city_announcements', JSON.stringify({
+                announcements,
+                nextId
+            }));
+            updateTotalCount();
+        }
+
+        // ============================================================
+        //  دالة ضغط الصورة
+        // ============================================================
+        function resizeImage(file, maxWidth = 600, maxHeight = 600, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = height * (maxWidth / width);
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = width * (maxHeight / height);
+                                height = maxHeight;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
+        }
+
+        // ============================================================
+        //  عرض التصنيفات
+        // ============================================================
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+            CATEGORIES.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `cat-btn ${cat.id === currentFilter ? 'active' : ''}`;
+                btn.dataset.cat = cat.id;
+                btn.innerHTML = `<i class="fas ${cat.icon}"></i> ${cat.label}`;
+                btn.addEventListener('click', () => {
+                    currentFilter = cat.id;
+                    renderCategories();
+                    renderAnnouncements();
+                    document.getElementById('filterLabel').textContent = cat.id === 'الكل' ? 'الكل' : cat.label;
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        // ============================================================
+        //  عرض الإعلانات (مع شارة "مثال" إن وجدت)
+        // ============================================================
+        function renderAnnouncements() {
+            const list = document.getElementById('announcementList');
+            const filtered = currentFilter === 'الكل' ?
+                announcements :
+                announcements.filter(a => a.category === currentFilter);
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>لا توجد بلاغات في هذا التصنيف</p>
+                        <p style="font-size:13px; margin-top:6px;">أضف بلاغك الآن!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = '';
+            const sorted = [...filtered].reverse();
+            sorted.forEach(ann => {
+                const icon = CAT_ICONS[ann.category] || 'fa-file';
+                const card = document.createElement('div');
+                card.className = `announcement-card cat-${ann.category}`;
+                card.style.animationDelay = '0.05s';
+
+                // شارة "مثال" إن وجدت
+                let exampleBadge = '';
+                if (ann.isExample) {
+                    exampleBadge = `<span class="example-badge"><i class="fas fa-info-circle"></i> مثال</span>`;
+                }
+
+                let imageHtml = '';
+                if (ann.image) {
+                    imageHtml = `
+                        <div class="announcement-image">
+                            <img src="${ann.image}" alt="صورة البلاغ" loading="lazy" />
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="card-category-badge">
+                            <i class="fas ${icon}"></i> ${ann.category}
+                        </span>
+                        ${exampleBadge}
+                        <span class="card-date"><i class="far fa-calendar-alt"></i> ${ann.date || 'اليوم'}</span>
+                    </div>
+                    <div class="card-title">${escapeHtml(ann.title)}</div>
+                    ${imageHtml}
+                    <div class="card-desc">${escapeHtml(ann.desc)}</div>
+                    <div class="card-footer">
+                        <span><i class="fas fa-user"></i> ${escapeHtml(ann.name)}</span>
+                        <span class="contact"><i class="fas fa-phone-alt"></i> ${escapeHtml(ann.phone)}</span>
+                        <button class="delete-btn" data-id="${ann.id}" title="حذف البلاغ">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+
+                card.querySelector('.delete-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = Number(e.currentTarget.dataset.id);
+                    if (confirm('هل أنت متأكد من حذف هذا البلاغ؟')) {
+                        announcements = announcements.filter(a => a.id !== id);
+                        saveData();
+                        renderAnnouncements();
+                        renderCategories();
+                        showToast('تم حذف البلاغ بنجاح');
+                    }
+                });
+
+                list.appendChild(card);
+            });
+
+            updateTotalCount();
+        }
+
+        // ============================================================
+        //  إضافة بلاغ جديد
+        // ============================================================
+        function addAnnouncement(category, title, desc, name, phone, imageBase64 = null) {
+            const now = new Date().toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
+            const newAnn = {
+                id: nextId++,
+                category,
+                title: title.trim(),
+                desc: desc.trim(),
+                name: name.trim(),
+                phone: phone.trim(),
+                date: now,
+                image: imageBase64,
+                isExample: false   // البلاغات الجديدة ليست أمثلة
+            };
+            announcements.push(newAnn);
+            saveData();
+            renderAnnouncements();
+            renderCategories();
+            return newAnn;
+        }
+
+        // ============================================================
+        //  مسح جميع البلاغات
+        // ============================================================
+        function clearAllAnnouncements() {
+            if (announcements.length === 0) {
+                showToast('لا توجد بلاغات لحذفها');
+                return;
+            }
+            if (confirm('هل أنت متأكد من حذف جميع البلاغات؟')) {
+                announcements = [];
+                nextId = 1;
+                saveData();
+                renderAnnouncements();
+                renderCategories();
+                showToast('تم حذف جميع البلاغات');
+            }
+        }
+
+        // ============================================================
+        //  تحديث العدد الكلي
+        // ============================================================
+        function updateTotalCount() {
+            document.getElementById('totalCount').textContent = announcements.length;
+        }
+
+        // ============================================================
+        //  أدوات مساعدة
+        // ============================================================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+
+        // ============================================================
+        //  المودال ومعاينة الصورة
+        // ============================================================
+        const modalOverlay = document.getElementById('modalOverlay');
+        const openBtn = document.getElementById('openModalBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const form = document.getElementById('announcementForm');
+        const fileInput = document.getElementById('formImage');
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        const previewImg = document.getElementById('imagePreview');
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    previewImg.src = ev.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+                previewImg.src = '#';
+            }
+        });
+
+        function openModal() {
+            modalOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            previewContainer.style.display = 'none';
+            previewImg.src = '#';
+            fileInput.value = '';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+            form.reset();
+            previewContainer.style.display = 'none';
+            previewImg.src = '#';
+        }
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // ============================================================
+        //  إرسال النموذج
+        // ============================================================
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const category = document.getElementById('formCategory').value;
+            const title = document.getElementById('formTitle').value.trim();
+            const desc = document.getElementById('formDesc').value.trim();
+            const name = document.getElementById('formName').value.trim();
+            const phone = document.getElementById('formPhone').value.trim();
+
+            if (!title || !desc || !name || !phone) {
+                showToast('يرجى ملء جميع الحقول الأساسية');
+                return;
+            }
+
+            const submitBtn = form.querySelector('.btn-submit');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...';
+
+            let imageBase64 = null;
+            const file = fileInput.files[0];
+            if (file) {
+                try {
+                    imageBase64 = await resizeImage(file, 600, 600, 0.7);
+                } catch (err) {
+                    console.warn('فشل ضغط الصورة، سيتم رفعها بدون ضغط', err);
+                    const reader = new FileReader();
+                    imageBase64 = await new Promise((resolve) => {
+                        reader.onload = (ev) => resolve(ev.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                }
+            }
+
+            addAnnouncement(category, title, desc, name, phone, imageBase64);
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> نشر البلاغ';
+
+            closeModal();
+            showToast(`✅ تم نشر البلاغ في ${category} ${imageBase64 ? 'مع صورة' : ''}`);
+
+            currentFilter = 'الكل';
+            renderCategories();
+            renderAnnouncements();
+            document.getElementById('filterLabel').textContent = 'الكل';
+        });
+
+        // ============================================================
+        //  زر مسح الكل
+        // ============================================================
+        document.getElementById('clearAllBtn').addEventListener('click', clearAllAnnouncements);
+
+        // ============================================================
+        //  إغلاق المودال بزر ESC
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal();
+        });
+
+        // ============================================================
+        //  تهيئة التطبيق
+        // ============================================================
+        loadData();
+        renderCategories();
+        renderAnnouncements();
+        document.getElementById('filterLabel').textContent = 'الكل';
+        updateTotalCount();
+    </script>
+
 </body>
 </html>
