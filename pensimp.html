@@ -1,0 +1,598 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>النواس البسيط — Pendule Simple</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1a2b;
+    --bg-deep:#0a1420;
+    --panel:#152a42;
+    --panel-2:#1b3352;
+    --line:rgba(255,255,255,0.08);
+    --text:#eef3f9;
+    --muted:#8ba0bd;
+    --amber:#ffb703;
+    --amber-dim:#8a6a1f;
+    --teal:#2ec4b6;
+    --coral:#ff6b6b;
+    --grid:rgba(255,255,255,0.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(46,196,182,0.06), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(255,183,3,0.05), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    padding:22px 16px 60px;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  header{
+    max-width:1180px;
+    margin:0 auto 22px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:16px;
+  }
+  header h1{
+    font-size:26px;
+    font-weight:900;
+    margin:0;
+    letter-spacing:0.5px;
+  }
+  header h1 span{
+    color:var(--amber);
+  }
+  header .sub{
+    color:var(--muted);
+    font-size:13px;
+    font-weight:400;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr 1fr; /* لوحتان متقابلتان */
+    gap:18px;
+  }
+  @media (max-width:900px){
+    .wrap{grid-template-columns:1fr;}
+  }
+
+  .panel{
+    background:linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 14px 10px;
+    position:relative;
+    overflow:hidden;
+  }
+  .panel::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:radial-gradient(var(--grid) 1px, transparent 1px);
+    background-size:22px 22px;
+    opacity:0.5;
+    pointer-events:none;
+  }
+  .panel h2{
+    font-size:13px;
+    font-weight:700;
+    color:var(--muted);
+    margin:0 0 8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    letter-spacing:0.5px;
+    position:relative;
+    z-index:1;
+  }
+  .panel h2 i{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 8px var(--amber);
+    display:inline-block;
+  }
+  canvas{
+    display:block;
+    width:100%;
+    border-radius:10px;
+    background:var(--bg-deep);
+    position:relative;
+    z-index:1;
+  }
+
+  .readout{
+    position:relative; z-index:1;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-top:10px;
+  }
+  .readout div{
+    background:rgba(0,0,0,0.25);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:7px 8px;
+    text-align:center;
+  }
+  .readout .lbl{font-size:10.5px;color:var(--muted);margin-bottom:2px;}
+  .readout .val{font-size:14px;font-weight:700;}
+  .readout .val.amber{color:var(--amber);}
+  .readout .val.teal{color:var(--teal);}
+  .readout .val.coral{color:var(--coral);}
+
+  .legend{
+    display:flex; gap:14px; margin-top:8px; font-size:11.5px; color:var(--muted);
+    position:relative; z-index:1;
+  }
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .legend i{width:14px;height:3px;border-radius:2px;display:inline-block;}
+
+  .controls{
+    max-width:1180px;
+    margin:18px auto 0;
+    background:linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 18px;
+  }
+  .controls h2{
+    font-size:13px; font-weight:700; color:var(--muted); margin:0 0 12px;
+  }
+  .sliders{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px 18px;
+  }
+  @media (max-width:900px){ .sliders{grid-template-columns:repeat(2,1fr);} }
+  .slider-item label{
+    display:flex; justify-content:space-between;
+    font-size:12.5px; color:var(--muted); margin-bottom:4px;
+  }
+  .slider-item label b{color:var(--text); font-weight:700;}
+  .slider-item .val{color:var(--amber); font-family:'JetBrains Mono',monospace; font-size:12px;}
+  input[type=range]{
+    width:100%;
+    accent-color:var(--amber);
+    height:4px;
+    cursor:pointer;
+  }
+
+  .buttons{
+    display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;
+  }
+  button{
+    font-family:'Tajawal',sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.03);
+    color:var(--text);
+    padding:9px 18px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  button:hover{border-color:var(--amber); color:var(--amber);}
+  button.primary{
+    background:var(--amber);
+    color:#1a1204;
+    border-color:var(--amber);
+  }
+  button.primary:hover{
+    background:#ffc733; color:#1a1204;
+  }
+  button.ghost:hover{border-color:var(--teal); color:var(--teal);}
+
+  footer{
+    max-width:1180px; margin:20px auto 0; color:var(--muted); font-size:12px; line-height:1.9;
+    border-top:1px solid var(--line); padding-top:14px;
+  }
+  footer b{color:var(--text);}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>النواس البسيط <span>·</span> Pendule Simple</h1>
+    <div class="sub">محاكاة حية لحركة كتلة معلقة بخيط — مع مسار الحركة ومنحنى تغير الزاوية θ(t)</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- اللوحة اليمنى: المحاكاة مع مسار النقطة -->
+  <div class="panel">
+    <h2><i></i>مرافقة الحركة ومسار الكتلة — Animation & Trace</h2>
+    <canvas id="sim" width="560" height="480"></canvas>
+    <div class="readout">
+      <div><div class="lbl">الزمن t (s)</div><div class="val mono" id="rt">0.00</div></div>
+      <div><div class="lbl">الزاوية θ (°)</div><div class="val amber mono" id="rth">0.00</div></div>
+      <div><div class="lbl">السرعة الزاوية ω (°/s)</div><div class="val teal mono" id="rw">0.00</div></div>
+      <div><div class="lbl">السرعة الخطية v (cm/s)</div><div class="val coral mono" id="rv">0.00</div></div>
+    </div>
+  </div>
+
+  <!-- اللوحة اليسرى: منحنى الزاوية مع الزمن -->
+  <div class="panel">
+    <h2><i></i>منحنى الزاوية — θ(t) مع مؤشر الزمن الحالي</h2>
+    <canvas id="graph" width="560" height="480"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--amber)"></i> θ(t) — الزاوية بالدرجات</span>
+      <span><i style="background:#fff; width:1px; height:14px; border-left:2px dashed #ffffff80;"></i> الزمن الحالي</span>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <h2>الوسائط الفيزيائية — Paramètres</h2>
+  <div class="sliders">
+    <div class="slider-item">
+      <label>طول الخيط L (cm) <span class="val" id="v_L">80</span></label>
+      <input type="range" id="s_L" min="30" max="150" step="5" value="80">
+    </div>
+    <div class="slider-item">
+      <label>الزاوية الابتدائية θ₀ (°) <span class="val" id="v_th0">30</span></label>
+      <input type="range" id="s_th0" min="1" max="80" step="1" value="30">
+    </div>
+    <div class="slider-item">
+      <label>تسارع الجاذبية g (cm/s²) <span class="val" id="v_g">980</span></label>
+      <input type="range" id="s_g" min="100" max="2000" step="10" value="980">
+    </div>
+    <div class="slider-item">
+      <label>الكتلة m (g) <span class="val" id="v_m">100</span></label>
+      <input type="range" id="s_m" min="10" max="500" step="10" value="100">
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">(للعرض فقط، لا تؤثر على الحركة)</div>
+    </div>
+  </div>
+  <div class="buttons">
+    <button class="primary" id="btnPlay">إيقاف مؤقت ⏸</button>
+    <button class="ghost" id="btnReset">إعادة ضبط ↺</button>
+    <button class="ghost" id="btnClearTrace">مسح المسار والمنحنى ✕</button>
+  </div>
+</div>
+
+<footer>
+  النموذج: خيط عديم الكتلة وغير قابل للاستطالة يحمل كتلة <b>m</b>، يتأرجح بحرية في مستوى رأسي تحت تأثير الجاذبية <b>g</b>.
+  المعادلة التفاضلية: <b>θ'' = -(g/L) sin(θ)</b> تُحل عدديًا بطريقة <b>Runge–Kutta من الرتبة 4</b>.
+  المسار المتقطع على المحاكاة يُظهر المواقع السابقة للكتلة، والخط العمودي على المنحنى يُشير إلى اللحظة الزمنية الحالية.
+</footer>
+
+<script>
+(function(){
+  const canvas = document.getElementById('sim');
+  const ctx = canvas.getContext('2d');
+  const gcanvas = document.getElementById('graph');
+  const gctx = gcanvas.getContext('2d');
+
+  // ---------- physics state ----------
+  let L, g, th0, m;    // L (cm), g (cm/s²), th0 (deg), m (g)
+  let theta, omega, t; // theta (rad), omega (rad/s), t (s)
+  let running = true;
+  let trace = [];        // {t, theta_deg} للرسم البياني
+  let pathPoints = [];   // [{x, y}] إحداثيات الشاشة لمسار المحاكاة
+  const TRACE_WINDOW = 10; // seconds visible
+  const MAX_PATH_POINTS = 600;
+
+  function readParams(){
+    L   = parseFloat(document.getElementById('s_L').value);
+    g   = parseFloat(document.getElementById('s_g').value);
+    th0 = parseFloat(document.getElementById('s_th0').value);
+    m   = parseFloat(document.getElementById('s_m').value);
+    document.getElementById('v_L').textContent = L;
+    document.getElementById('v_g').textContent = g;
+    document.getElementById('v_th0').textContent = th0;
+    document.getElementById('v_m').textContent = m;
+  }
+
+  function reset(){
+    readParams();
+    theta = th0 * Math.PI / 180;
+    omega = 0;
+    t = 0;
+    trace = [];
+    pathPoints = [];
+  }
+
+  // المعادلات التفاضلية: [theta, omega] -> [dtheta/dt, domega/dt]
+  function derivs(state){
+    const [th, om] = state;
+    const dth = om;
+    const dom = -(g / L) * Math.sin(th);
+    return [dth, dom];
+  }
+
+  function rk4Step(dt){
+    const s0 = [theta, omega];
+    const a = derivs(s0);
+    const s1 = [s0[0] + a[0]*dt/2, s0[1] + a[1]*dt/2];
+    const b = derivs(s1);
+    const s2 = [s0[0] + b[0]*dt/2, s0[1] + b[1]*dt/2];
+    const c = derivs(s2);
+    const s3 = [s0[0] + c[0]*dt, s0[1] + c[1]*dt];
+    const d = derivs(s3);
+    theta = s0[0] + dt/6 * (a[0] + 2*b[0] + 2*c[0] + d[0]);
+    omega = s0[1] + dt/6 * (a[1] + 2*b[1] + 2*c[1] + d[1]);
+    t += dt;
+  }
+
+  // ---------- رسم المحاكاة مع المسار ----------
+  function drawSim(){
+    const w = canvas.clientWidth, h = canvas.clientWidth*(480/560);
+    ctx.clearRect(0,0,w,h);
+
+    const pivotX = w * 0.5;
+    const pivotY = h * 0.18;
+    // مقياس الرسم: نجعل أقصى طول للخيط يظهر مناسبًا
+    const maxL = 150; // cm
+    const scale = Math.min(w*0.4, h*0.7) / maxL;
+    const L_px = L * scale;
+
+    // إحداثيات الكتلة
+    const bobX = pivotX + L_px * Math.sin(theta);
+    const bobY = pivotY + L_px * Math.cos(theta);
+
+    // رسم مسار الكتلة (نقاط سابقة)
+    if (pathPoints.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255,183,3,0.3)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([3, 4]);
+      ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
+      for (let i = 1; i < pathPoints.length; i++) {
+        ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // نقاط صغيرة متفرقة على المسار
+      ctx.fillStyle = 'rgba(255,183,3,0.5)';
+      for (let i = 0; i < pathPoints.length; i += 10) {
+        ctx.beginPath();
+        ctx.arc(pathPoints[i].x, pathPoints[i].y, 1.5, 0, 2*Math.PI);
+        ctx.fill();
+      }
+    }
+
+    // خط رأسي خافت يمثل وضع التوازن
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 6]);
+    ctx.beginPath();
+    ctx.moveTo(pivotX, pivotY);
+    ctx.lineTo(pivotX, pivotY + L_px);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // دعامة التعليق
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(pivotX-40, pivotY-12);
+    ctx.lineTo(pivotX+40, pivotY-12);
+    ctx.stroke();
+
+    // الخيط
+    ctx.strokeStyle = '#c0cbd6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(pivotX, pivotY);
+    ctx.lineTo(bobX, bobY);
+    ctx.stroke();
+
+    // نقطة التعليق
+    ctx.fillStyle = '#eef3f9';
+    ctx.beginPath();
+    ctx.arc(pivotX, pivotY, 4, 0, 2*Math.PI);
+    ctx.fill();
+
+    // الكتلة (كرة)
+    const bobR = Math.max(10, 6 + m/20); // حجم الكرة يتناسب مع الكتلة
+    const grad = ctx.createRadialGradient(bobX-5, bobY-5, 2, bobX, bobY, bobR);
+    grad.addColorStop(0, '#fff3d0');
+    grad.addColorStop(0.5, '#ffb703');
+    grad.addColorStop(1, '#8a6a1f');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(bobX, bobY, bobR, 0, 2*Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // قوس صغير لتمثيل الزاوية
+    ctx.strokeStyle = 'rgba(46,196,182,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(pivotX, pivotY, 25, Math.PI/2 - theta, Math.PI/2, theta < 0);
+    ctx.stroke();
+
+    // تحديث القراءات
+    document.getElementById('rt').textContent = t.toFixed(2);
+    document.getElementById('rth').textContent = (theta * 180 / Math.PI).toFixed(1);
+    document.getElementById('rw').textContent = (omega * 180 / Math.PI).toFixed(1);
+    document.getElementById('rv').textContent = (L * Math.abs(omega)).toFixed(1);
+  }
+
+  // ---------- رسم منحنى الزاوية θ(t) ----------
+  function drawGraph(){
+    const w = gcanvas.clientWidth, h = gcanvas.clientWidth*(480/560);
+    gctx.clearRect(0,0,w,h);
+
+    const padL = 42, padR = 14, padT = 14, padB = 26;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    const tMax = t;
+    const tMin = Math.max(0, tMax - TRACE_WINDOW);
+
+    let visible = trace.filter(p => p.t >= tMin);
+    // تحديد مدى المحور الرأسي (الزاوية بالدرجات)
+    let yMin = -5, yMax = 5;
+    if (visible.length) {
+      const angles = visible.map(p => p.theta_deg);
+      yMin = Math.min(...angles) - 5;
+      yMax = Math.max(...angles) + 5;
+    }
+    if (yMax - yMin < 10) { const mid = (yMax+yMin)/2; yMin = mid-10; yMax = mid+10; }
+
+    function px(tv){ return padL + ((tv - tMin) / TRACE_WINDOW) * plotW; }
+    function py(val){ return padT + (1 - (val - yMin)/(yMax-yMin)) * plotH; }
+
+    // شبكة الخطوط
+    gctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    gctx.lineWidth = 1;
+    gctx.fillStyle = 'rgba(139,160,189,0.8)';
+    gctx.font = '10px JetBrains Mono, monospace';
+    // خطوط رأسية كل ثانية
+    for (let i = 0; i <= TRACE_WINDOW; i += 1) {
+      const gx = padL + (i/TRACE_WINDOW) * plotW;
+      gctx.beginPath();
+      gctx.moveTo(gx, padT);
+      gctx.lineTo(gx, padT+plotH);
+      gctx.stroke();
+      if (i % 2 === 0) {
+        const label = (tMin + i).toFixed(0);
+        gctx.fillText(label, gx-6, padT+plotH+16);
+      }
+    }
+    // خطوط أفقية
+    const hLines = 5;
+    for (let i = 0; i <= hLines; i++) {
+      const gy = padT + (i/hLines) * plotH;
+      gctx.beginPath();
+      gctx.moveTo(padL, gy);
+      gctx.lineTo(padL+plotW, gy);
+      gctx.stroke();
+      const val = yMax - (i/hLines)*(yMax-yMin);
+      gctx.fillText(val.toFixed(0), 4, gy+3);
+    }
+
+    // خط الصفر (θ=0)
+    if (yMin < 0 && yMax > 0) {
+      gctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      gctx.beginPath();
+      gctx.moveTo(padL, py(0));
+      gctx.lineTo(padL+plotW, py(0));
+      gctx.stroke();
+    }
+
+    // تسمية المحاور
+    gctx.fillStyle = 'rgba(139,160,189,0.9)';
+    gctx.font = '11px Tajawal, sans-serif';
+    gctx.fillText('t (s)', padL+plotW-16, padT+plotH+16);
+
+    // رسم منحنى θ(t)
+    if (visible.length > 1) {
+      gctx.strokeStyle = '#ffb703';
+      gctx.lineWidth = 2.5;
+      gctx.shadowColor = 'rgba(255,183,3,0.4)';
+      gctx.shadowBlur = 4;
+      gctx.beginPath();
+      visible.forEach((p, i) => {
+        const X = px(p.t), Y = py(p.theta_deg);
+        if (i === 0) gctx.moveTo(X, Y);
+        else gctx.lineTo(X, Y);
+      });
+      gctx.stroke();
+      gctx.shadowBlur = 0;
+    }
+
+    // مؤشر الزمن الحالي (خط عمودي متقطع)
+    const currentX = px(t);
+    if (currentX >= padL && currentX <= padL+plotW) {
+      gctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      gctx.lineWidth = 1.5;
+      gctx.setLineDash([6, 4]);
+      gctx.beginPath();
+      gctx.moveTo(currentX, padT);
+      gctx.lineTo(currentX, padT+plotH);
+      gctx.stroke();
+      gctx.setLineDash([]);
+
+      // نقطة عند القيمة الحالية
+      const currentThetaDeg = theta * 180 / Math.PI;
+      const currentY = py(currentThetaDeg);
+      gctx.fillStyle = '#ffb703';
+      gctx.beginPath();
+      gctx.arc(currentX, currentY, 5, 0, 2*Math.PI);
+      gctx.fill();
+    }
+
+    // إطار
+    gctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    gctx.strokeRect(padL, padT, plotW, plotH);
+  }
+
+  // ---------- حلقة الحركة ----------
+  let lastTime = null;
+  function frame(now){
+    if (lastTime === null) lastTime = now;
+    let dt = (now - lastTime) / 1000;
+    lastTime = now;
+    dt = Math.min(dt, 0.04); // حد أقصى للخطوة
+
+    if (running) {
+      const sub = 4;
+      for (let i = 0; i < sub; i++) rk4Step(dt/sub);
+      // تسجيل البيانات للرسم البياني
+      trace.push({ t, theta_deg: theta * 180 / Math.PI });
+      if (trace.length > 2000) trace.shift();
+
+      // تسجيل نقطة المسار (إحداثيات الشاشة)
+      const w = canvas.clientWidth, h = canvas.clientWidth*(480/560);
+      const pivotX = w * 0.5, pivotY = h * 0.18;
+      const maxL = 150;
+      const scale = Math.min(w*0.4, h*0.7) / maxL;
+      const L_px = L * scale;
+      const bobX = pivotX + L_px * Math.sin(theta);
+      const bobY = pivotY + L_px * Math.cos(theta);
+      pathPoints.push({ x: bobX, y: bobY });
+      if (pathPoints.length > MAX_PATH_POINTS) pathPoints.shift();
+    }
+
+    drawSim();
+    drawGraph();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- ربط عناصر التحكم ----------
+  ['s_L','s_th0','s_g','s_m'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => { reset(); });
+  });
+  document.getElementById('btnPlay').addEventListener('click', (e) => {
+    running = !running;
+    e.target.textContent = running ? 'إيقاف مؤقت ⏸' : 'استئناف ▶';
+  });
+  document.getElementById('btnReset').addEventListener('click', () => {
+    reset();
+    running = true;
+    document.getElementById('btnPlay').textContent = 'إيقاف مؤقت ⏸';
+  });
+  document.getElementById('btnClearTrace').addEventListener('click', () => {
+    trace = [];
+    pathPoints = [];
+  });
+
+  window.addEventListener('resize', () => {});
+
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
