@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة الرادار النبضي | Radar Simulation</title>
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --panel-bg: #12122a;
+            --text: #e0e0e0;
+            --gold: #f0c060;
+            --accent1: #4da6ff;
+            --accent2: #ff6b6b;
+            --accent3: #5eff6b;
+            --border: #2a2a4a;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            direction: rtl;
+        }
+        .main-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 5px;
+            text-shadow: 0 0 20px rgba(240,192,96,0.5);
+        }
+        .sub-title {
+            font-size: 0.9rem;
+            color: #aaa;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+            max-width: 1100px;
+            justify-content: center;
+        }
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .panel h3 {
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        canvas {
+            display: block;
+            border-radius: 10px;
+            background: #060610;
+            border: 1px solid #1e1e3a;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #1a1a35;
+            color: #ddd;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .btn:hover {
+            background: #2a2a55;
+            border-color: #777;
+        }
+        .btn.active {
+            background: var(--accent1);
+            color: #000;
+            border-color: var(--accent1);
+            box-shadow: 0 0 16px rgba(77,166,255,0.5);
+        }
+        .btn.accent2 {
+            background: var(--accent2);
+            border-color: var(--accent2);
+            color: #fff;
+        }
+        .info-text {
+            font-size: 0.8rem;
+            color: #bbb;
+            text-align: center;
+            margin-top: 6px;
+        }
+        .distance-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent3);
+            background: #00000044;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+        @media (max-width: 850px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            canvas {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-title">📡 محاكاة الرادار النبضي</div>
+    <div class="sub-title">افهم كيف يرسل الرادار نبضة، تنعكس عن الهدف، وتُحسب المسافة</div>
+
+    <div class="container">
+        <!-- شاشة الرادار PPI -->
+        <div class="panel">
+            <h3>شاشة الرادار (PPI)</h3>
+            <canvas id="radarCanvas" width="400" height="400"></canvas>
+            <div class="info-text">اسحب الهدف (الدائرة البيضاء) لتغيير موقعه</div>
+            <div class="controls">
+                <button class="btn" id="btnPulse">📤 إرسال نبضة</button>
+                <button class="btn active" id="btnAutoPulse">🔄 تلقائي</button>
+                <span style="font-size:0.7rem;color:#aaa;">المدى الأقصى: 300 كم</span>
+            </div>
+            <div class="distance-display" id="distanceDisplay">المسافة: -- كم</div>
+        </div>
+
+        <!-- شاشة A-scope -->
+        <div class="panel">
+            <h3>راسم الإشارة (A-Scope)</h3>
+            <canvas id="ascopeCanvas" width="380" height="200"></canvas>
+            <div class="info-text">النبضة المرسلة (أصفر) والصدى المنعكس (أحمر)</div>
+            <div class="controls">
+                <span style="font-size:0.75rem;">⏱ الزمن (مقيس بالمحاكاة)</span>
+            </div>
+            <div class="distance-display" id="timeDisplay">زمن الرحلة: -- ثانية</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ========== عناصر HTML ==========
+            const radarCanvas = document.getElementById('radarCanvas');
+            const radarCtx = radarCanvas.getContext('2d');
+            const ascopeCanvas = document.getElementById('ascopeCanvas');
+            const ascopeCtx = ascopeCanvas.getContext('2d');
+
+            const btnPulse = document.getElementById('btnPulse');
+            const btnAutoPulse = document.getElementById('btnAutoPulse');
+            const distanceDisplay = document.getElementById('distanceDisplay');
+            const timeDisplay = document.getElementById('timeDisplay');
+
+            // ========== متغيرات الرادار ==========
+            const PPI_WIDTH = radarCanvas.width;
+            const PPI_HEIGHT = radarCanvas.height;
+            const PPI_CENTER_X = PPI_WIDTH / 2;
+            const PPI_CENTER_Y = PPI_HEIGHT / 2;
+            const PPI_RADIUS = 180; // نصف قطر شاشة الرادار بالبكسل
+            const MAX_RANGE_KM = 300; // أقصى مدى بالكيلومتر
+            const PIXELS_PER_KM = PPI_RADIUS / MAX_RANGE_KM; // بكسل لكل كم
+
+            // الهدف (بالكم وبالزاوية)
+            let targetRangeKm = 120; // المسافة الحالية للهدف (كم)
+            let targetAngleDeg = 45; // الزاوية بالدرجات (0 = يمين، 90 = أعلى، الخ)
+            // تحويل إلى إحداثيات ديكارتية على الشاشة
+            function getTargetXY() {
+                const angleRad = (targetAngleDeg - 90) * Math.PI / 180; // تعديل ليتوافق مع رسم الشاشة
+                const x = PPI_CENTER_X + targetRangeKm * PIXELS_PER_KM * Math.cos(angleRad);
+                const y = PPI_CENTER_Y + targetRangeKm * PIXELS_PER_KM * Math.sin(angleRad);
+                return { x, y };
+            }
+
+            // النبضات المرسلة: كل نبضة كائن { startTime, speed, color, returned? }
+            let pulses = [];
+            const PULSE_SPEED_PX_PER_SEC = 80; // سرعة انتشار النبضة على الشاشة (بكسل/ثانية) - مكبرة للرؤية
+            let lastPulseTime = -10; // وقت آخر نبضة أرسلت (لمنع التكرار السريع)
+
+            // خط المسح الدوار
+            let sweepAngle = 0; // بالدرجات
+            const SWEEP_SPEED = 60; // درجة في الثانية (دورة كاملة = 6 ثوان)
+            let autoPulseEnabled = true;
+            const AUTO_PULSE_INTERVAL = 2.5; // ثانية بين النبضات التلقائية
+
+            // حالة السحب
+            let isDragging = false;
+
+            // ========== دوال المساعدة ==========
+            function degToRad(deg) {
+                return deg * Math.PI / 180;
+            }
+
+            // حساب المسافة من المركز بالبكسل
+            function distanceFromCenter(x, y) {
+                const dx = x - PPI_CENTER_X;
+                const dy = y - PPI_CENTER_Y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            // تحويل إحداثيات الشاشة إلى مدى وزاوية
+            function screenToRangeAngle(x, y) {
+                const dx = x - PPI_CENTER_X;
+                const dy = y - PPI_CENTER_Y;
+                const distPx = Math.sqrt(dx * dx + dy * dy);
+                let rangeKm = distPx / PIXELS_PER_KM;
+                rangeKm = Math.min(Math.max(rangeKm, 10), MAX_RANGE_KM); // تحديد المجال
+                let angleRad = Math.atan2(dy, dx);
+                let angleDeg = angleRad * 180 / Math.PI + 90;
+                if (angleDeg < 0) angleDeg += 360;
+                return { rangeKm, angleDeg };
+            }
+
+            // ========== رسم شاشة PPI ==========
+            function drawRadarBackground() {
+                const ctx = radarCtx;
+                ctx.clearRect(0, 0, PPI_WIDTH, PPI_HEIGHT);
+
+                // دوائر المدى
+                ctx.strokeStyle = '#1a3a3a';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 6]);
+                for (let r = 50; r <= PPI_RADIUS; r += 50) {
+                    ctx.beginPath();
+                    ctx.arc(PPI_CENTER_X, PPI_CENTER_Y, r, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    ctx.fillStyle = '#2a5a5a';
+                    ctx.font = '9px Segoe UI';
+                    ctx.textAlign = 'center';
+                    const km = (r / PIXELS_PER_KM).toFixed(0);
+                    ctx.fillText(km + ' كم', PPI_CENTER_X + r - 20, PPI_CENTER_Y - 5);
+                }
+                ctx.setLineDash([]);
+
+                // خطوط الزوايا
+                for (let a = 0; a < 360; a += 30) {
+                    const rad = degToRad(a - 90);
+                    const x = PPI_CENTER_X + PPI_RADIUS * Math.cos(rad);
+                    const y = PPI_CENTER_Y + PPI_RADIUS * Math.sin(rad);
+                    ctx.beginPath();
+                    ctx.moveTo(PPI_CENTER_X, PPI_CENTER_Y);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = '#1a2a2a';
+                    ctx.stroke();
+                }
+            }
+
+            function drawRadar(timestamp) {
+                drawRadarBackground();
+
+                const ctx = radarCtx;
+                // خط المسح
+                const sweepRad = degToRad(sweepAngle - 90);
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(PPI_CENTER_X, PPI_CENTER_Y);
+                const sweepEndX = PPI_CENTER_X + PPI_RADIUS * Math.cos(sweepRad);
+                const sweepEndY = PPI_CENTER_Y + PPI_RADIUS * Math.sin(sweepRad);
+                ctx.lineTo(sweepEndX, sweepEndY);
+                ctx.strokeStyle = 'rgba(77, 166, 255, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.shadowColor = '#4da6ff';
+                ctx.shadowBlur = 12;
+                ctx.stroke();
+                ctx.restore();
+
+                // رسم الهدف
+                const targetPos = getTargetXY();
+                ctx.beginPath();
+                ctx.arc(targetPos.x, targetPos.y, 7, 0, 2 * Math.PI);
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 16;
+                ctx.fill();
+                ctx.strokeStyle = '#aaa';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('هدف', targetPos.x, targetPos.y - 15);
+
+                // رسم النبضات
+                const now = timestamp / 1000; // الزمن بالثواني
+                for (let i = pulses.length - 1; i >= 0; i--) {
+                    const pulse = pulses[i];
+                    const elapsed = now - pulse.startTime;
+                    const distancePx = elapsed * PULSE_SPEED_PX_PER_SEC;
+
+                    if (!pulse.returned) {
+                        // النبضة الخارجة: حلقة متمددة
+                        if (distancePx > PPI_RADIUS + 30) {
+                            pulses.splice(i, 1); // تجاوزت المدى
+                            continue;
+                        }
+                        ctx.beginPath();
+                        ctx.arc(PPI_CENTER_X, PPI_CENTER_Y, distancePx, 0, 2 * Math.PI);
+                        ctx.strokeStyle = pulse.color || '#f0c060';
+                        ctx.lineWidth = 2.5;
+                        ctx.shadowColor = '#f0c060';
+                        ctx.shadowBlur = 12;
+                        ctx.setLineDash([8, 4]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.shadowBlur = 0;
+
+                        // فحص الاصطدام بالهدف
+                        const targetDistPx = targetRangeKm * PIXELS_PER_KM;
+                        if (Math.abs(distancePx - targetDistPx) < 8 && !pulse.hitTarget) {
+                            pulse.hitTarget = true;
+                            // إنشاء نبضة عائدة
+                            pulses.push({
+                                startTime: now,
+                                color: '#ff6b6b',
+                                returned: true,
+                                originDistPx: targetDistPx,
+                                speed: PULSE_SPEED_PX_PER_SEC,
+                                hitTarget: true
+                            });
+                        }
+                    } else {
+                        // النبضة العائدة: حلقة متقلصة من موقع الهدف
+                        const remainingDist = pulse.originDistPx - distancePx;
+                        if (remainingDist <= 0) {
+                            // وصلت إلى المركز -> نحسب المسافة والزمن
+                            const totalTime = (pulse.originDistPx * 2) / PULSE_SPEED_PX_PER_SEC;
+                            const distanceKm = (totalTime * (300000 / 3600)) / 2; // استخدام سرعة الضوء المصغرة للعرض
+                            // نستخدم مقياس المحاكاة: السرعة الحقيقية للضوء = 300,000 كم/ث، لكننا نضرب في عامل زمني
+                            // لحساب متناسب: المسافة بالكم = (المسافة بالبكسل / PIXELS_PER_KM)
+                            const simulatedDistanceKm = pulse.originDistPx / PIXELS_PER_KM;
+                            distanceDisplay.textContent = `المسافة: ${simulatedDistanceKm.toFixed(1)} كم`;
+                            timeDisplay.textContent = `زمن الرحلة: ${totalTime.toFixed(2)} ثانية (محاكاة)`;
+                            pulses.splice(i, 1);
+                            continue;
+                        }
+                        ctx.beginPath();
+                        ctx.arc(PPI_CENTER_X, PPI_CENTER_Y, remainingDist, 0, 2 * Math.PI);
+                        ctx.strokeStyle = pulse.color;
+                        ctx.lineWidth = 2.5;
+                        ctx.shadowColor = '#ff6b6b';
+                        ctx.shadowBlur = 14;
+                        ctx.setLineDash([6, 3]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.shadowBlur = 0;
+                    }
+                }
+
+                // رسم علامة صغيرة لنبضة الإرسال عند المركز أحياناً
+                if (pulses.some(p => !p.returned && (now - p.startTime) < 0.1)) {
+                    ctx.beginPath();
+                    ctx.arc(PPI_CENTER_X, PPI_CENTER_Y, 6, 0, 2*Math.PI);
+                    ctx.fillStyle = '#f0c060';
+                    ctx.shadowBlur = 16;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            // ========== رسم A-Scope ==========
+            function drawAScope(timestamp) {
+                const ctx = ascopeCtx;
+                const w = ascopeCanvas.width;
+                const h = ascopeCanvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                // المحور الأفقي (الزمن)
+                const marginLeft = 50;
+                const marginRight = 30;
+                const axisY = h - 45;
+                const axisLength = w - marginLeft - marginRight;
+
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(marginLeft, axisY);
+                ctx.lineTo(marginLeft + axisLength, axisY);
+                ctx.stroke();
+
+                // تسميات الزمن
+                ctx.fillStyle = '#888';
+                ctx.font = '9px Segoe UI';
+                ctx.textAlign = 'center';
+                const maxTimeRange = 5; // ثواني معروضة
+                for (let t = 0; t <= maxTimeRange; t += 1) {
+                    const x = marginLeft + (t / maxTimeRange) * axisLength;
+                    ctx.fillText(t + 's', x, axisY + 15);
+                }
+                ctx.fillText('الزمن (ثانية)', marginLeft + axisLength/2, axisY + 30);
+
+                // نبضة الإرسال (تظهر عند بداية كل نبضة مرسلة)
+                const now = timestamp / 1000;
+                for (let pulse of pulses) {
+                    if (!pulse.returned && (now - pulse.startTime) < 0.2) {
+                        const x = marginLeft + 5;
+                        ctx.fillStyle = '#f0c060';
+                        ctx.shadowColor = '#f0c060';
+                        ctx.shadowBlur = 12;
+                        ctx.fillRect(x, axisY - 30, 18, 60);
+                        ctx.shadowBlur = 0;
+                    }
+                }
+
+                // الصدى (النبضة العائدة) يظهر في الزمن المناسب
+                for (let pulse of pulses) {
+                    if (pulse.returned) {
+                        const elapsed = now - pulse.startTime;
+                        const totalTravelTime = (pulse.originDistPx * 2) / PULSE_SPEED_PX_PER_SEC;
+                        const timeOfEcho = totalTravelTime - elapsed; // الزمن المتبقي للوصول للمركز
+                        const echoTime = totalTravelTime - timeOfEcho; // هذا يساوي elapsed عملياً
+                        // الأفضل: نعرض الصدى عند الزمن الكلي للرحلة منذ بدء النبضة الأصلية
+                        // لكن pulse.startTime هو وقت بدء العودة. لذا وقت الصدى من بدء النبضة الأصلية = (pulse.originDistPx / PULSE_SPEED_PX_PER_SEC) + elapsed
+                        // لكننا سنعرض فقط النبضة العائدة أثناء رحلتها
+                        const xPos = marginLeft + (elapsed / maxTimeRange) * axisLength;
+                        if (xPos < marginLeft + axisLength && xPos > marginLeft) {
+                            ctx.fillStyle = '#ff6b6b';
+                            ctx.shadowColor = '#ff6b6b';
+                            ctx.shadowBlur = 14;
+                            ctx.fillRect(xPos - 5, axisY - 35, 14, 70);
+                            ctx.shadowBlur = 0;
+                        }
+                    }
+                }
+
+                // رسم نبضة الإرسال المرجعية بشكل دائم خافت
+                ctx.fillStyle = 'rgba(240,192,96,0.25)';
+                ctx.fillRect(marginLeft, axisY - 20, 10, 40);
+            }
+
+            // ========== إرسال نبضة ==========
+            function sendPulse(timestamp) {
+                const now = timestamp / 1000;
+                if (now - lastPulseTime < 0.3) return; // منع التكرار السريع
+                lastPulseTime = now;
+                pulses.push({
+                    startTime: now,
+                    color: '#f0c060',
+                    returned: false,
+                    hitTarget: false
+                });
+            }
+
+            // ========== التحديث الدوري ==========
+            let lastFrameTime = performance.now();
+            function animate(timestamp) {
+                const dt = (timestamp - lastFrameTime) / 1000;
+                lastFrameTime = timestamp;
+
+                // تحديث زاوية المسح
+                sweepAngle += SWEEP_SPEED * dt;
+                sweepAngle %= 360;
+
+                // إرسال تلقائي
+                if (autoPulseEnabled) {
+                    const now = timestamp / 1000;
+                    if (now - lastPulseTime > AUTO_PULSE_INTERVAL) {
+                        sendPulse(timestamp);
+                    }
+                }
+
+                // رسم الشاشتين
+                drawRadar(timestamp);
+                drawAScope(timestamp);
+
+                requestAnimationFrame(animate);
+            }
+
+            // ========== أحداث السحب ==========
+            function handleMouseDown(e) {
+                const rect = radarCanvas.getBoundingClientRect();
+                const scaleX = PPI_WIDTH / rect.width;
+                const scaleY = PPI_HEIGHT / rect.height;
+                const mouseX = (e.clientX - rect.left) * scaleX;
+                const mouseY = (e.clientY - rect.top) * scaleY;
+
+                const targetPos = getTargetXY();
+                const dist = Math.hypot(mouseX - targetPos.x, mouseY - targetPos.y);
+                if (dist < 20) {
+                    isDragging = true;
+                    e.preventDefault();
+                }
+            }
+            function handleMouseMove(e) {
+                if (!isDragging) return;
+                const rect = radarCanvas.getBoundingClientRect();
+                const scaleX = PPI_WIDTH / rect.width;
+                const scaleY = PPI_HEIGHT / rect.height;
+                const mouseX = (e.clientX - rect.left) * scaleX;
+                const mouseY = (e.clientY - rect.top) * scaleY;
+
+                const distFromCenter = distanceFromCenter(mouseX, mouseY);
+                if (distFromCenter < 15 || distFromCenter > PPI_RADIUS) return;
+
+                const { rangeKm, angleDeg } = screenToRangeAngle(mouseX, mouseY);
+                targetRangeKm = rangeKm;
+                targetAngleDeg = angleDeg;
+            }
+            function handleMouseUp() {
+                isDragging = false;
+            }
+
+            radarCanvas.addEventListener('mousedown', handleMouseDown);
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+
+            // دعم اللمس
+            radarCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = radarCanvas.getBoundingClientRect();
+                const scaleX = PPI_WIDTH / rect.width;
+                const scaleY = PPI_HEIGHT / rect.height;
+                const touchX = (touch.clientX - rect.left) * scaleX;
+                const touchY = (touch.clientY - rect.top) * scaleY;
+                const targetPos = getTargetXY();
+                if (Math.hypot(touchX - targetPos.x, touchY - targetPos.y) < 25) {
+                    isDragging = true;
+                }
+            }, { passive: false });
+            radarCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const rect = radarCanvas.getBoundingClientRect();
+                const scaleX = PPI_WIDTH / rect.width;
+                const scaleY = PPI_HEIGHT / rect.height;
+                const touchX = (touch.clientX - rect.left) * scaleX;
+                const touchY = (touch.clientY - rect.top) * scaleY;
+                const dist = distanceFromCenter(touchX, touchY);
+                if (dist < 15 || dist > PPI_RADIUS) return;
+                const { rangeKm, angleDeg } = screenToRangeAngle(touchX, touchY);
+                targetRangeKm = rangeKm;
+                targetAngleDeg = angleDeg;
+            }, { passive: false });
+            radarCanvas.addEventListener('touchend', () => { isDragging = false; });
+
+            // ========== أزرار التحكم ==========
+            btnPulse.addEventListener('click', () => {
+                sendPulse(performance.now());
+            });
+            btnAutoPulse.addEventListener('click', () => {
+                autoPulseEnabled = !autoPulseEnabled;
+                btnAutoPulse.classList.toggle('active', autoPulseEnabled);
+                btnAutoPulse.textContent = autoPulseEnabled ? '🔄 تلقائي (قيد التشغيل)' : '🔄 تلقائي (متوقف)';
+            });
+
+            // ========== بدء المحاكاة ==========
+            requestAnimationFrame(animate);
+
+            console.log('✅ محاكاة الرادار النبضي جاهزة.');
+            console.log('🖱 اسحب الهدف لتغيير المسافة والاتجاه.');
+            console.log('📡 النبضة الصفراء تنطلق، والحمراء تعود محملة بالصدى.');
+        })();
+    </script>
+</body>
+</html>
