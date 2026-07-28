@@ -1,595 +1,385 @@
-  <!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>النواس المرن — Pendule Élastique</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>محاكاة الحركة الاهتزازية الأفقية</title>
 <style>
-  :root{
-    --bg:#0e1a2b;
-    --bg-deep:#0a1420;
-    --panel:#152münchen; /* placeholder removed below */
-    --panel:#152a42;
-    --panel-2:#1b3352;
-    --line:rgba(255,255,255,0.08);
-    --text:#eef3f9;
-    --muted:#8ba0bd;
-    --amber:#ffb703;
-    --amber-dim:#8a6a1f;
-    --teal:#2ec4b6;
-    --coral:#ff6b6b;
-    --grid:rgba(255,255,255,0.05);
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a, #1e293b);
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 16px;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(circle at 15% 8%, rgba(46,196,182,0.06), transparent 40%),
-      radial-gradient(circle at 85% 90%, rgba(255,183,3,0.05), transparent 45%),
-      var(--bg);
-    color:var(--text);
-    font-family:'Tajawal', sans-serif;
-    min-height:100vh;
-    padding:22px 16px 60px;
+  h1 {
+    text-align: center;
+    font-size: 1.3rem;
+    margin: 8px 0 18px;
+    color: #93c5fd;
   }
-  .mono{font-family:'JetBrains Mono', monospace;}
-
-  header{
-    max-width:1180px;
-    margin:0 auto 22px;
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:8px;
-    border-bottom:1px solid var(--line);
-    padding-bottom:16px;
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
-  header h1{
-    font-size:26px;
-    font-weight:900;
-    margin:0;
-    letter-spacing:0.5px;
+  .panel {
+    background: #111827;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
-  header h1 span{
-    color:var(--amber);
+  canvas {
+    display: block;
+    width: 100%;
+    background: #0b1220;
+    border-radius: 10px;
   }
-  header .sub{
-    color:var(--muted);
-    font-size:13px;
-    font-weight:400;
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
   }
-
-  .wrap{
-    max-width:1180px;
-    margin:0 auto;
-    display:grid;
-    grid-template-columns:1.05fr 1fr;
-    gap:18px;
+  .ctrl-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 110px;
   }
-  @media (max-width:900px){
-    .wrap{grid-template-columns:1fr;}
+  .ctrl-group label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
   }
-
-  .panel{
-    background:linear-gradient(180deg, var(--panel-2), var(--panel));
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:14px 14px 10px;
-    position:relative;
-    overflow:hidden;
+  .ctrl-group span {
+    font-weight: bold;
+    color: #38bdf8;
   }
-  .panel::before{
-    content:"";
-    position:absolute; inset:0;
-    background-image:radial-gradient(var(--grid) 1px, transparent 1px);
-    background-size:22px 22px;
-    opacity:0.5;
-    pointer-events:none;
+  input[type=range] { width: 130px; }
+  .buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 4px;
   }
-  .panel h2{
-    font-size:13px;
-    font-weight:700;
-    color:var(--muted);
-    margin:0 0 8px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    letter-spacing:0.5px;
-    position:relative;
-    z-index:1;
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: 0.2s;
   }
-  .panel h2 i{
-    width:7px;height:7px;border-radius:50%;
-    background:var(--amber);
-    box-shadow:0 0 8px var(--amber);
-    display:inline-block;
+  button:hover { background: #1d4ed8; }
+  button.secondary { background: #475569; }
+  button.secondary:hover { background: #334155; }
+  .info {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin-top: 6px;
   }
-  canvas{
-    display:block;
-    width:100%;
-    border-radius:10px;
-    background:var(--bg-deep);
-    position:relative;
-    z-index:1;
+  .note {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #f59e0b;
+    margin-top: 4px;
   }
-
-  .readout{
-    position:relative; z-index:1;
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:8px;
-    margin-top:10px;
-  }
-  .readout div{
-    background:rgba(0,0,0,0.25);
-    border:1px solid var(--line);
-    border-radius:8px;
-    padding:7px 8px;
-    text-align:center;
-  }
-  .readout .lbl{font-size:10.5px;color:var(--muted);margin-bottom:2px;}
-  .readout .val{font-size:14px;font-weight:700;}
-  .readout .val.amber{color:var(--amber);}
-  .readout .val.teal{color:var(--teal);}
-  .readout .val.coral{color:var(--coral);}
-
-  .legend{
-    display:flex; gap:14px; margin-top:8px; font-size:11.5px; color:var(--muted);
-    position:relative; z-index:1;
-  }
-  .legend span{display:flex;align-items:center;gap:5px;}
-  .legend i{width:14px;height:3px;border-radius:2px;display:inline-block;}
-
-  .controls{
-    max-width:1180px;
-    margin:18px auto 0;
-    background:linear-gradient(180deg, var(--panel-2), var(--panel));
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:16px 18px;
-  }
-  .controls h2{
-    font-size:13px; font-weight:700; color:var(--muted); margin:0 0 12px;
-  }
-  .sliders{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:14px 18px;
-  }
-  @media (max-width:900px){ .sliders{grid-template-columns:repeat(2,1fr);} }
-  .slider-item label{
-    display:flex; justify-content:space-between;
-    font-size:12.5px; color:var(--muted); margin-bottom:4px;
-  }
-  .slider-item label b{color:var(--text); font-weight:700;}
-  .slider-item .val{color:var(--amber); font-family:'JetBrains Mono',monospace; font-size:12px;}
-  input[type=range]{
-    width:100%;
-    accent-color:var(--amber);
-    height:4px;
-    cursor:pointer;
-  }
-
-  .buttons{
-    display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;
-  }
-  button{
-    font-family:'Tajawal',sans-serif;
-    font-weight:700;
-    font-size:13.5px;
-    border:1px solid var(--line);
-    background:rgba(255,255,255,0.03);
-    color:var(--text);
-    padding:9px 18px;
-    border-radius:9px;
-    cursor:pointer;
-    transition:all .15s ease;
-  }
-  button:hover{border-color:var(--amber); color:var(--amber);}
-  button.primary{
-    background:var(--amber);
-    color:#1a1204;
-    border-color:var(--amber);
-  }
-  button.primary:hover{
-    background:#ffc733; color:#1a1204;
-  }
-  button.ghost:hover{border-color:var(--teal); color:var(--teal);}
-
-  footer{
-    max-width:1180px; margin:20px auto 0; color:var(--muted); font-size:12px; line-height:1.9;
-    border-top:1px solid var(--line); padding-top:14px;
-  }
-  footer b{color:var(--text);}
 </style>
 </head>
 <body>
-
-<header>
-  <div>
-    <h1>النواس المرن <span>·</span> Pendule Élastique</h1>
-    <div class="sub">محاكاة حية لحركة كتلة معلّقة بنابض — رسم الحركة ومنحنى تغيّر الموضع بدلالة الزمن</div>
-  </div>
-</header>
-
-<div class="wrap">
-  <div class="panel">
-    <h2><i></i>مرافقة الحركة — Animation</h2>
-    <canvas id="sim" width="560" height="480"></canvas>
-    <div class="readout">
-      <div><div class="lbl">الزمن t (s)</div><div class="val mono" id="rt">0.00</div></div>
-      <div><div class="lbl">استطالة النابض r (cm)</div><div class="val amber mono" id="rr">0.00</div></div>
-      <div><div class="lbl">الزاوية θ (°)</div><div class="val teal mono" id="rth">0.00</div></div>
-      <div><div class="lbl">السرعة |v| (cm/s)</div><div class="val coral mono" id="rv">0.00</div></div>
-    </div>
-  </div>
+<h1>محاكاة الحركة الاهتزازية الأفقية (يمين ⇄ يسار) ورسم منحناها الجيبي</h1>
+<div class="container">
 
   <div class="panel">
-    <h2><i></i>منحنى الموضع بدلالة الزمن — x(t) و y(t)</h2>
-    <canvas id="graph" width="560" height="480"></canvas>
-    <div class="legend">
-      <span><i style="background:var(--teal)"></i> x(t) — الموضع الأفقي</span>
-      <span><i style="background:var(--coral)"></i> y(t) — الموضع الرأسي (طول النابض)</span>
-    </div>
+    <canvas id="mainCanvas" height="520"></canvas>
+    <div class="note">الجسم يهتز يمينًا ويسارًا في الأعلى، والمنحنى يُرسم أسفله بنفس المحور الأفقي (الموضع x) — الخط المتقطع العمودي يربط الجسم بالنقطة المقابلة على المنحنى لحظيًا</div>
   </div>
-</div>
 
-<div class="controls">
-  <h2>الوسائط الفيزيائية — Paramètres</h2>
-  <div class="sliders">
-    <div class="slider-item">
-      <label>الكتلة m (g) <span class="val" id="v_m">120</span></label>
-      <input type="range" id="s_m" min="40" max="300" step="5" value="120">
+  <div class="panel controls">
+    <div class="ctrl-group">
+      <label>السعة A (cm) <span id="ampVal">3</span></label>
+      <input type="range" id="amp" min="1" max="5" step="0.5" value="3">
     </div>
-    <div class="slider-item">
-      <label>صلابة النابض k (N/m) <span class="val" id="v_k">18</span></label>
-      <input type="range" id="s_k" min="4" max="45" step="1" value="18">
+    <div class="ctrl-group">
+      <label>الدور T (s) <span id="periodVal">2.0</span></label>
+      <input type="range" id="period" min="0.5" max="5" step="0.1" value="2.0">
     </div>
-    <div class="slider-item">
-      <label>الطول الطبيعي L₀ (cm) <span class="val" id="v_l0">18</span></label>
-      <input type="range" id="s_l0" min="8" max="30" step="1" value="18">
-    </div>
-    <div class="slider-item">
-      <label>الاستطالة الابتدائية Δr₀ (cm) <span class="val" id="v_dr0">6</span></label>
-      <input type="range" id="s_dr0" min="-10" max="15" step="1" value="6">
-    </div>
-    <div class="slider-item">
-      <label>الزاوية الابتدائية θ₀ (°) <span class="val" id="v_th0">28</span></label>
-      <input type="range" id="s_th0" min="0" max="70" step="1" value="28">
+    <div class="ctrl-group">
+      <label>الطور الابتدائي φ° <span id="phaseVal">0</span></label>
+      <input type="range" id="phase" min="0" max="360" step="10" value="0">
     </div>
   </div>
-  <div class="buttons">
-    <button class="primary" id="btnPlay">إيقاف مؤقت ⏸</button>
-    <button class="ghost" id="btnReset">إعادة ضبط ↺</button>
-    <button class="ghost" id="btnClearTrace">مسح المنحنى ✕</button>
-  </div>
-</div>
 
-<footer>
-  النموذج: نابض ذو ثابت صلابة <b>k</b> يحمل كتلة <b>m</b>، يتأرجح بحرية في مستوى رأسي (استطالة واستدارة معًا).
-  المعادلات التفاضلية تُحل عدديًا بطريقة <b>Runge–Kutta من الرتبة 4</b> انطلاقًا من الإحداثيات القطبية
-  (r: طول النابض اللحظي، θ: الزاوية مع الرأسي). اللوحة اليمنى تعرض الوضع الحقيقي للنابض والكتلة،
-  واللوحة اليسرى ترسم إحداثيتَي الكتلة x(t) و y(t) عبر الزمن لإظهار طابع الحركة المركّبة (تذبذب + تأرجح).
-</footer>
+  <div class="panel">
+    <div class="buttons">
+      <button id="playBtn">▶ تشغيل</button>
+      <button id="resetBtn" class="secondary">↺ إعادة</button>
+    </div>
+    <div class="info" id="equationLine">x(t) = 3 cos(π t + 0°)</div>
+    <div class="info" id="liveInfo">t = 0.00 s &nbsp; | &nbsp; x = 3.00 cm &nbsp; | &nbsp; v = 0.00 cm/s</div>
+  </div>
+
+</div>
 
 <script>
-(function(){
-  const canvas = document.getElementById('sim');
-  const ctx = canvas.getContext('2d');
-  const gcanvas = document.getElementById('graph');
-  const gctx = gcanvas.getContext('2d');
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
 
-  function fit(cv){
-    const rect = cv.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    cv.width = rect.width * dpr;
-    cv.height = rect.width * (480/560) * dpr;
-    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+const ampSlider = document.getElementById('amp');
+const periodSlider = document.getElementById('period');
+const phaseSlider = document.getElementById('phase');
+const ampVal = document.getElementById('ampVal');
+const periodVal = document.getElementById('periodVal');
+const phaseVal = document.getElementById('phaseVal');
+const playBtn = document.getElementById('playBtn');
+const resetBtn = document.getElementById('resetBtn');
+const equationLine = document.getElementById('equationLine');
+const liveInfo = document.getElementById('liveInfo');
+
+let A = parseFloat(ampSlider.value);
+let T = parseFloat(periodSlider.value);
+let phiDeg = parseFloat(phaseSlider.value);
+let running = false;
+let t = 0;
+let lastTime = null;
+const timeWindow = 8;
+const history = [];
+
+function resizeCanvas() {
+  const ratio = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.height;
+  canvas.width = w * ratio;
+  canvas.height = h * ratio;
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
+
+function omega() { return 2 * Math.PI / T; }
+function phiRad() { return phiDeg * Math.PI / 180; }
+function x_of_t(time) { return A * Math.cos(omega() * time + phiRad()); }
+function v_of_t(time) { return -A * omega() * Math.sin(omega() * time + phiRad()); }
+
+function updateEquation() {
+  equationLine.textContent = `x(t) = ${A} cos(${(omega()).toFixed(2)} t + ${phiDeg}°)   [الوحدات: cm , s]`;
+}
+
+// تخطيط عام: المسار الأفقي في الأعلى، والمنحنى أسفله
+// المحور الأفقي (الموضع x) مشترك تمامًا بينهما بنفس مقياس البكسل ونفس مركز x=0
+// محور الزمن في المنحنى رأسي (ينمو نحو الأسفل): اللحظة الحالية دائمًا أعلى المنحنى، ملاصقة للمسار
+function draw() {
+  const w = canvas.clientWidth;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const padSide = 55;
+  const centerX = w / 2;
+  const maxA = 5.5;
+  const pxPerCm = ((w - 2 * padSide) / 2) / maxA;
+
+  const trackY = 70;      // ارتفاع خط المسار
+  const trackTop = 18;    // بداية منطقة المسار (تعليق الزنبرك)
+  const gapH = 26;        // فجوة بين المسار والمنحنى
+  const graphTop = trackY + gapH;
+  const graphBottom = h - 34;
+  const plotH = graphBottom - graphTop;
+
+  // ===== المسار الأفقي =====
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padSide - 10, trackY);
+  ctx.lineTo(w - padSide + 10, trackY);
+  ctx.stroke();
+
+  // خط التوازن x=0
+  ctx.strokeStyle = '#475569';
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(centerX, trackY - 25);
+  ctx.lineTo(centerX, trackY + 25);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('x=0', centerX, trackY - 32);
+
+  const xNow = x_of_t(t);
+  const ballX = centerX + xNow * pxPerCm;
+
+  // جدار وزنبرك أفقي من اليمين (نقطة تعليق ثابتة) إلى الجسم
+  const wallX = w - padSide + 10;
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(wallX - 4, trackY - 22, 8, 44);
+
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 1.5;
+  const coils = 12;
+  const springLen = wallX - ballX - 16;
+  ctx.beginPath();
+  ctx.moveTo(wallX, trackY);
+  for (let i = 0; i <= coils; i++) {
+    const cx = wallX - (springLen * i / coils);
+    const cy = trackY + (i % 2 === 0 ? -8 : 8);
+    ctx.lineTo(cx, cy);
   }
+  ctx.lineTo(ballX + 16, trackY);
+  ctx.stroke();
 
-  // ---------- physics state ----------
-  const G = 980; // cm/s^2
-  let m, k, L0, dr0, th0;
-  let r, th, rDot, thDot, t;
-  let running = true;
-  let trace = []; // {t, x, y}
-  const TRACE_WINDOW = 10; // seconds visible
+  // الجسم (كرة)
+  const grad = ctx.createRadialGradient(ballX-4, trackY-4, 3, ballX, trackY, 15);
+  grad.addColorStop(0, '#7dd3fc');
+  grad.addColorStop(1, '#0284c7');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(ballX, trackY, 15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#e0f2fe';
+  ctx.lineWidth = 1;
+  ctx.stroke();
 
-  function readParams(){
-    m   = parseFloat(document.getElementById('s_m').value);   // g
-    k   = parseFloat(document.getElementById('s_k').value);   // N/m
-    L0  = parseFloat(document.getElementById('s_l0').value);  // cm
-    dr0 = parseFloat(document.getElementById('s_dr0').value); // cm
-    th0 = parseFloat(document.getElementById('s_th0').value); // deg
-    document.getElementById('v_m').textContent = m;
-    document.getElementById('v_k').textContent = k;
-    document.getElementById('v_l0').textContent = L0;
-    document.getElementById('v_dr0').textContent = dr0;
-    document.getElementById('v_th0').textContent = th0;
-  }
+  // ===== منطقة المنحنى (أسفل) =====
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(centerX, graphTop);
+  ctx.lineTo(centerX, graphBottom);
+  ctx.moveTo(padSide - 10, graphTop);
+  ctx.lineTo(w - padSide + 10, graphTop);
+  ctx.stroke();
 
-  function reset(){
-    readParams();
-    r = L0 + dr0;
-    th = th0 * Math.PI/180;
-    rDot = 0;
-    thDot = 0;
-    t = 0;
-    trace = [];
-  }
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('x (cm)', centerX, graphTop - 8);
+  ctx.save();
+  ctx.translate(padSide - 30, graphTop + 30);
+  ctx.textAlign = 'center';
+  ctx.fillText('t (s)', 0, 0);
+  ctx.restore();
 
-  // k given in N/m -> convert to dyn/cm consistent with cgs (g, cm, s):
-  // 1 N/m = 1000 dyn / 100 cm = 10 dyn/cm... but let's just keep k in convenient
-  // simulation units directly (g/s^2) so motion looks physically reasonable.
-  function kEff(){ return k * 55; } // scaled for visually pleasing g/cm/s units
+  const tStart = Math.max(0, t - timeWindow);
 
-  function derivs(state){
-    const [r_, th_, rd_, thd_] = state;
-    const km = kEff() / m;
-    const rdd = r_*thd_*thd_ + G*Math.cos(th_) - km*(r_ - L0);
-    const thdd = -(G*Math.sin(th_) + 2*rd_*thd_) / r_;
-    return [rd_, thd_, rdd, thdd];
-  }
-
-  function rk4Step(dt){
-    const s0 = [r, th, rDot, thDot];
-    const a = derivs(s0);
-    const s1 = s0.map((v,i)=>v + a[i]*dt/2);
-    const b = derivs(s1);
-    const s2 = s0.map((v,i)=>v + b[i]*dt/2);
-    const c = derivs(s2);
-    const s3 = s0.map((v,i)=>v + c[i]*dt);
-    const d = derivs(s3);
-    const out = s0.map((v,i)=> v + dt/6*(a[i] + 2*b[i] + 2*c[i] + d[i]));
-    r = out[0]; th = out[1]; rDot = out[2]; thDot = out[3];
-    if (r < 3) r = 3; // guard against collapse
-    t += dt;
-  }
-
-  // ---------- drawing: pendulum ----------
-  function drawSpring(cx, x1,y1,x2,y2, coils, amp){
-    const dx = x2-x1, dy = y2-y1;
-    const len = Math.hypot(dx,dy);
-    const ux = dx/len, uy = dy/len;
-    const px = -uy, py = ux; // perpendicular
-    const endPad = Math.min(18, len*0.12);
-    const bodyLen = len - endPad*2;
-    const segs = coils*2;
-    cx.beginPath();
-    cx.moveTo(x1,y1);
-    let sx = x1+ux*endPad, sy = y1+uy*endPad;
-    cx.lineTo(sx,sy);
-    for(let i=1;i<=segs;i++){
-      const frac = i/segs;
-      const bx = x1+ux*(endPad+bodyLen*frac);
-      const by = y1+uy*(endPad+bodyLen*frac);
-      const sign = (i%2===0)?1:-1;
-      const ox = bx + px*amp*sign;
-      const oy = by + py*amp*sign;
-      cx.lineTo(ox,oy);
-    }
-    cx.lineTo(x2-ux*endPad, y2-uy*endPad);
-    cx.lineTo(x2,y2);
-    cx.stroke();
-  }
-
-  function drawSim(){
-    const w = canvas.clientWidth, h = canvas.clientWidth*(480/560);
-    ctx.clearRect(0,0,w,h);
-
-    const pivotX = w*0.5, pivotY = h*0.10;
-    const scale = 3.0 * (w/560);
-
-    const x = r*Math.sin(th);
-    const y = r*Math.cos(th);
-    const bobX = pivotX + x*scale;
-    const bobY = pivotY + y*scale;
-
-    // support bar
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-    ctx.lineWidth = 4;
+  // خطوط شبكة زمنية أفقية (كل ثانية)
+  ctx.strokeStyle = '#1e293b';
+  ctx.fillStyle = '#475569';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  for (let tt = Math.ceil(tStart); tt <= tStart + timeWindow; tt++) {
+    const gy = graphTop + ((tt - tStart) / timeWindow) * plotH;
     ctx.beginPath();
-    ctx.moveTo(pivotX-45, pivotY-14);
-    ctx.lineTo(pivotX+45, pivotY-14);
+    ctx.moveTo(padSide - 10, gy);
+    ctx.lineTo(w - padSide + 10, gy);
     ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    for(let i=-4;i<=4;i++){
-      ctx.beginPath();
-      ctx.moveTo(pivotX+i*11, pivotY-14);
-      ctx.lineTo(pivotX+i*11-6, pivotY-2);
-      ctx.stroke();
-    }
-
-    // faint equilibrium vertical guide
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4,5]);
-    ctx.beginPath();
-    ctx.moveTo(pivotX, pivotY);
-    ctx.lineTo(pivotX, pivotY + (L0)*scale*1.8);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // spring
-    const amp = Math.max(4, 9 - r*scale/60);
-    ctx.strokeStyle = '#ffb703';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(255,183,3,0.35)';
-    ctx.shadowBlur = 4;
-    drawSpring(ctx, pivotX, pivotY, bobX, bobY, 11, amp);
-    ctx.shadowBlur = 0;
-
-    // pivot point
-    ctx.fillStyle = '#eef3f9';
-    ctx.beginPath();
-    ctx.arc(pivotX, pivotY, 4, 0, 7);
-    ctx.fill();
-
-    // bob
-    const bobR = 15;
-    const grad = ctx.createRadialGradient(bobX-5,bobY-5,2, bobX,bobY,bobR);
-    grad.addColorStop(0,'#fff3d0');
-    grad.addColorStop(0.5,'#ffb703');
-    grad.addColorStop(1,'#8a6a1f');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(bobX,bobY,bobR,0,7);
-    ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,0.3)';
-    ctx.lineWidth=1;
-    ctx.stroke();
-
-    // angle arc indicator
-    ctx.strokeStyle = 'rgba(46,196,182,0.5)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(pivotX, pivotY, 30, Math.PI/2 - 0.001, Math.PI/2 - th, th<0);
-    ctx.stroke();
-
-    // readouts
-    document.getElementById('rt').textContent = t.toFixed(2);
-    document.getElementById('rr').textContent = r.toFixed(1);
-    document.getElementById('rth').textContent = (th*180/Math.PI).toFixed(1);
-    const vx = rDot*Math.sin(th) + r*thDot*Math.cos(th);
-    const vy = rDot*Math.cos(th) - r*thDot*Math.sin(th);
-    document.getElementById('rv').textContent = Math.hypot(vx,vy).toFixed(1);
+    ctx.fillText(tt + '', padSide - 14, gy + 3);
   }
 
-  // ---------- drawing: graph ----------
-  function drawGraph(){
-    const w = gcanvas.clientWidth, h = gcanvas.clientWidth*(480/560);
-    gctx.clearRect(0,0,w,h);
-
-    const padL = 42, padR = 14, padT = 14, padB = 26;
-    const plotW = w - padL - padR;
-    const plotH = h - padT - padB;
-
-    // window of time
-    const tMax = t;
-    const tMin = Math.max(0, tMax - TRACE_WINDOW);
-
-    // determine y-range from visible trace
-    let visible = trace.filter(p => p.t >= tMin);
-    let yMin = -1, yMax = 1;
-    if (visible.length){
-      const xs = visible.map(p=>p.x);
-      const ys = visible.map(p=>p.y);
-      yMin = Math.min(...xs, ...ys) - 3;
-      yMax = Math.max(...xs, ...ys) + 3;
-    }
-    if (yMax-yMin < 6){ const c=(yMax+yMin)/2; yMin=c-6; yMax=c+6; }
-
-    function px(tv){ return padL + ( (tv - tMin) / (TRACE_WINDOW) ) * plotW; }
-    function py(v){ return padT + (1 - (v - yMin)/(yMax-yMin)) * plotH; }
-
-    // grid
-    gctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    gctx.lineWidth = 1;
-    gctx.fillStyle = 'rgba(139,160,189,0.8)';
-    gctx.font = '10px JetBrains Mono, monospace';
-    for(let i=0;i<=TRACE_WINDOW;i+=1){
-      const gx = padL + (i/TRACE_WINDOW)*plotW;
-      gctx.beginPath(); gctx.moveTo(gx,padT); gctx.lineTo(gx,padT+plotH); gctx.stroke();
-      if(i%2===0){
-        const label = (tMin + i).toFixed(0);
-        gctx.fillText(label, gx-6, padT+plotH+16);
-      }
-    }
-    const hLines = 5;
-    for(let i=0;i<=hLines;i++){
-      const gy = padT + (i/hLines)*plotH;
-      gctx.beginPath(); gctx.moveTo(padL,gy); gctx.lineTo(padL+plotW,gy); gctx.stroke();
-      const val = yMax - (i/hLines)*(yMax-yMin);
-      gctx.fillText(val.toFixed(0), 4, gy+3);
-    }
-
-    // zero line
-    if (yMin < 0 && yMax > 0){
-      gctx.strokeStyle = 'rgba(255,255,255,0.18)';
-      gctx.beginPath();
-      gctx.moveTo(padL, py(0)); gctx.lineTo(padL+plotW, py(0));
-      gctx.stroke();
-    }
-
-    // axes labels
-    gctx.fillStyle = 'rgba(139,160,189,0.9)';
-    gctx.font = '11px Tajawal, sans-serif';
-    gctx.fillText('t (s)', padL+plotW-16, padT+plotH+16);
-
-    function drawCurve(key,color){
-      if (visible.length<2) return;
-      gctx.strokeStyle = color;
-      gctx.lineWidth = 2;
-      gctx.shadowColor = color;
-      gctx.shadowBlur = 4;
-      gctx.beginPath();
-      visible.forEach((p,i)=>{
-        const X = px(p.t), Y = py(p[key]);
-        if (i===0) gctx.moveTo(X,Y); else gctx.lineTo(X,Y);
-      });
-      gctx.stroke();
-      gctx.shadowBlur = 0;
-      // moving point
-      const last = visible[visible.length-1];
-      gctx.beginPath();
-      gctx.fillStyle = color;
-      gctx.arc(px(last.t), py(last[key]), 3.5, 0, 7);
-      gctx.fill();
-    }
-    drawCurve('x', '#2ec4b6');
-    drawCurve('y', '#ff6b6b');
-
-    // border
-    gctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    gctx.strokeRect(padL,padT,plotW,plotH);
+  // منحنى x(t) — الأحدث أعلى المنحنى (ملاصق للمسار)، الأقدم أسفل
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  let started = false;
+  for (const pt of history) {
+    if (pt.t < tStart) continue;
+    const gx = centerX + pt.x * pxPerCm;
+    const gy = graphTop + ((t - pt.t) / timeWindow) * plotH;
+    if (!started) { ctx.moveTo(gx, gy); started = true; }
+    else ctx.lineTo(gx, gy);
   }
+  ctx.stroke();
 
-  // ---------- loop ----------
-  let lastTime = null;
-  function frame(now){
-    if (lastTime===null) lastTime = now;
-    let dt = (now-lastTime)/1000;
-    lastTime = now;
-    dt = Math.min(dt, 0.04);
+  // النقطة الحالية (أعلى المنحنى مباشرة)
+  const curveX = ballX;
+  const curveY = graphTop;
+  ctx.fillStyle = '#f87171';
+  ctx.beginPath();
+  ctx.arc(curveX, curveY, 5, 0, Math.PI * 2);
+  ctx.fill();
 
-    if (running){
-      const sub = 4;
-      for(let i=0;i<sub;i++) rk4Step(dt/sub);
-      const x = r*Math.sin(th) - L0; // center roughly around 0
-      const y = r*Math.cos(th) - L0;
-      trace.push({t, x, y});
-      if (trace.length>2000) trace.shift();
-    }
-    drawSim();
-    drawGraph();
-    requestAnimationFrame(frame);
+  // ===== الخط الواصل العمودي بين الجسم ونقطة المنحنى (نفس الإحداثي x دائمًا) =====
+  ctx.strokeStyle = '#f87171';
+  ctx.lineWidth = 1.3;
+  ctx.setLineDash([5,4]);
+  ctx.beginPath();
+  ctx.moveTo(ballX, trackY + 16);
+  ctx.lineTo(curveX, curveY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function updateLiveInfo() {
+  liveInfo.textContent = `t = ${t.toFixed(2)} s   |   x = ${x_of_t(t).toFixed(2)} cm   |   v = ${v_of_t(t).toFixed(2)} cm/s`;
+}
+
+function step(timestamp) {
+  if (!running) return;
+  if (lastTime === null) lastTime = timestamp;
+  const dt = (timestamp - lastTime) / 1000;
+  lastTime = timestamp;
+  t += dt;
+  history.push({ t, x: x_of_t(t) });
+  while (history.length && history[0].t < t - timeWindow - 1) history.shift();
+  draw();
+  updateLiveInfo();
+  requestAnimationFrame(step);
+}
+
+function resetAll() {
+  running = false;
+  lastTime = null;
+  t = 0;
+  history.length = 0;
+  history.push({ t: 0, x: x_of_t(0) });
+  playBtn.textContent = '▶ تشغيل';
+  draw();
+  updateLiveInfo();
+}
+
+playBtn.addEventListener('click', () => {
+  running = !running;
+  playBtn.textContent = running ? '⏸ إيقاف مؤقت' : '▶ تشغيل';
+  if (running) {
+    lastTime = null;
+    requestAnimationFrame(step);
   }
+});
 
-  // ---------- UI wiring ----------
-  ['s_m','s_k','s_l0','s_dr0','s_th0'].forEach(id=>{
-    document.getElementById(id).addEventListener('input', ()=>{ reset(); });
-  });
-  document.getElementById('btnPlay').addEventListener('click', (e)=>{
-    running = !running;
-    e.target.textContent = running ? 'إيقاف مؤقت ⏸' : 'استئناف ▶';
-  });
-  document.getElementById('btnReset').addEventListener('click', ()=>{
-    reset();
-    running = true;
-    document.getElementById('btnPlay').textContent = 'إيقاف مؤقت ⏸';
-  });
-  document.getElementById('btnClearTrace').addEventListener('click', ()=>{
-    trace = [];
-  });
+resetBtn.addEventListener('click', resetAll);
 
-  window.addEventListener('resize', ()=>{ /* canvas is scaled via clientWidth in draw funcs */ });
+ampSlider.addEventListener('input', () => {
+  A = parseFloat(ampSlider.value);
+  ampVal.textContent = A;
+  updateEquation();
+  if (!running) draw();
+});
+periodSlider.addEventListener('input', () => {
+  T = parseFloat(periodSlider.value);
+  periodVal.textContent = T.toFixed(1);
+  updateEquation();
+  if (!running) draw();
+});
+phaseSlider.addEventListener('input', () => {
+  phiDeg = parseFloat(phaseSlider.value);
+  phaseVal.textContent = phiDeg;
+  updateEquation();
+  if (!running) draw();
+});
 
-  reset();
-  requestAnimationFrame(frame);
-})();
+window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+resizeCanvas();
+updateEquation();
+resetAll();
 </script>
 </body>
 </html>
