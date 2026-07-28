@@ -1,0 +1,544 @@
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نماذج الذرة | محاكاة تفاعلية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#08070c;
+    --panel:#131019;
+    --panel-2:#1c1726;
+    --line:#2a2438;
+    --electron:#4fd8ff;
+    --nucleus:#ff5a4d;
+    --photon:#ffcf5c;
+    --violet:#9b7bff;
+    --grey:#cfcbe0;
+    --grey-dim:#8d879f;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--void);
+    color:var(--grey);
+    font-family:'Cairo',sans-serif;
+    line-height:1.7;
+  }
+  ::selection{background:var(--electron);color:#08070c;}
+  .mono{font-family:'IBM Plex Mono',monospace;direction:ltr;display:inline-block;}
+
+  /* HERO */
+  .hero{
+    position:relative;
+    min-height:56vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:50px 20px;overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(155,123,255,0.18), transparent 55%),
+      radial-gradient(ellipse at 50% 90%, rgba(79,216,255,0.10), transparent 60%),
+      var(--void);
+    border-bottom:1px solid var(--line);
+  }
+  .hero-orbit{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:min(500px,90vw); height:min(500px,90vw);
+    pointer-events:none; opacity:0.5;
+  }
+  h1{
+    font-size:clamp(28px,5vw,44px);
+    font-weight:900;color:#fff;margin:0 0 10px;position:relative;z-index:1;
+  }
+  .hero p{max-width:560px;color:var(--grey-dim);font-size:16px;position:relative;z-index:1;}
+
+  section{max-width:980px;margin:0 auto;padding:60px 22px;border-bottom:1px solid var(--line);}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;direction:ltr;text-align:right;
+    color:var(--violet);font-size:13px;letter-spacing:1px;margin-bottom:6px;display:block;
+  }
+  h2{font-size:clamp(22px,3.4vw,28px);color:#fff;margin:0 0 8px;font-weight:800;}
+  .lead{color:var(--grey-dim);max-width:640px;margin-bottom:30px;font-size:15px;}
+
+  /* TIMELINE */
+  .timeline{
+    position:relative;
+    display:flex;justify-content:space-between;
+    padding:0 10px;margin-bottom:10px;
+  }
+  .timeline::before{
+    content:"";position:absolute;top:19px;right:5%;left:5%;height:2px;
+    background:linear-gradient(90deg,var(--violet),var(--electron));
+    opacity:0.4;
+  }
+  .tnode{
+    position:relative;z-index:1;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    background:none;border:none;cursor:pointer;color:var(--grey-dim);
+    font-family:'Cairo';width:19%;
+  }
+  .tdot{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--panel-2);border:2px solid var(--line);
+    transition:all .25s ease;
+  }
+  .tnode .tyear{font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .tnode .tname{font-size:12.5px;font-weight:700;}
+  .tnode.active .tdot{background:var(--electron);border-color:var(--electron);box-shadow:0 0 14px var(--electron);}
+  .tnode.active{color:#fff;}
+  .tnode:hover .tdot{border-color:var(--electron);}
+
+  /* STAGE */
+  .stage{
+    display:flex;gap:24px;flex-wrap:wrap;
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:30px;
+  }
+  .stage-canvas-box{flex:1;min-width:280px;display:flex;flex-direction:column;align-items:center;}
+  #modelCanvas{width:100%;max-width:420px;background:#0b0910;border-radius:12px;touch-action:none;}
+  .stage-info{flex:1;min-width:250px;}
+  .stage-info h3{color:#fff;font-size:19px;margin:0 0 4px;}
+  .stage-info .scientist{color:var(--electron);font-size:13.5px;margin-bottom:12px;font-family:'IBM Plex Mono',monospace;direction:ltr;text-align:right;}
+  .stage-info p{font-size:14px;color:var(--grey-dim);margin:8px 0;}
+  .stage-info .limit{
+    margin-top:14px;padding:10px 14px;border-radius:10px;
+    background:rgba(255,90,77,0.08);border:1px solid rgba(255,90,77,0.25);
+    font-size:13px;color:#ffb3ab;
+  }
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .ctrl-btn{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--grey);
+    padding:9px 16px;border-radius:8px;font-family:'Cairo';font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .ctrl-btn:hover{border-color:var(--electron);color:#fff;}
+  .ctrl-btn.primary{background:var(--electron);color:#08070c;border-color:var(--electron);}
+  .hint{font-size:12px;color:var(--grey-dim);margin-top:10px;}
+
+  /* COMPARISON TABLE */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{padding:12px 10px;text-align:right;border-bottom:1px solid var(--line);}
+  th{color:var(--electron);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;}
+  td{color:var(--grey-dim);}
+  tr:hover td{color:var(--grey);}
+
+  footer{text-align:center;padding:34px 20px 60px;color:var(--grey-dim);font-size:13px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>نماذج الذرة عبر التاريخ</h1>
+  <p>من الكرة المصمتة إلى سحابة الاحتمالات الكمومية — محاكاة تفاعلية لتطوّر فهم الإنسان لبنية المادة.</p>
+</header>
+
+<section id="models">
+  <span class="eyebrow">01 — EVOLUTION</span>
+  <h2>خمسة نماذج غيّرت الفيزياء</h2>
+  <p class="lead">اختر نموذجًا من الخط الزمني لمشاهدة محاكاته التفاعلية وقراءة فكرته الأساسية وأهم قصور فيه.</p>
+
+  <div class="timeline" id="timeline"></div>
+
+  <div class="stage">
+    <div class="stage-canvas-box">
+      <canvas id="modelCanvas" width="420" height="360"></canvas>
+      <div class="controls" id="controls"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+    <div class="stage-info" id="stageInfo"></div>
+  </div>
+</section>
+
+<section id="compare">
+  <span class="eyebrow">02 — COMPARISON</span>
+  <h2>مقارنة سريعة بين النماذج</h2>
+  <table>
+    <thead>
+      <tr><th>النموذج</th><th>السنة</th><th>العالم</th><th>الفكرة الأساسية</th></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</section>
+
+<footer>محاكاة تعليمية تفاعلية — تطوّر نماذج الذرة</footer>
+
+<script>
+/* ===================== MODEL DATA ===================== */
+const models = [
+  {
+    id:'dalton', year:'1803', name:'دالتون',
+    title:'النموذج الكروي الصلب',
+    scientist:'John Dalton — جون دالتون',
+    desc:'اعتبر دالتون الذرة كرة مصمتة صغيرة غير قابلة للانقسام أو التجزئة، تشبه كرة البلياردو، وهي الوحدة الأساسية لكل مادة.',
+    limit:'القصور: لم يفسّر وجود جسيمات أدق داخل الذرة (إلكترونات، بروتونات) ولا الشحنة الكهربائية.',
+    hint:'دوّر الكرة بالسحب لرؤية سطحها المصمت المتجانس.'
+  },
+  {
+    id:'thomson', year:'1897', name:'طومسون',
+    title:'نموذج كعكة الزبيب',
+    scientist:'J.J. Thomson — طومسون',
+    desc:'بعد اكتشاف الإلكترون، اقترح طومسون أن الذرة كرة موجبة الشحنة تتخللها إلكترونات سالبة متناثرة، كالزبيب داخل كعكة.',
+    limit:'القصور: لم يفسّر تجربة رذرفورد لاحقًا التي أثبتت وجود نواة مركزية كثيفة صغيرة الحجم.',
+    hint:'الإلكترونات (النقاط الزرقاء) تهتز داخل الكتلة الموجبة.'
+  },
+  {
+    id:'rutherford', year:'1911', name:'رذرفورد',
+    title:'النموذج النووي',
+    scientist:'Ernest Rutherford — رذرفورد',
+    desc:'أثبتت تجربة صفيحة الذهب أن معظم كتلة الذرة وشحنتها الموجبة تتركّز في نواة صغيرة جدًا، بينما تدور الإلكترونات حولها في فراغ شبه كامل.',
+    limit:'القصور: وفق فيزياء ماكسويل، إلكترون يدور حول نواة يجب أن يفقد طاقته ويسقط عليها — أي أن الذرة يجب أن تنهار، وهذا لا يحدث.',
+    hint:'اضغط "أطلق جسيمات ألفا" لمحاكاة تجربة صفيحة الذهب الشهيرة.',
+    hasFireButton:true
+  },
+  {
+    id:'bohr', year:'1913', name:'بور',
+    title:'النموذج الكوكبي المكمّم',
+    scientist:'Niels Bohr — نيلز بور',
+    desc:'افترض بور أن الإلكترونات تدور في مدارات ثابتة محددة الطاقة فقط، ولا تُشع طاقة أثناء دورانها. عند امتصاص أو انبعاث فوتون، يقفز الإلكترون بين هذه المدارات.',
+    limit:'القصور: نجح فقط مع ذرة الهيدروجين ذات الإلكترون الواحد، وفشل في تفسير أطياف الذرات الأعقد.',
+    hint:'استخدم الزرّين لمحاكاة امتصاص وانبعاث الفوتونات وقفزات الإلكترون.',
+    hasBohrButtons:true
+  },
+  {
+    id:'quantum', year:'1926', name:'الكمومي',
+    title:'نموذج السحابة الإلكترونية',
+    scientist:'Erwin Schrödinger — شرودنغر',
+    desc:'النموذج الحالي: لا يمكن تحديد موقع الإلكترون بدقة، بل فقط احتمال وجوده في منطقة معيّنة تُعرف بالسحابة الإلكترونية أو المدار الذري (Orbital).',
+    limit:'هذا هو النموذج المقبول علميًا اليوم، ويعتمد على مبدأ عدم اليقين لهايزنبرغ ومعادلة شرودنغر الموجية.',
+    hint:'بدّل بين الشكلين s وp لمشاهدة كثافة الاحتمال الإلكتروني.',
+    hasOrbitalButtons:true
+  }
+];
+
+/* ===================== TIMELINE ===================== */
+const timelineEl = document.getElementById('timeline');
+models.forEach((m,i)=>{
+  const btn = document.createElement('button');
+  btn.className = 'tnode' + (i===0?' active':'');
+  btn.dataset.id = m.id;
+  btn.innerHTML = `<span class="tyear mono">${m.year}</span><span class="tdot"></span><span class="tname">${m.name}</span>`;
+  btn.addEventListener('click', ()=> selectModel(m.id));
+  timelineEl.appendChild(btn);
+});
+
+/* ===================== COMPARISON TABLE ===================== */
+const tbody = document.getElementById('tableBody');
+models.forEach(m=>{
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><b style="color:#fff">${m.title}</b></td><td class="mono">${m.year}</td><td>${m.scientist.split('—')[1]||m.scientist}</td><td>${m.desc.split('.')[0]}.</td>`;
+  tbody.appendChild(tr);
+});
+
+/* ===================== STAGE / CANVAS ===================== */
+const canvas = document.getElementById('modelCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height, CX = W/2, CY = H/2;
+let currentModel = 'dalton';
+let rot = 0;
+
+// Rutherford state
+let alphaParticles = [];
+// Bohr state
+let bohrElectronLevel = 1;
+let bohrAnimating = false;
+let bohrPhotons = [];
+let bohrElectronRadius = null;
+// Quantum state
+let orbitalType = 's';
+let cloudPoints = [];
+
+function initCloud(){
+  cloudPoints = [];
+  for(let i=0;i<550;i++){
+    cloudPoints.push({a: Math.random()*Math.PI*2, r: Math.random(), jx:0, jy:0});
+  }
+}
+initCloud();
+
+function orbitLevelRadius(n){ return 40 + n*38; }
+
+function selectModel(id){
+  currentModel = id;
+  document.querySelectorAll('.tnode').forEach(n=>n.classList.toggle('active', n.dataset.id===id));
+  const m = models.find(x=>x.id===id);
+  document.getElementById('stageInfo').innerHTML = `
+    <h3>${m.title}</h3>
+    <div class="scientist">${m.scientist} · ${m.year}</div>
+    <p>${m.desc}</p>
+    <div class="limit">${m.limit}</div>
+  `;
+  document.getElementById('hint').textContent = m.hint || '';
+  renderControls(m);
+  alphaParticles = [];
+  bohrPhotons = [];
+  bohrElectronLevel = 1;
+}
+
+function renderControls(m){
+  const c = document.getElementById('controls');
+  c.innerHTML = '';
+  if(m.hasFireButton){
+    const b = document.createElement('button');
+    b.className = 'ctrl-btn primary';
+    b.textContent = 'أطلق جسيمات ألفا (α)';
+    b.addEventListener('click', fireAlphaParticles);
+    c.appendChild(b);
+  }
+  if(m.hasBohrButtons){
+    const b1 = document.createElement('button');
+    b1.className = 'ctrl-btn primary';
+    b1.textContent = 'امتصاص فوتون ↑';
+    b1.addEventListener('click', ()=>bohrTransition(1));
+    const b2 = document.createElement('button');
+    b2.className = 'ctrl-btn';
+    b2.textContent = 'انبعاث فوتون ↓';
+    b2.addEventListener('click', ()=>bohrTransition(-1));
+    c.appendChild(b1); c.appendChild(b2);
+  }
+  if(m.hasOrbitalButtons){
+    const bs = document.createElement('button');
+    bs.className = 'ctrl-btn primary';
+    bs.textContent = 'مدار s';
+    bs.addEventListener('click', ()=>{orbitalType='s'; initCloud(); updateOrbitalActive(bs,bp);});
+    const bp = document.createElement('button');
+    bp.className = 'ctrl-btn';
+    bp.textContent = 'مدار p';
+    bp.addEventListener('click', ()=>{orbitalType='p'; initCloud(); updateOrbitalActive(bp,bs);});
+    c.appendChild(bs); c.appendChild(bp);
+  }
+}
+function updateOrbitalActive(activeBtn, otherBtn){
+  activeBtn.classList.add('primary');
+  otherBtn.classList.remove('primary');
+}
+
+function fireAlphaParticles(){
+  for(let i=0;i<10;i++){
+    alphaParticles.push({
+      x: -10,
+      y: CY - 60 + Math.random()*120,
+      vx: 2.6 + Math.random()*0.6,
+      vy: 0,
+      trail:[]
+    });
+  }
+}
+
+function bohrTransition(dir){
+  if(bohrAnimating) return;
+  const newLevel = bohrElectronLevel + dir;
+  if(newLevel < 1 || newLevel > 3) return;
+  bohrAnimating = true;
+  const startR = orbitLevelRadius(bohrElectronLevel);
+  const endR = orbitLevelRadius(newLevel);
+  let progress = 0;
+  const anim = setInterval(()=>{
+    progress += 0.05;
+    bohrElectronRadius = startR + (endR-startR)*Math.min(progress,1);
+    if(progress >= 1){
+      clearInterval(anim);
+      bohrElectronLevel = newLevel;
+      bohrElectronRadius = null;
+      bohrAnimating = false;
+      bohrPhotons.push({
+        x: CX + endR, y: CY,
+        vx: dir>0 ? -0.5 : 3,
+        vy: (Math.random()-0.5)*2,
+        life: 1
+      });
+    }
+  }, 16);
+}
+
+/* ===================== DRAW FUNCTIONS ===================== */
+function clear(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#0b0910';
+  ctx.fillRect(0,0,W,H);
+}
+
+function drawDalton(t){
+  clear();
+  const r = 90;
+  const grad = ctx.createRadialGradient(CX-25, CY-25, 10, CX, CY, r);
+  grad.addColorStop(0, '#5c5470');
+  grad.addColorStop(1, '#241f30');
+  ctx.beginPath();
+  ctx.arc(CX, CY, r, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(155,123,255,0.4)';
+  ctx.lineWidth = 1.5;
+  for(let i=1;i<=3;i++){
+    ctx.beginPath();
+    ctx.ellipse(CX, CY, r, r*0.25, 0, 0, Math.PI*2);
+    ctx.save();
+    ctx.translate(CX,CY); ctx.rotate((t*0.0003)+i*1.05); ctx.translate(-CX,-CY);
+    ctx.beginPath();
+    ctx.ellipse(CX, CY, r, r*0.22, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawThomson(t){
+  clear();
+  const r = 95;
+  const grad = ctx.createRadialGradient(CX, CY, 5, CX, CY, r);
+  grad.addColorStop(0, 'rgba(255,90,77,0.35)');
+  grad.addColorStop(1, 'rgba(255,90,77,0.08)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, r, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,90,77,0.5)';
+  ctx.stroke();
+  for(let i=0;i<14;i++){
+    const ang = i * 2.6;
+    const rad = 20 + (i%5)*15;
+    const jitter = Math.sin(t*0.002 + i)*4;
+    const ex = CX + Math.cos(ang)*rad + jitter;
+    const ey = CY + Math.sin(ang)*rad + jitter*0.6;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 5, 0, Math.PI*2);
+    ctx.fillStyle = 'var(--electron)';
+    ctx.fillStyle = '#4fd8ff';
+    ctx.shadowColor = '#4fd8ff'; ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+function drawRutherford(t){
+  clear();
+  // nucleus
+  ctx.beginPath();
+  ctx.arc(CX, CY, 8, 0, Math.PI*2);
+  ctx.fillStyle = '#ff5a4d';
+  ctx.shadowColor = '#ff5a4d'; ctx.shadowBlur = 14;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // faint orbits + electrons (mostly empty space)
+  [70, 110, 145].forEach((r,i)=>{
+    ctx.beginPath();
+    ctx.arc(CX, CY, r, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(155,123,255,0.15)';
+    ctx.stroke();
+    const ang = t*0.001*(i+1) + i*2;
+    const ex = CX + Math.cos(ang)*r, ey = CY + Math.sin(ang)*r*0.5;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 4, 0, Math.PI*2);
+    ctx.fillStyle = '#9b7bff';
+    ctx.fill();
+  });
+  // alpha particles
+  alphaParticles.forEach(p=>{
+    const dx = (CX - p.x), dy = (CY - p.y);
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    if(dist < 35){
+      const force = 18/(dist*dist+1);
+      p.vx -= (dx/dist)*force;
+      p.vy -= (dy/dist)*force;
+    }
+    p.x += p.vx; p.y += p.vy;
+    p.trail.push({x:p.x,y:p.y});
+    if(p.trail.length > 18) p.trail.shift();
+    ctx.beginPath();
+    p.trail.forEach((pt,idx)=>{
+      if(idx===0) ctx.moveTo(pt.x,pt.y); else ctx.lineTo(pt.x,pt.y);
+    });
+    ctx.strokeStyle = 'rgba(255,207,92,0.5)';
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+    ctx.fillStyle = '#ffcf5c';
+    ctx.fill();
+  });
+  alphaParticles = alphaParticles.filter(p=> p.x < W+20 && p.x > -20 && p.y > -20 && p.y < H+20);
+}
+
+function drawBohr(t){
+  clear();
+  ctx.beginPath();
+  ctx.arc(CX, CY, 9, 0, Math.PI*2);
+  ctx.fillStyle = '#ff5a4d';
+  ctx.shadowColor = '#ff5a4d'; ctx.shadowBlur = 14;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  [1,2,3].forEach(n=>{
+    const r = orbitLevelRadius(n);
+    ctx.beginPath();
+    ctx.arc(CX, CY, r, 0, Math.PI*2);
+    ctx.strokeStyle = n===bohrElectronLevel ? 'rgba(79,216,255,0.5)' : 'rgba(155,123,255,0.18)';
+    ctx.lineWidth = n===bohrElectronLevel ? 1.6 : 1;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(207,203,224,0.35)';
+    ctx.font = '10px IBM Plex Mono';
+    ctx.fillText('n='+n, CX + r*0.7, CY - r*0.7);
+  });
+  const r = bohrElectronRadius !== null ? bohrElectronRadius : orbitLevelRadius(bohrElectronLevel);
+  const ang = t*0.0022;
+  const ex = CX + Math.cos(ang)*r, ey = CY + Math.sin(ang)*r;
+  ctx.beginPath();
+  ctx.arc(ex, ey, 5, 0, Math.PI*2);
+  ctx.fillStyle = '#4fd8ff';
+  ctx.shadowColor = '#4fd8ff'; ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  bohrPhotons.forEach(ph=>{
+    ph.x += ph.vx; ph.y += ph.vy; ph.life -= 0.02;
+    ctx.beginPath();
+    ctx.arc(ph.x, ph.y, 3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,207,92,${Math.max(ph.life,0)})`;
+    ctx.fill();
+  });
+  bohrPhotons = bohrPhotons.filter(p=>p.life > 0);
+}
+
+function drawQuantum(t){
+  clear();
+  ctx.beginPath();
+  ctx.arc(CX, CY, 6, 0, Math.PI*2);
+  ctx.fillStyle = '#ff5a4d';
+  ctx.fill();
+  cloudPoints.forEach(p=>{
+    p.jx += (Math.random()-0.5)*0.6;
+    p.jy += (Math.random()-0.5)*0.6;
+    p.jx *= 0.9; p.jy *= 0.9;
+    let x,y;
+    if(orbitalType === 's'){
+      const rad = Math.pow(p.r,0.5) * 130;
+      x = CX + Math.cos(p.a)*rad + p.jx;
+      y = CY + Math.sin(p.a)*rad*0.9 + p.jy;
+    } else {
+      const lobe = p.a < Math.PI ? -1 : 1;
+      const rad = Math.pow(p.r,0.6) * 120;
+      const localAng = p.a % Math.PI;
+      x = CX + Math.sin(localAng)*rad*0.5*lobe + p.jx;
+      y = CY + lobe*Math.cos(localAng)*rad*0.9 + p.jy - lobe*20;
+    }
+    const dist = Math.hypot(x-CX,y-CY);
+    const alpha = Math.max(0.08, 0.55 - dist/260);
+    ctx.beginPath();
+    ctx.arc(x,y,1.6,0,Math.PI*2);
+    ctx.fillStyle = `rgba(79,216,255,${alpha})`;
+    ctx.fill();
+  });
+}
+
+function loop(t){
+  rot = t;
+  if(currentModel==='dalton') drawDalton(t);
+  else if(currentModel==='thomson') drawThomson(t);
+  else if(currentModel==='rutherford') drawRutherford(t);
+  else if(currentModel==='bohr') drawBohr(t);
+  else if(currentModel==='quantum') drawQuantum(t);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+selectModel('dalton');
+</script>
+</body>
+</html>

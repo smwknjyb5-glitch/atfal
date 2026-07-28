@@ -1,0 +1,419 @@
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المتماكبات | محاكاة تفاعلية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1116;
+    --panel:#161c24;
+    --panel-2:#1e2630;
+    --line:#2a323d;
+    --teal:#2dd4bf;
+    --violet:#a78bfa;
+    --amber:#fbbf24;
+    --grey:#c9d1d9;
+    --grey-dim:#8b96a5;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--grey);font-family:'Cairo',sans-serif;line-height:1.7;}
+  ::selection{background:var(--teal);color:#08070c;}
+  .mono{font-family:'IBM Plex Mono',monospace;direction:ltr;display:inline-block;}
+
+  .hero{
+    position:relative;min-height:52vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:50px 20px;overflow:hidden;
+    background:
+      radial-gradient(ellipse at 30% 30%, rgba(45,212,191,0.14), transparent 55%),
+      radial-gradient(ellipse at 75% 70%, rgba(167,139,250,0.14), transparent 55%),
+      var(--bg);
+    border-bottom:1px solid var(--line);
+  }
+  .mirror-hint{
+    position:absolute;top:0;bottom:0;left:50%;width:1px;
+    background:repeating-linear-gradient(180deg,rgba(167,139,250,0.25) 0 6px,transparent 6px 12px);
+    opacity:0.5;
+  }
+  h1{font-size:clamp(28px,5vw,44px);font-weight:900;color:#fff;margin:0 0 10px;position:relative;z-index:1;}
+  .hero p{max-width:580px;color:var(--grey-dim);font-size:16px;position:relative;z-index:1;}
+  .formula-tag{
+    margin-top:18px;font-family:'IBM Plex Mono',monospace;direction:ltr;
+    background:var(--panel-2);border:1px solid var(--line);padding:8px 18px;border-radius:999px;
+    color:var(--teal);font-size:14px;position:relative;z-index:1;
+  }
+
+  section{max-width:980px;margin:0 auto;padding:60px 22px;border-bottom:1px solid var(--line);}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;direction:ltr;text-align:right;color:var(--violet);font-size:13px;letter-spacing:1px;margin-bottom:6px;display:block;}
+  h2{font-size:clamp(22px,3.4vw,28px);color:#fff;margin:0 0 8px;font-weight:800;}
+  .lead{color:var(--grey-dim);max-width:640px;margin-bottom:30px;font-size:15px;}
+
+  /* CLASSIFICATION TREE */
+  .tree{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .tree-root{
+    background:var(--panel-2);border:1px solid var(--teal);color:#fff;
+    padding:10px 26px;border-radius:10px;font-weight:800;font-size:15px;
+  }
+  .tree-branches{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;width:100%;}
+  .tree-branch{
+    flex:1;min-width:260px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;
+  }
+  .tree-branch h4{margin:0 0 10px;color:var(--teal);font-size:15px;}
+  .tree-branch.stereo h4{color:var(--violet);}
+  .tree-branch ul{margin:0;padding-inline-start:18px;font-size:13.5px;color:var(--grey-dim);}
+  .tree-branch li{margin-bottom:6px;}
+
+  /* ISOMER STAGE (shared pattern) */
+  .iso-block{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px;
+  }
+  .iso-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .iso-head h3{margin:0;color:#fff;font-size:17px;}
+  .iso-formula{font-family:'IBM Plex Mono',monospace;direction:ltr;color:var(--amber);font-size:14px;}
+  .iso-toggle{display:flex;gap:8px;background:var(--panel-2);padding:4px;border-radius:10px;border:1px solid var(--line);}
+  .iso-toggle button{
+    background:transparent;border:none;color:var(--grey-dim);padding:8px 16px;border-radius:8px;
+    font-family:'Cairo';font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .iso-toggle button.active{background:var(--teal);color:#08070c;}
+  .iso-body{display:flex;gap:22px;flex-wrap:wrap;align-items:center;}
+  .iso-svg-box{flex:0 0 auto;background:#0b0f13;border-radius:12px;border:1px solid var(--line);padding:10px;}
+  .iso-note{flex:1;min-width:220px;font-size:13.5px;color:var(--grey-dim);}
+  .iso-note b{color:var(--grey);}
+  .iso-diff{
+    margin-top:10px;padding:8px 12px;border-radius:8px;
+    background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);
+    font-size:12.5px;color:#8ff0e2;
+  }
+
+  /* OPTICAL / MIRROR SECTION */
+  .mirror-stage{
+    display:flex;align-items:center;justify-content:center;gap:0;position:relative;padding:20px 0;
+  }
+  .mirror-line{width:1px;align-self:stretch;background:repeating-linear-gradient(180deg,var(--violet) 0 6px,transparent 6px 12px);margin:0 24px;}
+  .hand{font-size:64px;transition:transform .6s ease;}
+  .hand.right{transform:scaleX(1) rotate(var(--rot,0deg));}
+  .hand.left{transform:scaleX(-1) rotate(calc(-1 * var(--rot,0deg)));}
+  .rotate-btn{margin-top:16px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{padding:12px 10px;text-align:right;border-bottom:1px solid var(--line);}
+  th{color:var(--teal);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;}
+  td{color:var(--grey-dim);}
+  tr:hover td{color:var(--grey);}
+
+  .ctrl-btn{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--grey);
+    padding:9px 16px;border-radius:8px;font-family:'Cairo';font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .ctrl-btn:hover{border-color:var(--violet);color:#fff;}
+
+  footer{text-align:center;padding:34px 20px 60px;color:var(--grey-dim);font-size:13px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="mirror-hint"></div>
+  <h1>المتماكبات (Isomers)</h1>
+  <p>مركّبات تتشارك الصيغة الجزيئية نفسها تمامًا، لكنها تختلف في ترتيب الذرات أو توزيعها في الفراغ — فتصبح مواد مختلفة كليًا في خواصها.</p>
+  <div class="formula-tag">Same Formula → Different Structure</div>
+</header>
+
+<section id="classification">
+  <span class="eyebrow">01 — CLASSIFICATION</span>
+  <h2>التصنيف العام للمتماكبات</h2>
+  <p class="lead">تنقسم المتماكبات إلى نوعين رئيسيين حسب طبيعة الاختلاف بينها.</p>
+  <div class="tree">
+    <div class="tree-root">المتماكبات (Isomers)</div>
+    <div class="tree-branches">
+      <div class="tree-branch">
+        <h4>متماكبات بنيوية (Structural)</h4>
+        <ul>
+          <li><b>سلسلية</b> — اختلاف في تفرّع السلسلة الكربونية</li>
+          <li><b>موضعية</b> — اختلاف في موضع المجموعة الوظيفية</li>
+          <li><b>وظيفية</b> — اختلاف في نوع المجموعة الوظيفية نفسها</li>
+        </ul>
+      </div>
+      <div class="tree-branch stereo">
+        <h4>متماكبات فراغية (Stereoisomers)</h4>
+        <ul>
+          <li><b>هندسية (سيس-ترانس)</b> — اختلاف توزيع الذرات حول رابطة ثنائية صلبة</li>
+          <li><b>بصرية (enantiomers)</b> — صور مرآتية غير قابلة للتطابق</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="structural">
+  <span class="eyebrow">02 — STRUCTURAL ISOMERS</span>
+  <h2>المتماكبات البنيوية</h2>
+  <p class="lead">نفس عدد وأنواع الذرات، لكن مرتبطة ببعضها بترتيب مختلف تمامًا.</p>
+
+  <!-- CHAIN -->
+  <div class="iso-block">
+    <div class="iso-head">
+      <div><h3>1. متماكبات سلسلية</h3><span class="iso-formula">C₄H₁₀</span></div>
+      <div class="iso-toggle" id="chainToggle"></div>
+    </div>
+    <div class="iso-body">
+      <div class="iso-svg-box"><svg id="chainSvg" width="260" height="160" viewBox="0 0 260 160"></svg></div>
+      <div class="iso-note" id="chainNote"></div>
+    </div>
+  </div>
+
+  <!-- POSITION -->
+  <div class="iso-block">
+    <div class="iso-head">
+      <div><h3>2. متماكبات موضعية</h3><span class="iso-formula">C₃H₈O</span></div>
+      <div class="iso-toggle" id="posToggle"></div>
+    </div>
+    <div class="iso-body">
+      <div class="iso-svg-box"><svg id="posSvg" width="260" height="140" viewBox="0 0 260 140"></svg></div>
+      <div class="iso-note" id="posNote"></div>
+    </div>
+  </div>
+
+  <!-- FUNCTIONAL -->
+  <div class="iso-block">
+    <div class="iso-head">
+      <div><h3>3. متماكبات وظيفية</h3><span class="iso-formula">C₂H₆O</span></div>
+      <div class="iso-toggle" id="funcToggle"></div>
+    </div>
+    <div class="iso-body">
+      <div class="iso-svg-box"><svg id="funcSvg" width="260" height="140" viewBox="0 0 260 140"></svg></div>
+      <div class="iso-note" id="funcNote"></div>
+    </div>
+  </div>
+</section>
+
+<section id="stereo">
+  <span class="eyebrow">03 — STEREOISOMERS</span>
+  <h2>المتماكبات الفراغية</h2>
+  <p class="lead">هنا لا يختلف ترتيب الارتباط بين الذرات، بل توزيعها في الفراغ ثلاثي الأبعاد.</p>
+
+  <!-- GEOMETRIC -->
+  <div class="iso-block">
+    <div class="iso-head">
+      <div><h3>4. متماكبات هندسية (سيس-ترانس)</h3><span class="iso-formula">C₄H₈ — 2-Butene</span></div>
+      <div class="iso-toggle" id="geoToggle"></div>
+    </div>
+    <div class="iso-body">
+      <div class="iso-svg-box"><svg id="geoSvg" width="260" height="160" viewBox="0 0 260 160"></svg></div>
+      <div class="iso-note" id="geoNote"></div>
+    </div>
+  </div>
+
+  <!-- OPTICAL -->
+  <div class="iso-block">
+    <div class="iso-head">
+      <div><h3>5. متماكبات بصرية (Enantiomers)</h3><span class="iso-formula">صورتان مرآتيتان</span></div>
+    </div>
+    <div class="iso-note" style="margin-bottom:10px;">
+      مثل يديك تمامًا: كلتاهما تحملان نفس الأصابع، وهما انعكاس مرآتي لبعضهما، لكن لا يمكن أبدًا مطابقتهما فوق بعض. هذا بالضبط ما يحدث مع الذرة الكربونية الكيرالية المرتبطة بأربع مجموعات مختلفة.
+    </div>
+    <div class="mirror-stage">
+      <div class="hand right" id="handR" style="--rot:0deg;">🖐️</div>
+      <div class="mirror-line"></div>
+      <div class="hand left" id="handL" style="--rot:0deg;">🖐️</div>
+    </div>
+    <div style="text-align:center;">
+      <button class="ctrl-btn rotate-btn" id="rotateHands">دوّر اليدين معًا</button>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <span class="eyebrow">04 — SUMMARY</span>
+  <h2>مقارنة سريعة</h2>
+  <table>
+    <thead><tr><th>النوع</th><th>ما الذي يختلف؟</th><th>مثال</th></tr></thead>
+    <tbody>
+      <tr><td><b style="color:#fff">سلسلية</b></td><td>تفرّع السلسلة الكربونية</td><td class="mono">n-Butane / Isobutane</td></tr>
+      <tr><td><b style="color:#fff">موضعية</b></td><td>موضع المجموعة الوظيفية على السلسلة</td><td class="mono">Propan-1-ol / Propan-2-ol</td></tr>
+      <tr><td><b style="color:#fff">وظيفية</b></td><td>نوع المجموعة الوظيفية بالكامل</td><td class="mono">Ethanol / Dimethyl ether</td></tr>
+      <tr><td><b style="color:#fff">هندسية</b></td><td>توزيع الذرات حول رابطة ثنائية صلبة</td><td class="mono">cis-2-Butene / trans-2-Butene</td></tr>
+      <tr><td><b style="color:#fff">بصرية</b></td><td>الترتيب الفراغي حول ذرة كربون كيرالية</td><td class="mono">D / L enantiomers</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>محاكاة تعليمية تفاعلية — المتماكبات في الكيمياء العضوية</footer>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function clearSvg(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
+function bond(svg, x1,y1,x2,y2, color){
+  svg.appendChild(el('line',{x1,y1,x2,y2, stroke:color||'#8b96a5', 'stroke-width':2}));
+}
+function atom(svg, x,y, label, color, r){
+  svg.appendChild(el('circle',{cx:x, cy:y, r:r||14, fill:'#161c24', stroke:color, 'stroke-width':2}));
+  const t = el('text',{x, y:y+4, 'text-anchor':'middle', fill:color, 'font-size':11, 'font-family':'IBM Plex Mono'});
+  t.textContent = label;
+  svg.appendChild(t);
+}
+
+/* ---------- generic toggle builder ---------- */
+function buildToggle(containerId, options, onSelect){
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  options.forEach((opt,i)=>{
+    const b = document.createElement('button');
+    b.textContent = opt.label;
+    if(i===0) b.classList.add('active');
+    b.addEventListener('click', ()=>{
+      c.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      onSelect(opt.id);
+    });
+    c.appendChild(b);
+  });
+}
+
+/* ================= CHAIN ISOMERS ================= */
+function drawButane(svg){
+  clearSvg(svg);
+  const pts = [[35,110],[85,60],[135,110],[185,60]];
+  for(let i=0;i<pts.length-1;i++) bond(svg, pts[i][0],pts[i][1], pts[i+1][0],pts[i+1][1], '#2dd4bf');
+  pts.forEach(p=>atom(svg, p[0],p[1], 'C', '#2dd4bf'));
+}
+function drawIsobutane(svg){
+  clearSvg(svg);
+  const center = [135,90];
+  const branches = [[85,50],[185,50],[135,150]];
+  branches.forEach(b=> bond(svg, center[0],center[1], b[0],b[1], '#fbbf24'));
+  atom(svg, center[0],center[1], 'C', '#fbbf24', 16);
+  branches.forEach(b=> atom(svg, b[0],b[1], 'C', '#2dd4bf'));
+}
+buildToggle('chainToggle', [
+  {id:'n', label:'n-Butane (خطي)'},
+  {id:'iso', label:'Isobutane (متفرّع)'}
+], id=>{
+  const svg = document.getElementById('chainSvg');
+  if(id==='n'){
+    drawButane(svg);
+    document.getElementById('chainNote').innerHTML = `<b>n-Butane:</b> سلسلة كربونية خطية مستقيمة من 4 ذرات كربون.<div class="iso-diff">درجة الغليان: −0.5°C — أعلى من نظيره المتفرّع بسبب تلامس أكبر بين الجزيئات.</div>`;
+  } else {
+    drawIsobutane(svg);
+    document.getElementById('chainNote').innerHTML = `<b>Isobutane:</b> نفس عدد ذرات الكربون والهيدروجين، لكن مرتبة حول كربون مركزي متفرّع.<div class="iso-diff">درجة الغليان: −11.7°C — أقل بسبب صعوبة تراص الجزيئات المتفرّعة.</div>`;
+  }
+});
+
+/* ================= POSITION ISOMERS ================= */
+function drawPropanol(svg, ohIndex){
+  clearSvg(svg);
+  const pts = [[40,90],[110,50],[180,90]];
+  bond(svg, pts[0][0],pts[0][1], pts[1][0],pts[1][1], '#8b96a5');
+  bond(svg, pts[1][0],pts[1][1], pts[2][0],pts[2][1], '#8b96a5');
+  pts.forEach((p,i)=> atom(svg, p[0],p[1], 'C', i===ohIndex?'#a78bfa':'#2dd4bf'));
+  const ohPos = pts[ohIndex];
+  const ohY = ohPos[1]-45;
+  bond(svg, ohPos[0],ohPos[1], ohPos[0],ohY+12, '#a78bfa');
+  atom(svg, ohPos[0], ohY, 'OH', '#a78bfa', 16);
+}
+buildToggle('posToggle', [
+  {id:'p1', label:'Propan-1-ol'},
+  {id:'p2', label:'Propan-2-ol'}
+], id=>{
+  const svg = document.getElementById('posSvg');
+  if(id==='p1'){
+    drawPropanol(svg, 0);
+    document.getElementById('posNote').innerHTML = `<b>Propan-1-ol:</b> مجموعة الهيدروكسيل (OH) على الكربون الطرفي.<div class="iso-diff">كحول أولي — يتأكسد إلى ألدهيد ثم حمض كربوكسيلي.</div>`;
+  } else {
+    drawPropanol(svg, 1);
+    document.getElementById('posNote').innerHTML = `<b>Propan-2-ol:</b> مجموعة الهيدروكسيل (OH) على الكربون الأوسط.<div class="iso-diff">كحول ثانوي — يتأكسد إلى كيتون فقط (الأسيتون في هذه الحالة).</div>`;
+  }
+});
+
+/* ================= FUNCTIONAL ISOMERS ================= */
+function drawEthanol(svg){
+  clearSvg(svg);
+  bond(svg, 50,90, 120,50, '#8b96a5');
+  bond(svg, 120,50, 120,50, '#8b96a5');
+  bond(svg, 120,50, 190,90, '#a78bfa');
+  atom(svg, 50,90, 'C', '#2dd4bf');
+  atom(svg, 120,50, 'C', '#2dd4bf');
+  atom(svg, 190,90, 'OH', '#a78bfa', 16);
+}
+function drawDME(svg){
+  clearSvg(svg);
+  bond(svg, 50,90, 120,50, '#8b96a5');
+  bond(svg, 120,50, 190,90, '#8b96a5');
+  atom(svg, 50,90, 'C', '#2dd4bf');
+  atom(svg, 120,50, 'O', '#fbbf24', 15);
+  atom(svg, 190,90, 'C', '#2dd4bf');
+}
+buildToggle('funcToggle', [
+  {id:'eth', label:'Ethanol (كحول)'},
+  {id:'dme', label:'Dimethyl Ether (إيثر)'}
+], id=>{
+  const svg = document.getElementById('funcSvg');
+  if(id==='eth'){
+    drawEthanol(svg);
+    document.getElementById('funcNote').innerHTML = `<b>الإيثانول:</b> يحتوي على مجموعة الهيدروكسيل الوظيفية (-OH).<div class="iso-diff">سائل، درجة غليانه 78°C، يذوب في الماء بسهولة ويتفاعل مع الصوديوم.</div>`;
+  } else {
+    drawDME(svg);
+    document.getElementById('funcNote').innerHTML = `<b>ثنائي ميثيل الإيثر:</b> يحتوي على مجموعة الإيثر الوظيفية (C-O-C) بدل الهيدروكسيل.<div class="iso-diff">غاز عند درجة حرارة الغرفة (غليانه −24°C)، خامل كيميائيًا مقارنة بالكحول.</div>`;
+  }
+});
+
+/* ================= GEOMETRIC ISOMERS ================= */
+function drawGeo(svg, type){
+  clearSvg(svg);
+  const c1=[90,90], c2=[170,90];
+  svg.appendChild(el('line',{x1:c1[0],y1:c1[1]-3,x2:c2[0],y2:c2[1]-3, stroke:'#2dd4bf','stroke-width':2}));
+  svg.appendChild(el('line',{x1:c1[0],y1:c1[1]+3,x2:c2[0],y2:c2[1]+3, stroke:'#2dd4bf','stroke-width':2}));
+  atom(svg, c1[0],c1[1], 'C', '#2dd4bf');
+  atom(svg, c2[0],c2[1], 'C', '#2dd4bf');
+  if(type==='cis'){
+    bond(svg, c1[0],c1[1], c1[0]-40,c1[1]-40, '#a78bfa');
+    bond(svg, c2[0],c2[1], c2[0]+40,c2[1]-40, '#a78bfa');
+    atom(svg, c1[0]-40,c1[1]-40, 'CH₃', '#a78bfa', 18);
+    atom(svg, c2[0]+40,c2[1]-40, 'CH₃', '#a78bfa', 18);
+    bond(svg, c1[0],c1[1], c1[0]-30,c1[1]+40, '#8b96a5');
+    bond(svg, c2[0],c2[1], c2[0]+30,c2[1]+40, '#8b96a5');
+    atom(svg, c1[0]-30,c1[1]+40, 'H', '#8b96a5', 11);
+    atom(svg, c2[0]+30,c2[1]+40, 'H', '#8b96a5', 11);
+  } else {
+    bond(svg, c1[0],c1[1], c1[0]-40,c1[1]-40, '#a78bfa');
+    bond(svg, c2[0],c2[1], c2[0]+30,c2[1]+40, '#a78bfa');
+    atom(svg, c1[0]-40,c1[1]-40, 'CH₃', '#a78bfa', 18);
+    atom(svg, c2[0]+30,c2[1]+40, 'CH₃', '#a78bfa', 18);
+    bond(svg, c1[0],c1[1], c1[0]-30,c1[1]+40, '#8b96a5');
+    bond(svg, c2[0],c2[1], c2[0]+40,c2[1]-40, '#8b96a5');
+    atom(svg, c1[0]-30,c1[1]+40, 'H', '#8b96a5', 11);
+    atom(svg, c2[0]+40,c2[1]-40, 'H', '#8b96a5', 11);
+  }
+}
+buildToggle('geoToggle', [
+  {id:'cis', label:'Cis (سيس)'},
+  {id:'trans', label:'Trans (ترانس)'}
+], id=>{
+  const svg = document.getElementById('geoSvg');
+  drawGeo(svg, id);
+  if(id==='cis'){
+    document.getElementById('geoNote').innerHTML = `<b>Cis-2-Butene:</b> مجموعتا CH₃ على نفس الجهة من الرابطة الثنائية.<div class="iso-diff">الرابطة الثنائية صلبة ولا تدور بحرية، لذا هذا الترتيب المكاني ثابت ويُعطي جزيئًا مختلفًا فيزيائيًا.</div>`;
+  } else {
+    document.getElementById('geoNote').innerHTML = `<b>Trans-2-Butene:</b> مجموعتا CH₃ على جهتين متقابلتين من الرابطة الثنائية.<div class="iso-diff">أكثر استقرارًا من الشكل السيسي بسبب قلة التنافر الفراغي بين المجموعات الكبيرة.</div>`;
+  }
+});
+
+/* ================= OPTICAL ISOMERS (mirror hands) ================= */
+let handRot = 0;
+document.getElementById('rotateHands').addEventListener('click', ()=>{
+  handRot += 45;
+  document.getElementById('handR').style.setProperty('--rot', handRot+'deg');
+  document.getElementById('handL').style.setProperty('--rot', handRot+'deg');
+});
+</script>
+</body>
+</html>
