@@ -1,0 +1,539 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة الخواص - فيزيائية وكيميائية</title>
+    <style>
+        /* ------ الخصائص العامة ------ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', 'Segoe UI', system-ui, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0b1120 0%, #1e293b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+        }
+
+        /* ------ البطاقة الرئيسية ------ */
+        .sim-card {
+            max-width: 860px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            padding: 35px 40px 40px;
+            border-radius: 48px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+            transition: 0.3s;
+            border-bottom: 6px solid #38bdf8;
+        }
+
+        /* ------ العنوان و selector ------ */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+        .header h1 span {
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 0 14px;
+            border-radius: 40px;
+            font-size: 22px;
+        }
+        .selector-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f1f5f9;
+            padding: 6px 18px 6px 12px;
+            border-radius: 60px;
+            border: 1px solid #cbd5e1;
+        }
+        .selector-group label {
+            font-weight: 600;
+            color: #334155;
+            font-size: 16px;
+        }
+        .selector-group select {
+            padding: 10px 18px 10px 14px;
+            border: none;
+            background: white;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: 2px solid #94a3b8;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 170px;
+        }
+        .selector-group select:hover {
+            outline-color: #0284c7;
+        }
+        .selector-group select:focus {
+            outline-color: #0284c7;
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.2);
+        }
+
+        /* ------ اسم المادة وصيغتها ------ */
+        .material-title {
+            display: flex;
+            align-items: baseline;
+            gap: 20px;
+            flex-wrap: wrap;
+            background: #f8fafc;
+            padding: 15px 25px;
+            border-radius: 30px;
+            margin-bottom: 30px;
+            border-right: 8px solid #0284c7;
+        }
+        .material-title .name {
+            font-size: 34px;
+            font-weight: 800;
+            color: #020617;
+        }
+        .material-title .formula {
+            font-size: 26px;
+            font-weight: 600;
+            color: #334155;
+            background: #e2e8f0;
+            padding: 0 20px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            direction: ltr;
+            display: inline-block;
+        }
+        .material-title .state-badge {
+            margin-right: auto;
+            padding: 6px 22px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 18px;
+            border: 1px solid #93c5fd;
+        }
+
+        /* ------ شبكة الخواص ------ */
+        .props-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 650px) {
+            .props-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .selector-group {
+                justify-content: center;
+            }
+        }
+
+        /* ------ الأقسام (فيزيائية / كيميائية) ------ */
+        .prop-section {
+            background: #f1f5f9;
+            border-radius: 28px;
+            padding: 22px 24px 28px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+            border: 1px solid #e2e8f0;
+        }
+        .prop-section h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #0f172a;
+            border-bottom: 3px dashed #cbd5e1;
+            padding-bottom: 12px;
+        }
+        .prop-section h3 .icon {
+            font-size: 26px;
+        }
+        .prop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 12px 6px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 17px;
+        }
+        .prop-item:last-child {
+            border-bottom: none;
+        }
+        .prop-item .label {
+            color: #475569;
+            font-weight: 500;
+        }
+        .prop-item .value {
+            font-weight: 700;
+            color: #0f172a;
+            background: white;
+            padding: 2px 16px;
+            border-radius: 30px;
+            font-size: 17px;
+            border: 1px solid #d1d9e6;
+            text-align: center;
+            min-width: 70px;
+        }
+        /* تلوين القيم المميزة */
+        .value.highlight {
+            background: #dbeafe;
+            border-color: #60a5fa;
+            color: #1e3a8a;
+        }
+        .value.warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #78350f;
+        }
+        .value.danger {
+            background: #fee2e2;
+            border-color: #f87171;
+            color: #991b1b;
+        }
+
+        /* ------ منطقة الملاحظات الإضافية ------ */
+        .extra-note {
+            margin-top: 16px;
+            padding: 14px 18px;
+            background: #e0f2fe;
+            border-radius: 20px;
+            color: #0c4a6e;
+            font-weight: 500;
+            font-size: 16px;
+            border-right: 6px solid #0284c7;
+        }
+
+        /* ------ تذييل ------ */
+        .footer-sim {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 14px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sim-card">
+        <!-- رأس الصفحة -->
+        <div class="header">
+            <h1>🧪 <span>محاكاة</span> الخواص</h1>
+            <div class="selector-group">
+                <label for="materialSelect">🔽 اختر المادة:</label>
+                <select id="materialSelect"></select>
+            </div>
+        </div>
+
+        <!-- منطقة العرض الرئيسية -->
+        <div id="displayArea">
+            <!-- يتم ملؤها بواسطة JavaScript -->
+        </div>
+
+        <div class="footer-sim">
+            ⚛️ الخواص الفيزيائية (حالة، كثافة، حرارة) &amp; الكيميائية (صيغة، pH، تفاعل)
+        </div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------------------
+        //  البيانات: خواص فيزيائية وكيميائية لـ 7 مواد (تم إضافة الغازات)
+        // ----------------------------------------------------------------
+        const materials = {
+            water: {
+                name: 'الماء',
+                formula: 'H₂O',
+                state: 'سائل',
+                physical: {
+                    'الكثافة (جم/سم³)': '1.00',
+                    'درجة الانصهار (°م)': '0',
+                    'درجة الغليان (°م)': '100',
+                    'اللزوجة (ميلي باسكال·ث)': '0.89',
+                    'التوصيل الحراري': '0.6 واط/م·ك'
+                },
+                chemical: {
+                    'الوزن الجزيئي': '18.015',
+                    'الرقم الهيدروجيني (pH)': '7.0 (متعادل)',
+                    'التفاعل مع المعادن': 'ضعيف (مؤكسد)',
+                    'القابلية للاشتعال': 'غير قابل',
+                    'القطبية': 'قطبي جداً'
+                },
+                note: '✅ مذيب عالمي، رابط هيدروجيني قوي.'
+            },
+            iron: {
+                name: 'الحديد',
+                formula: 'Fe',
+                state: 'صلب',
+                physical: {
+                    'الكثافة (جم/سم³)': '7.87',
+                    'درجة الانصهار (°م)': '1538',
+                    'درجة الغليان (°م)': '2862',
+                    'الصلادة (موس)': '4.0',
+                    'التوصيل الكهربائي': 'عالي جداً'
+                },
+                chemical: {
+                    'الوزن الجزيئي': '55.845',
+                    'الرقم الهيدروجيني (pH)': '— (فلز)',
+                    'التفاعل مع الأحماض': 'ينطلق H₂',
+                    'القابلية للاشتعال': 'غير قابل (مسحوق قابل)',
+                    'التكافؤ الشائع': '+2 ، +3'
+                },
+                note: '⚙️ فلز انتقالي، أساس الصلب والحديد الزهر.'
+            },
+            ethanol: {
+                name: 'الإيثانول',
+                formula: 'C₂H₅OH',
+                state: 'سائل',
+                physical: {
+                    'الكثافة (جم/سم³)': '0.789',
+                    'درجة الانصهار (°م)': '-114.1',
+                    'درجة الغليان (°م)': '78.37',
+                    'معامل الانكسار': '1.361',
+                    'الذوبانية في الماء': 'لامحدودة'
+                },
+                chemical: {
+                    'الوزن الجزيئي': '46.07',
+                    'الرقم الهيدروجيني (pH)': '~7.0 (محايد)',
+                    'التفاعل مع الصوديوم': 'ينطلق H₂ (كحول)',
+                    'القابلية للاشتعال': '🔥 شديد الاشتعال',
+                    'نوع المركب': 'كحول أولي'
+                },
+                note: '🍸 يستخدم في المطهرات والمشروبات والوقود الحيوي.'
+            },
+            sulfuric_acid: {
+                name: 'حمض الكبريتيك',
+                formula: 'H₂SO₄',
+                state: 'سائل (زيتي)',
+                physical: {
+                    'الكثافة (جم/سم³)': '1.84',
+                    'درجة الانصهار (°م)': '10.31',
+                    'درجة الغليان (°م)': '337',
+                    'اللزوجة': 'عالية (26.7 cP)',
+                    'الذوبانية': 'ممتازة في الماء (طارد للحرارة)'
+                },
+                chemical: {
+                    'الوزن الجزيئي': '98.08',
+                    'الرقم الهيدروجيني (pH)': '~0.3 (حمض قوي)',
+                    'التفاعل مع القواعد': 'تعادل عنيف',
+                    'القابلية للاشتعال': 'غير قابل',
+                    'عامل مؤكسد': 'قوي جداً'
+                },
+                note: '🧪 حمض معدني قوي، يدخل في معظم الصناعات الكيميائية.'
+            },
+            // ---------- المواد الغازية الجديدة ----------
+            oxygen: {
+                name: 'الأكسجين',
+                formula: 'O₂',
+                state: 'غاز',
+                physical: {
+                    'الكثافة (جم/لتر) عند STP': '1.429',
+                    'درجة الانصهار (°م)': '-218.8',
+                    'درجة الغليان (°م)': '-183.0',
+                    'الذوبانية في الماء': 'ضعيفة (8.3 ملغم/لتر)',
+                    'اللون والرائحة': 'عديم اللون والرائحة'
+                },
+                chemical: {
+                    'الوزن الجزيئي': '32.00',
+                    'الرقم الهيدروجيني (pH)': 'محايد (غاز)',
+                    'التفاعل (الأكسدة)': 'مؤكسد قوي جداً',
+                    'القابلية للاشتعال': '❌ غير قابل (لكنه يساعد على الاشتعال)',
+                    'الدور البيولوجي': 'ضروري للتنفس الخلوي'
+                },
+                note: '💨 ثالث أكثر عنصر وفرة في الكون، يشكل 21% من الغلاف الجوي.'
+            },
+            carbon_dioxide: {
+                name: 'ثاني أكسيد الكربون',
+                formula: 'CO₂',
+                state: 'غاز',
+                physical: {
+                    'الكثافة (جم/لتر) عند STP': '1.98',
+                    'درجة التسامي (°م)': '-78.5 (تحت الضغط)',
+                    'درجة الانصهار (°م)': '— (يتسامى)',
+                    'الذوبانية في الماء': 'متوسطة (تشكل حمض كربونيك)',
+                    'المظهر': 'غاز عديم اللون، كثيف'
+                },
+                chemical: {
+                    'الوزن الجزيئي': '44.01',
+                    'الرقم الهيدروجيني (pH)': '~4.5 (حمضي ضعيف في الماء)',
+                    'التفاعل مع الماء': 'H₂O + CO₂ ⇌ H₂CO₃',
+                    'القابلية للاشتعال': '❌ غير قابل للاشتعال (يخمد الحرائق)',
+                    'دورة الكربون': 'ناتج أساسي للتنفس والاحتراق'
+                },
+                note: '🌍 غاز دفيء رئيسي، يُستخدم في المشروبات الغازية وإطفاء الحرائق.'
+            },
+            methane: {
+                name: 'الميثان',
+                formula: 'CH₄',
+                state: 'غاز',
+                physical: {
+                    'الكثافة (جم/لتر) عند STP': '0.657 (أخف من الهواء)',
+                    'درجة الانصهار (°م)': '-182.5',
+                    'درجة الغليان (°م)': '-161.5',
+                    'الذوبانية في الماء': 'ضعيفة جداً',
+                    'الرائحة': 'عديم الرائحة (يُضاف له مركبتان)'
+                },
+                chemical: {
+                    'الوزن الجزيئي': '16.04',
+                    'الرقم الهيدروجيني (pH)': 'محايد',
+                    'التفاعل مع الأكسجين': 'احتراق عنيف (لهب أزرق)',
+                    'القابلية للاشتعال': '🔥 شديد الاشتعال (غاز طبيعي)',
+                    'نوع المركب': 'هيدروكربون ألكان (أبسطها)'
+                },
+                note: '⛽ المكون الأساسي للغاز الطبيعي، يُستخدم كوقود ومادة أولية في الصناعات البتروكيماوية.'
+            }
+        };
+
+        // ----------------------------------------------------------------
+        //  دوال العرض والتحكم
+        // ----------------------------------------------------------------
+        const selectEl = document.getElementById('materialSelect');
+        const displayArea = document.getElementById('displayArea');
+
+        // دالة لإنشاء عنصر خاصية (صف)
+        function createPropItem(label, value, extraClass = '') {
+            const div = document.createElement('div');
+            div.className = 'prop-item';
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'label';
+            labelSpan.textContent = label;
+            const valueSpan = document.createElement('span');
+            valueSpan.className = `value ${extraClass}`;
+            valueSpan.textContent = value;
+            div.appendChild(labelSpan);
+            div.appendChild(valueSpan);
+            return div;
+        }
+
+        // دالة عرض المادة المختارة
+        function renderMaterial(key) {
+            const mat = materials[key];
+            if (!mat) return;
+
+            // تحديد ألوان شارة الحالة (صلب / سائل / غاز)
+            let stateBadgeColor, stateTextColor;
+            if (mat.state === 'صلب') {
+                stateBadgeColor = '#dbeafe';
+                stateTextColor = '#1e3a8a';
+            } else if (mat.state === 'سائل' || mat.state.includes('سائل')) {
+                stateBadgeColor = '#d1fae5';
+                stateTextColor = '#065f46';
+            } else if (mat.state === 'غاز') {
+                stateBadgeColor = '#fef9c3';
+                stateTextColor = '#854d0e';
+            } else {
+                stateBadgeColor = '#f3e8ff';
+                stateTextColor = '#5b21b6';
+            }
+
+            // بناء المحتوى
+            let html = '';
+
+            // --- شريط العنوان ---
+            html += `
+                <div class="material-title">
+                    <span class="name">${mat.name}</span>
+                    <span class="formula">${mat.formula}</span>
+                    <span class="state-badge" style="background:${stateBadgeColor}; color:${stateTextColor}; border-color:${stateTextColor}40;">
+                        ${mat.state === 'غاز' ? '💨' : (mat.state.includes('سائل') ? '💧' : '🧊')} ${mat.state}
+                    </span>
+                </div>
+            `;
+
+            // --- شبكة الخواص ---
+            html += `<div class="props-grid">`;
+
+            // القسم الفيزيائي
+            html += `<div class="prop-section">
+                        <h3><span class="icon">⚡</span> الخواص الفيزيائية</h3>`;
+            for (const [label, value] of Object.entries(mat.physical)) {
+                let extra = '';
+                // تلوين ذكي للقيم
+                if (label.includes('انصهار') && parseFloat(value) < -100) extra = 'highlight';
+                if (label.includes('غليان') && parseFloat(value) < -150) extra = 'highlight';
+                if (label.includes('كثافة') && parseFloat(value) > 5) extra = 'warning';
+                if (label.includes('كثافة') && parseFloat(value) < 1 && mat.state === 'غاز') extra = 'highlight';
+                if (label.includes('اشتعال') && value.includes('شديد')) extra = 'danger';
+                html += `<div class="prop-item">
+                            <span class="label">${label}</span>
+                            <span class="value ${extra}">${value}</span>
+                        </div>`;
+            }
+            html += `</div>`;
+
+            // القسم الكيميائي
+            html += `<div class="prop-section">
+                        <h3><span class="icon">🧬</span> الخواص الكيميائية</h3>`;
+            for (const [label, value] of Object.entries(mat.chemical)) {
+                let extra = '';
+                if (value.includes('حمض') || value.includes('حامض')) extra = 'warning';
+                if (value.includes('اشتعال') && (value.includes('شديد') || value.includes('🔥'))) extra = 'danger';
+                if (label.includes('pH') && value.includes('7')) extra = 'highlight';
+                if (value.includes('مؤكسد')) extra = 'warning';
+                html += `<div class="prop-item">
+                            <span class="label">${label}</span>
+                            <span class="value ${extra}">${value}</span>
+                        </div>`;
+            }
+            html += `</div>`;
+
+            html += `</div>`; // نهاية الشبكة
+
+            // --- الملاحظة الإضافية ---
+            html += `<div class="extra-note">📌 ${mat.note}</div>`;
+
+            // حقن المحتوى في منطقة العرض
+            displayArea.innerHTML = html;
+        }
+
+        // دالة تعبئة القائمة المنسدلة
+        function populateSelect() {
+            selectEl.innerHTML = '';
+            for (const [key, mat] of Object.entries(materials)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = `${mat.name} (${mat.formula})`;
+                selectEl.appendChild(option);
+            }
+            // تعيين القيمة الافتراضية (الماء)
+            selectEl.value = 'water';
+        }
+
+        // مستمع حدث تغيير المادة
+        selectEl.addEventListener('change', function() {
+            renderMaterial(this.value);
+        });
+
+        // ----------------------------------------------------------------
+        //  تهيئة التطبيق
+        // ----------------------------------------------------------------
+        populateSelect();
+        renderMaterial('water'); // عرض الماء افتراضياً
+    </script>
+
+</body>
+</html>
