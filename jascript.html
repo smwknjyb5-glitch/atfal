@@ -1,0 +1,254 @@
+   <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة مكوّنات كود JavaScript</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0d0f13;
+    --bg-panel:#15171d;
+    --line:#282c35;
+    --cream:#edf0f4;
+    --cream-dim:#8b93a1;
+    --keyword:#f7df1e;
+    --string:#7ee787;
+    --fnname:#ffa657;
+    --comment:#7d8794;
+    --number:#79c0ff;
+    --method:#d2a8ff;
+    --punct:#c9d1d9;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    background:radial-gradient(ellipse at 50% -10%, #1c1a10 0%, var(--bg-deep) 55%, #050506 100%);
+    color:var(--cream);
+    font-family:'Tajawal',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{ max-width:1180px; margin:0 auto; padding:36px 20px 60px; }
+  header{ text-align:center; margin-bottom:24px; }
+  .kicker{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.15em; color:var(--keyword); text-transform:uppercase; font-weight:700; margin-bottom:10px; direction:ltr; }
+  h1{ font-weight:900; font-size:38px; margin:0 0 8px; color:var(--cream); }
+  .sub{ color:var(--cream-dim); font-size:15px; max-width:640px; margin:0 auto; line-height:1.9; }
+
+  .legend{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:22px 0 20px; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; color:var(--cream-dim); padding:5px 12px; border:1px solid var(--line); border-radius:100px; background:var(--bg-panel); }
+  .legend i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+  .grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:16px; }
+  @media(max-width:820px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{ background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .panel-head{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    border-bottom:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--cream-dim);
+  }
+  .dots{ display:flex; gap:6px; }
+  .dots i{ width:10px; height:10px; border-radius:50%; }
+
+  pre.code{
+    margin:0; padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:12.7px;
+    line-height:1.95; direction:ltr; text-align:left; overflow-x:auto; color:var(--cream);
+    max-height:600px; overflow-y:auto;
+  }
+  .tok{ cursor:pointer; border-radius:4px; padding:1px 2px; transition:.15s; }
+  .tok:hover{ background:rgba(255,255,255,.08); }
+  .tok.selected{ background:rgba(255,255,255,.16); box-shadow:0 0 0 1px currentColor; }
+  .kw{ color:var(--keyword); font-weight:700; }
+  .str{ color:var(--string); }
+  .fn{ color:var(--fnname); }
+  .cmt{ color:var(--comment); font-style:italic; }
+  .num{ color:var(--number); }
+  .method{ color:var(--method); }
+  .punct{ color:var(--punct); }
+  .plain{ color:var(--cream); }
+
+  .preview-frame-wrap{ background:#0a0b0e; }
+  iframe{ width:100%; height:300px; border:0; background:#fff; display:block; }
+
+  .detail{ margin-top:16px; padding:20px 22px; }
+  .detail .empty{ color:var(--cream-dim); font-size:14px; text-align:center; padding:14px 0; }
+  .detail h2{ margin:0 0 8px; font-size:18px; font-family:'JetBrains Mono',monospace; direction:ltr; text-align:left; }
+  .detail p{ color:var(--cream-dim); font-size:14.5px; line-height:2; margin:0; }
+  .detail .note{ margin-top:10px; font-size:12.5px; color:var(--string); }
+
+  footer{ text-align:center; color:var(--cream-dim); font-size:12px; margin-top:20px; line-height:1.9; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">function() js.anatomy</div>
+    <h1>محاكاة مكوّنات كود JavaScript</h1>
+    <p class="sub">اضغط على أي جزء ملوّن من الكود لمعرفة دوره، وشاهد أثره الحقيقي في المعاينة الحيّة — بما فيها ناتج console.log.</p>
+  </header>
+
+  <div class="legend">
+    <span><i style="background:var(--keyword)"></i> كلمة مفتاحية</span>
+    <span><i style="background:var(--string)"></i> نص (String)</span>
+    <span><i style="background:var(--fnname)"></i> اسم دالة</span>
+    <span><i style="background:var(--method)"></i> استدعاء دالة (Method)</span>
+    <span><i style="background:var(--number)"></i> رقم</span>
+    <span><i style="background:var(--comment)"></i> تعليق</span>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="dots"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div>
+        script.js
+      </div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div>
+      <div class="panel preview-frame-wrap">
+        <div class="panel-head">
+          <div class="dots"><i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i></div>
+          المعاينة الحيّة
+        </div>
+        <iframe id="preview"></iframe>
+      </div>
+      <div class="panel detail" id="detail">
+        <div class="empty">اضغط على أي جزء من الكود على اليسار لعرض شرحه هنا.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>مثال مبسّط لسكربت JavaScript — الهدف توضيح المفاهيم الأساسية: المتغيّرات، الدوال، الشروط، المصفوفات، والتعامل مع الصفحة (DOM).</footer>
+</div>
+
+<script>
+const COMPONENTS = {
+  comment: { title:'/* تعليق */', desc:'ملاحظة داخل الكود يتجاهلها المتصفح تماماً عند التنفيذ — تُستخدم لتوضيح الكود لمن يقرأه لاحقاً.', target:null },
+  'let-decl': { title:'let username = "سارة";', desc:'الكلمة let تُنشئ متغيّراً (Variable) يمكن تغيير قيمته لاحقاً في الكود.', target:'greeting' },
+  'string-val': { title:'قيمة نصية "سارة"', desc:'نص (String) محاط بعلامتي اقتباس — أحد الأنواع الأساسية للبيانات في JavaScript.', target:'greeting' },
+  'const-decl': { title:'const bonus = 10;', desc:'الكلمة const تُنشئ ثابتاً (Constant) لا يمكن تغيير قيمته بعد تعريفه، على عكس let.', target:null },
+  'number-val': { title:'قيمة رقمية', desc:'رقم (Number) — نوع بيانات أساسي آخر، يُستخدم في العمليات الحسابية والمقارنات.', target:null },
+  'function-decl': { title:'function greet(name) { ... }', desc:'تعريف دالة (Function) باسم greet تستقبل قيمة (name) وتُعيد نتيجة باستخدام return — كتلة كود قابلة لإعادة الاستخدام.', target:'greeting' },
+  'template-literal': { title:'قالب نصي `مرحباً، ${name}!`', desc:'نص محاط بعلامتي backtick يسمح بإدراج متغيّرات مباشرة داخل ${ } دون الحاجة لدمج النصوص يدوياً.', target:'greeting' },
+  'return-kw': { title:'الكلمة return', desc:'تُنهي تنفيذ الدالة وتُعيد قيمة معيّنة إلى المكان الذي استدعى الدالة.', target:'greeting' },
+  'if-stmt': { title:'جملة الشرط if', desc:'تُنفّذ الكود بداخلها فقط إذا كان الشرط بين القوسين صحيحاً (true).', target:'consoleBox' },
+  'comparison-op': { title:'عامل مقارنة >', desc:'يقارن بين قيمتين ويُعيد true أو false. من عوامل المقارنة الأخرى: ===، <، >=.', target:'consoleBox' },
+  'console-log': { title:'console.log()', desc:'دالة جاهزة تطبع قيمة في "طرفية المطوّر" (Console) لمراقبة ما يحدث أثناء التنفيذ دون إظهارها للزائر.', target:'consoleBox' },
+  'else-stmt': { title:'الكلمة else', desc:'تُنفَّذ الكتلة البديلة عندما يكون شرط if غير صحيح.', target:'consoleBox' },
+  'array-literal': { title:'مصفوفة [2, 4, 6, 8]', desc:'المصفوفة (Array) تُخزّن عدة قيم مرتبة داخل متغيّر واحد، ويُشار لكل عنصر برقمه (يبدأ من 0).', target:null },
+  'arrow-fn': { title:'دالة سهمية n => n * 2', desc:'صيغة مختصرة لكتابة دالة صغيرة بدون كلمة function، شائعة الاستخدام مع دوال المصفوفات مثل map.', target:null },
+  'map-method': { title:'الدالة .map()', desc:'دالة جاهزة للمصفوفات تُنشئ مصفوفة جديدة بتطبيق عملية معيّنة على كل عنصر — هنا مضاعفة كل رقم.', target:null },
+  'dom-method': { title:'document.getElementById()', desc:'دالة تبحث عن عنصر HTML في الصفحة باستخدام معرّفه (id) لتتمكن من قراءته أو تعديله من JavaScript.', target:'calcBtn' },
+  'event-listener': { title:'.addEventListener("click", ...)', desc:'تُسجّل "مستمع حدث" (Event Listener) ينتظر وقوع حدث معيّن — هنا الضغط على الزر — لتنفيذ كود معيّن عند حدوثه.', target:'calcBtn' },
+  'event-callback': { title:'دالة رد النداء (Callback)', desc:'الدالة التي تُنفَّذ تلقائياً عند وقوع الحدث. جرّب الضغط على الزر في المعاينة لترى تنفيذها فعلياً!', target:'output' }
+};
+
+const codeEl = document.getElementById('code');
+function T(cls, text, comp){
+  const c = comp ? ` data-c="${comp}"` : '';
+  return `<span class="tok ${cls}"${c}>${text}</span>`;
+}
+const P = t => `<span class="tok punct">${t}</span>`;
+const NL = '\n';
+
+codeEl.innerHTML =
+T('cmt','// برنامج بسيط لحساب مضاعف رقم','comment') + NL +
+T('kw','let','let-decl') + ' ' + T('plain','username') + ' ' + P('=') + ' ' + T('str','"سارة"','string-val') + P(';') + ' ' + T('cmt','// متغيّر قابل للتغيير','comment') + NL +
+T('kw','const','const-decl') + ' ' + T('plain','bonus') + ' ' + P('=') + ' ' + T('num','10','number-val') + P(';') + ' ' + T('cmt','// ثابت لا يتغيّر','comment') + NL + NL +
+
+T('kw','function','function-decl') + ' ' + T('fn','greet','function-decl') + P('(') + T('plain','name') + P(') {') + NL +
+'  ' + T('kw','return','return-kw') + ' ' + T('str','`مرحباً، ${name}!`','template-literal') + P(';') + NL +
+P('}') + NL + NL +
+
+T('kw','if','if-stmt') + ' ' + P('(') + T('plain','bonus') + ' ' + T('punct','&gt;','comparison-op') + ' ' + T('num','5') + P(') {') + NL +
+'  ' + T('method','console.log','console-log') + P('(') + T('fn','greet') + P('(') + T('plain','username') + P('));') + NL +
+P('} ') + T('kw','else','else-stmt') + P(' {') + NL +
+'  ' + T('method','console.log','console-log') + P('(') + T('str','"لا توجد مكافأة"') + P(');') + NL +
+P('}') + NL + NL +
+
+T('kw','const','const-decl') + ' ' + T('plain','numbers') + ' ' + P('=') + ' ' + P('[') + T('num','2','array-literal') + P(', ') + T('num','4','array-literal') + P(', ') + T('num','6','array-literal') + P(', ') + T('num','8','array-literal') + P('];') + NL +
+T('kw','const','const-decl') + ' ' + T('plain','doubled') + ' ' + P('=') + ' ' + T('plain','numbers') + P('.') + T('method','map','map-method') + P('(') + T('plain','n','arrow-fn') + ' ' + T('punct','=&gt;','arrow-fn') + ' ' + T('plain','n * 2','arrow-fn') + P(');') + NL + NL +
+
+T('plain','document') + P('.') + T('method','getElementById','dom-method') + P('(') + T('str','"calcBtn"') + P(')') + P('.') + T('method','addEventListener','event-listener') + P('(') + T('str','"click"') + P(', () ') + T('punct','=&gt;') + P(' {') + NL +
+'  ' + T('plain','document') + P('.') + T('method','getElementById','dom-method') + P('(') + T('str','"output"') + P(')') + P('.') + T('plain','textContent','event-callback') + ' ' + P('=') + ' ' + T('str','"الناتج: "') + ' ' + P('+') + ' ' + T('plain','doubled') + P('.') + T('method','join','event-callback') + P('(') + T('str','", "') + P(');') + NL +
+P('});');
+
+const preview = document.getElementById('preview');
+preview.srcdoc = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+  body{font-family:Tajawal,sans-serif;direction:rtl;margin:0;padding:20px;background:#f7f8fa;color:#1a1a1a;}
+  #greeting{font-size:17px;margin-bottom:14px;}
+  button{background:#f7df1e;border:none;padding:10px 18px;border-radius:8px;font-family:Tajawal,sans-serif;font-weight:700;cursor:pointer;font-size:14px;}
+  button:hover{background:#e5cd18;}
+  #output{margin-top:12px;font-size:14.5px;min-height:20px;font-weight:700;color:#0d6b4f;}
+  #consoleWrap{margin-top:20px;background:#14161a;border-radius:8px;padding:10px 12px;}
+  #consoleWrap .lbl{color:#7d8794;font-size:10px;font-family:monospace;margin-bottom:6px;direction:ltr;text-align:left;}
+  #consoleBox{font-family:monospace;font-size:12px;color:#7ee787;direction:ltr;text-align:left;min-height:18px;}
+  #consoleBox div{padding:2px 0;border-bottom:1px solid #232630;}
+</style></head>
+<body>
+  <p id="greeting"></p>
+  <button id="calcBtn">احسب المضاعف</button>
+  <p id="output"></p>
+  <div id="consoleWrap"><div class="lbl">▸ console</div><div id="consoleBox"></div></div>
+<script>
+  function log(msg){ const b=document.getElementById('consoleBox'); const d=document.createElement('div'); d.textContent=msg; b.appendChild(d); }
+  let username = "سارة";
+  const bonus = 10;
+  function greet(name){ return \`مرحباً، \${name}!\`; }
+  if(bonus > 5){ document.getElementById('greeting').textContent = greet(username); log(greet(username)); }
+  else { log("لا توجد مكافأة"); }
+  const numbers = [2,4,6,8];
+  const doubled = numbers.map(n => n*2);
+  document.getElementById('calcBtn').addEventListener('click', () => {
+    document.getElementById('output').textContent = "الناتج: " + doubled.join(", ");
+    log("تم الضغط على الزر ← الناتج: " + doubled.join(", "));
+  });
+<\/script>
+</body></html>`;
+
+const detail = document.getElementById('detail');
+let selectedEl = null;
+
+function clearHighlight(){
+  const doc = preview.contentDocument;
+  if(!doc) return;
+  doc.querySelectorAll('[data-hl]').forEach(el => {
+    el.style.outline = '';
+    el.removeAttribute('data-hl');
+  });
+}
+function highlight(id){
+  clearHighlight();
+  const doc = preview.contentDocument;
+  if(!doc || !id) return;
+  const el = doc.getElementById(id);
+  if(el){
+    el.style.outline = '2px solid #d2a8ff';
+    el.style.outlineOffset = '2px';
+    el.setAttribute('data-hl','1');
+  }
+}
+
+codeEl.addEventListener('click', (e) => {
+  const el = e.target.closest('.tok[data-c]');
+  if(!el) return;
+  if(selectedEl) selectedEl.classList.remove('selected');
+  el.classList.add('selected');
+  selectedEl = el;
+  const key = el.dataset.c;
+  const comp = COMPONENTS[key];
+  if(!comp) return;
+  let html = `<h2>${comp.title}</h2><p>${comp.desc}</p>`;
+  if(key === 'event-callback' || key === 'event-listener'){
+    html += `<div class="note">جرّب الضغط على الزر في المعاينة، وراقب أيضاً صندوق الـ console أسفلها.</div>`;
+  } else if(!comp.target){
+    html += `<div class="note">هذا الجزء لا يُنتج أثراً مرئياً مباشراً في المعاينة.</div>`;
+  }
+  detail.innerHTML = html;
+  highlight(comp.target);
+});
+</script>
+</body>
+</html>
