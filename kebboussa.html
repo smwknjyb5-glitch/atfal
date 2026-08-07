@@ -1,0 +1,400 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة: أنواع القبعات واستعمالاتها</title>
+<style>
+  :root{
+    --navy-deep:#050b1f;
+    --navy:#0c1730;
+    --navy-light:#152447;
+    --gold:#e8b84b;
+    --gold-soft:#f3d484;
+    --text:#eef1fb;
+    --muted:#9aa6c3;
+    --green:#4ade80;
+    --red:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Tahoma','Segoe UI',sans-serif;
+    background:var(--navy-deep);
+    color:var(--text);
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+  #stars{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .star{
+    position:absolute; background:#fff; border-radius:50%;
+    animation:twinkle 3s infinite ease-in-out;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:.2;} 50%{opacity:1;}
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:1100px; margin:0 auto; padding:28px 18px 60px;
+  }
+  header{
+    text-align:center; margin-bottom:30px;
+  }
+  header h1{
+    font-size:2.1rem; color:var(--gold-soft);
+    text-shadow:0 0 18px rgba(232,184,75,.35);
+    margin-bottom:8px;
+  }
+  header p{ color:var(--muted); font-size:1rem; }
+
+  .tabs{
+    display:flex; justify-content:center; gap:10px; margin-bottom:26px; flex-wrap:wrap;
+  }
+  .tab-btn{
+    background:var(--navy-light); border:1px solid rgba(232,184,75,.25);
+    color:var(--text); padding:10px 22px; border-radius:30px;
+    cursor:pointer; font-size:.95rem; transition:.25s;
+  }
+  .tab-btn:hover{ border-color:var(--gold); }
+  .tab-btn.active{
+    background:var(--gold); color:var(--navy-deep); font-weight:bold;
+    box-shadow:0 0 20px rgba(232,184,75,.4);
+  }
+
+  .panel{ display:none; }
+  .panel.active{ display:block; animation:fadeIn .4s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:18px;
+  }
+  .cap-card{
+    background:linear-gradient(160deg,var(--navy-light),var(--navy));
+    border:1px solid rgba(232,184,75,.2);
+    border-radius:18px; padding:18px; text-align:center;
+    cursor:pointer; transition:.25s; position:relative;
+  }
+  .cap-card:hover{
+    transform:translateY(-6px);
+    border-color:var(--gold);
+    box-shadow:0 10px 26px rgba(0,0,0,.4);
+  }
+  .cap-card.selected{
+    border-color:var(--gold); background:linear-gradient(160deg,#20304f,var(--navy-light));
+    box-shadow:0 0 24px rgba(232,184,75,.35);
+  }
+  .cap-emoji{
+    font-size:3.4rem; margin-bottom:10px;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));
+  }
+  .cap-name{ font-size:1.05rem; font-weight:bold; color:var(--gold-soft); }
+  .cap-sub{ font-size:.8rem; color:var(--muted); margin-top:4px; }
+
+  .info-box{
+    margin-top:24px; background:var(--navy-light);
+    border:1px solid rgba(232,184,75,.3); border-radius:18px;
+    padding:22px 26px; min-height:110px;
+  }
+  .info-box h2{ color:var(--gold); font-size:1.3rem; margin-bottom:10px; }
+  .info-box p{ color:var(--text); line-height:1.9; margin-bottom:8px; }
+  .info-box .tag{
+    display:inline-block; background:rgba(232,184,75,.15); color:var(--gold-soft);
+    border:1px solid rgba(232,184,75,.35); padding:4px 12px; border-radius:20px;
+    font-size:.8rem; margin-top:6px;
+  }
+  .placeholder{ color:var(--muted); text-align:center; padding:20px 0; }
+
+  /* Quiz */
+  .quiz-box{
+    background:var(--navy-light); border:1px solid rgba(232,184,75,.25);
+    border-radius:18px; padding:26px; text-align:center;
+  }
+  .quiz-progress{ color:var(--muted); font-size:.85rem; margin-bottom:14px; }
+  .quiz-question{
+    font-size:1.15rem; color:var(--text); margin-bottom:22px; line-height:1.8;
+    min-height:70px;
+  }
+  .quiz-options{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px; margin-bottom:18px;
+  }
+  .quiz-opt{
+    background:var(--navy); border:1px solid rgba(232,184,75,.25);
+    color:var(--text); padding:14px 10px; border-radius:12px;
+    cursor:pointer; font-size:.95rem; transition:.2s;
+  }
+  .quiz-opt:hover{ border-color:var(--gold); transform:translateY(-2px); }
+  .quiz-opt.correct{ background:rgba(74,222,128,.2); border-color:var(--green); }
+  .quiz-opt.wrong{ background:rgba(248,113,113,.2); border-color:var(--red); }
+  .quiz-opt.disabled{ pointer-events:none; }
+  .quiz-feedback{ min-height:26px; font-size:.95rem; margin-bottom:14px; }
+  .quiz-feedback.ok{ color:var(--green); }
+  .quiz-feedback.no{ color:var(--red); }
+  .next-btn, .restart-btn{
+    background:var(--gold); color:var(--navy-deep); border:none;
+    padding:10px 26px; border-radius:24px; font-weight:bold;
+    cursor:pointer; font-size:.95rem; display:none;
+  }
+  .restart-btn{ display:inline-block; }
+  .score-screen{ display:none; }
+  .score-screen h2{ color:var(--gold-soft); font-size:1.6rem; margin-bottom:10px; }
+  .score-screen p{ color:var(--muted); margin-bottom:20px; }
+  .score-num{ font-size:3rem; color:var(--gold); font-weight:bold; }
+
+  footer{
+    text-align:center; margin-top:40px; color:var(--muted); font-size:.8rem;
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<div class="wrap">
+  <header>
+    <h1>🧢 أنواع القبعات واستعمالاتها</h1>
+    <p>محاكاة تفاعلية للتعرف على مختلف أنواع القبعات وأين تُستعمل</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="explore">🔍 استكشاف الأنواع</button>
+    <button class="tab-btn" data-tab="quiz">📝 اختبر معلوماتك</button>
+  </div>
+
+  <!-- EXPLORE PANEL -->
+  <section class="panel active" id="panel-explore">
+    <div class="grid" id="capGrid"></div>
+    <div class="info-box" id="infoBox">
+      <p class="placeholder">👆 اضغط على إحدى القبعات أعلاه لتتعرف على استعمالاتها</p>
+    </div>
+  </section>
+
+  <!-- QUIZ PANEL -->
+  <section class="panel" id="panel-quiz">
+    <div class="quiz-box">
+      <div id="quizArea">
+        <div class="quiz-progress" id="quizProgress">السؤال 1 / 6</div>
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+        <button class="next-btn" id="nextBtn">السؤال التالي ⬅</button>
+      </div>
+      <div class="score-screen" id="scoreScreen">
+        <h2>🎉 انتهى الاختبار!</h2>
+        <p>نتيجتك النهائية</p>
+        <div class="score-num" id="scoreNum">0 / 6</div>
+        <br><br>
+        <button class="restart-btn" id="restartBtn">إعادة الاختبار 🔄</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>محاكاة تعليمية تفاعلية — أنواع القبعات</footer>
+</div>
+
+<script>
+// ---------- Stars background ----------
+const starsContainer = document.getElementById('stars');
+for(let i=0;i<80;i++){
+  const s = document.createElement('div');
+  s.className='star';
+  const size = Math.random()*2+1;
+  s.style.width = size+'px';
+  s.style.height = size+'px';
+  s.style.top = Math.random()*100+'%';
+  s.style.left = Math.random()*100+'%';
+  s.style.animationDelay = Math.random()*3+'s';
+  starsContainer.appendChild(s);
+}
+
+// ---------- Data ----------
+const caps = [
+  {
+    id:'sun',
+    name:'قبعة الشمس',
+    emoji:'👒',
+    sub:'حواف واسعة',
+    desc:'قبعة ذات حافة واسعة تحيط بالرأس بالكامل، تُستعمل للحماية من أشعة الشمس الحارقة وضربة الشمس.',
+    usage:'الشاطئ، الحدائق، الأعمال الفلاحية، الرحلات الصيفية',
+    tag:'الوقاية من الشمس'
+  },
+  {
+    id:'wool',
+    name:'القبعة الصوفية',
+    emoji:'🧶',
+    sub:'قبعة شتوية',
+    desc:'قبعة مصنوعة من الصوف أو الأقمشة السميكة، تُغطي الرأس والأذنين للمحافظة على الدفء في الطقس البارد.',
+    usage:'فصل الشتاء، الجبال، الأجواء الباردة',
+    tag:'التدفئة'
+  },
+  {
+    id:'cap',
+    name:'قبعة البيسبول (الكاب)',
+    emoji:'🧢',
+    sub:'حافة أمامية',
+    desc:'قبعة رياضية ذات حافة أمامية فقط، تحمي الوجه والعينين من أشعة الشمس مع إبقاء الرأس مكشوفاً من الخلف.',
+    usage:'الرياضة، النشاطات اليومية، الرحلات، اللباس غير الرسمي',
+    tag:'الرياضة والاستعمال اليومي'
+  },
+  {
+    id:'chef',
+    name:'قبعة الطاهي',
+    emoji:'👨‍🍳',
+    sub:'قبعة المطبخ',
+    desc:'قبعة بيضاء طويلة أو قصيرة يرتديها الطهاة، تمنع سقوط الشعر في الطعام وتحافظ على النظافة أثناء الطبخ.',
+    usage:'المطاعم، المطابخ الاحترافية، فنادق',
+    tag:'النظافة الغذائية'
+  },
+  {
+    id:'safety',
+    name:'خوذة الأمان',
+    emoji:'⛑️',
+    sub:'قبعة صلبة',
+    desc:'قبعة صلبة مصنوعة من البلاستيك المقوى، تحمي الرأس من السقوط والاصطدامات في أماكن العمل الخطرة.',
+    usage:'ورشات البناء، المصانع، مواقع الأشغال',
+    tag:'حماية الرأس'
+  },
+  {
+    id:'formal',
+    name:'القبعة الرسمية',
+    emoji:'🎩',
+    sub:'كلاسيكية / أنيقة',
+    desc:'قبعة أنيقة (كالبيريه أو قبعة الفيدورا) تُرتدى كإكسسوار في المناسبات الرسمية أو لإضفاء لمسة أناقة على اللباس.',
+    usage:'الحفلات، المناسبات، الأزياء الكلاسيكية',
+    tag:'الأناقة والمناسبات'
+  }
+];
+
+// ---------- Explore panel ----------
+const capGrid = document.getElementById('capGrid');
+const infoBox = document.getElementById('infoBox');
+
+caps.forEach(cap=>{
+  const card = document.createElement('div');
+  card.className='cap-card';
+  card.dataset.id = cap.id;
+  card.innerHTML = `
+    <div class="cap-emoji">${cap.emoji}</div>
+    <div class="cap-name">${cap.name}</div>
+    <div class="cap-sub">${cap.sub}</div>
+  `;
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.cap-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+    infoBox.innerHTML = `
+      <h2>${cap.emoji} ${cap.name}</h2>
+      <p>${cap.desc}</p>
+      <p><strong>أين تُستعمل؟</strong> ${cap.usage}</p>
+      <span class="tag">${cap.tag}</span>
+    `;
+  });
+  capGrid.appendChild(card);
+});
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- Quiz ----------
+const quizData = [
+  { q:'أنت ذاهب للعب كرة السلة في الملعب تحت الشمس، أي قبعة تختار؟', correct:'cap', options:['cap','sun','formal'] },
+  { q:'تعمل في مطعم وتقوم بتحضير الطعام في المطبخ، ماذا ترتدي على رأسك؟', correct:'chef', options:['chef','wool','safety'] },
+  { q:'تعمل في ورشة بناء حيث قد تسقط أدوات من الأعلى، أي قبعة ضرورية؟', correct:'safety', options:['safety','sun','cap'] },
+  { q:'الجو بارد جداً في فصل الشتاء وتريد تدفئة رأسك، ماذا تختار؟', correct:'wool', options:['wool','chef','sun'] },
+  { q:'تذهب إلى الشاطئ في يوم صيفي حار وتريد حماية وجهك ورقبتك من الشمس، أي قبعة أنسب؟', correct:'sun', options:['sun','safety','wool'] },
+  { q:'مدعو إلى حفل زفاف أنيق وتريد إضافة لمسة أناقة للباسك، ماذا ترتدي؟', correct:'formal', options:['formal','cap','chef'] }
+];
+
+let currentQ = 0;
+let score = 0;
+
+const quizQuestion = document.getElementById('quizQuestion');
+const quizOptions = document.getElementById('quizOptions');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizProgress = document.getElementById('quizProgress');
+const nextBtn = document.getElementById('nextBtn');
+const quizArea = document.getElementById('quizArea');
+const scoreScreen = document.getElementById('scoreScreen');
+const scoreNum = document.getElementById('scoreNum');
+const restartBtn = document.getElementById('restartBtn');
+
+function capById(id){ return caps.find(c=>c.id===id); }
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function loadQuestion(){
+  quizFeedback.textContent='';
+  quizFeedback.className='quiz-feedback';
+  nextBtn.style.display='none';
+  const item = quizData[currentQ];
+  quizProgress.textContent = `السؤال ${currentQ+1} / ${quizData.length}`;
+  quizQuestion.textContent = item.q;
+  quizOptions.innerHTML='';
+  const shuffled = shuffle(item.options);
+  shuffled.forEach(optId=>{
+    const cap = capById(optId);
+    const btn = document.createElement('div');
+    btn.className='quiz-opt';
+    btn.textContent = `${cap.emoji} ${cap.name}`;
+    btn.addEventListener('click', ()=> selectAnswer(btn, optId, item.correct));
+    quizOptions.appendChild(btn);
+  });
+}
+
+function selectAnswer(btn, chosenId, correctId){
+  document.querySelectorAll('.quiz-opt').forEach(o=>o.classList.add('disabled'));
+  if(chosenId===correctId){
+    btn.classList.add('correct');
+    quizFeedback.textContent='✅ إجابة صحيحة!';
+    quizFeedback.classList.add('ok');
+    score++;
+  } else {
+    btn.classList.add('wrong');
+    quizFeedback.textContent = `❌ إجابة خاطئة. الصحيح هو: ${capById(correctId).emoji} ${capById(correctId).name}`;
+    quizFeedback.classList.add('no');
+    document.querySelectorAll('.quiz-opt').forEach(o=>{
+      if(o.textContent.includes(capById(correctId).name)) o.classList.add('correct');
+    });
+  }
+  nextBtn.style.display='inline-block';
+}
+
+nextBtn.addEventListener('click', ()=>{
+  currentQ++;
+  if(currentQ < quizData.length){
+    loadQuestion();
+  } else {
+    quizArea.style.display='none';
+    scoreScreen.style.display='block';
+    scoreNum.textContent = `${score} / ${quizData.length}`;
+  }
+});
+
+restartBtn.addEventListener('click', ()=>{
+  currentQ=0; score=0;
+  quizArea.style.display='block';
+  scoreScreen.style.display='none';
+  loadQuestion();
+});
+
+loadQuestion();
+</script>
+
+</body>
+</html>
