@@ -1,0 +1,767 @@
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تصنيف الأعداد — مسبار المدارات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400..700&family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080b16;
+    --bg-panel:#10162b;
+    --bg-panel-2:#151d38;
+    --text:#eef1fb;
+    --muted:#8891b3;
+    --line:#232c4d;
+
+    --n-color:#ffb347;
+    --n-glow:rgba(255,179,71,.55);
+    --z-color:#5ec8d8;
+    --z-glow:rgba(94,200,216,.5);
+    --q-color:#c792ea;
+    --q-glow:rgba(199,146,234,.5);
+    --r-color:#4fd1a5;
+    --r-glow:rgba(79,209,165,.5);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at 50% -10%, #131a34 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Cairo',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* starfield */
+  #stars{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+  .star{
+    position:absolute; background:#fff; border-radius:50%;
+    opacity:.5; animation:twinkle 4s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:.15;}
+    50%{opacity:.75;}
+  }
+
+  header{
+    position:relative; z-index:2;
+    text-align:center;
+    padding:38px 20px 18px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:.12em;
+    color:var(--r-color);
+    font-size:13px;
+    text-transform:uppercase;
+  }
+  h1{
+    font-family:'Reem Kufi',sans-serif;
+    font-size:clamp(28px,5vw,46px);
+    margin:8px 0 6px;
+    background:linear-gradient(90deg,#fff,#b9c4f5);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  header p{
+    color:var(--muted);
+    max-width:560px;
+    margin:0 auto;
+    font-size:15px;
+    line-height:1.8;
+  }
+
+  main{
+    position:relative; z-index:2;
+    max-width:1180px;
+    margin:0 auto;
+    padding:10px 20px 60px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:34px;
+  }
+
+  /* ===== Orbit Diagram ===== */
+  .orbit-wrap{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+    padding:30px 0 10px;
+  }
+  .orbit-stage{
+    position:relative;
+    width:min(560px,88vw);
+    height:min(560px,88vw);
+  }
+  .ring{
+    position:absolute;
+    border-radius:50%;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    border:2px solid var(--ring-color);
+    box-shadow:0 0 0 1px rgba(255,255,255,.02) inset, 0 0 24px -6px var(--ring-glow);
+    display:flex;
+    justify-content:center;
+    cursor:pointer;
+    transition:box-shadow .25s ease, border-color .25s ease, filter .25s ease;
+  }
+  .ring:hover{
+    filter:brightness(1.2);
+    box-shadow:0 0 0 1px rgba(255,255,255,.05) inset, 0 0 40px -4px var(--ring-glow);
+  }
+  .ring.active{
+    filter:brightness(1.35);
+    box-shadow:0 0 0 1px rgba(255,255,255,.08) inset, 0 0 50px -2px var(--ring-glow);
+  }
+  .ring.lit{
+    animation:pulse-ring 1.1s ease;
+  }
+  @keyframes pulse-ring{
+    0%{box-shadow:0 0 0 0 var(--ring-glow);}
+    40%{box-shadow:0 0 0 18px transparent;}
+    100%{box-shadow:0 0 0 1px rgba(255,255,255,.02) inset, 0 0 24px -6px var(--ring-glow);}
+  }
+
+  .ring-r{ width:100%; height:100%; --ring-color:var(--r-color); --ring-glow:var(--r-glow); }
+  .ring-q{ width:74%; height:74%; --ring-color:var(--q-color); --ring-glow:var(--q-glow); }
+  .ring-z{ width:48%; height:48%; --ring-color:var(--z-color); --ring-glow:var(--z-glow); }
+  .ring-n{ width:24%; height:24%; --ring-color:var(--n-color); --ring-glow:var(--n-glow);
+    background:radial-gradient(circle at 40% 35%, rgba(255,179,71,.35), rgba(255,179,71,.06) 70%);
+  }
+
+  .ring-label{
+    position:absolute;
+    top:6px;
+    font-family:'Reem Kufi',sans-serif;
+    font-size:15px;
+    padding:2px 10px;
+    border-radius:20px;
+    background:var(--bg);
+    border:1px solid var(--ring-color);
+    color:var(--ring-color);
+    white-space:nowrap;
+  }
+  .ring-n .ring-label{ top:50%; transform:translate(-50%,-50%); left:50%; font-size:13px; }
+
+  .badge{
+    position:absolute;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:#fff;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.15);
+    padding:2px 8px;
+    border-radius:10px;
+    pointer-events:none;
+    opacity:.85;
+  }
+
+  .probe{
+    position:absolute;
+    width:14px; height:14px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 0 14px 4px #fff, 0 0 30px 10px rgba(255,255,255,.5);
+    top:2px; left:50%;
+    transform:translate(-50%,-50%);
+    opacity:0;
+    z-index:5;
+    transition:top 1.4s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+  }
+
+  /* ===== Info panel ===== */
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px 24px;
+    max-width:640px;
+    margin:0 auto;
+    width:100%;
+  }
+  .panel-empty{ color:var(--muted); text-align:center; font-size:14.5px; }
+  .panel h2{
+    font-family:'Reem Kufi',sans-serif;
+    margin:0 0 4px;
+    font-size:22px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .sym{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:22px;
+    width:34px; height:34px;
+    display:inline-flex; align-items:center; justify-content:center;
+    border-radius:8px;
+  }
+  .panel .subset-chain{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:14px;
+  }
+  .panel p{ line-height:1.9; color:#d3d8ee; font-size:14.5px; margin:0 0 12px;}
+  .examples{ display:flex; flex-wrap:wrap; gap:8px; }
+  .ex-chip{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--bg-panel-2);
+    border:1px solid var(--line);
+    padding:5px 12px;
+    border-radius:8px;
+    font-size:13.5px;
+  }
+
+  /* ===== Number checker (signature) ===== */
+  .checker{
+    background:linear-gradient(160deg,var(--bg-panel),var(--bg-panel-2));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:28px;
+    text-align:center;
+  }
+  .checker h3{
+    font-family:'Reem Kufi',sans-serif;
+    font-size:20px;
+    margin:0 0 6px;
+  }
+  .checker .hint{ color:var(--muted); font-size:13px; margin-bottom:18px;}
+  .checker-form{
+    display:flex;
+    gap:10px;
+    max-width:420px;
+    margin:0 auto 16px;
+  }
+  .checker-form input{
+    flex:1;
+    background:var(--bg);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:12px 16px;
+    border-radius:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:16px;
+    text-align:center;
+  }
+  .checker-form input:focus{ outline:2px solid var(--r-color); border-color:var(--r-color);}
+  .checker-form button{
+    background:var(--r-color);
+    color:#04241a;
+    border:none;
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    padding:0 22px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:15px;
+  }
+  .checker-form button:hover{ filter:brightness(1.08); }
+  .quick-try{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:6px;}
+  .quick-try button{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    padding:4px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:12.5px;
+  }
+  .quick-try button:hover{ color:var(--text); border-color:var(--r-color); }
+
+  .result{
+    margin-top:20px;
+    min-height:20px;
+    font-size:14.5px;
+    line-height:2;
+  }
+  .result .headline{ font-size:17px; font-family:'Reem Kufi',sans-serif; margin-bottom:6px;}
+  .set-tags{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px;}
+  .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    padding:5px 12px;
+    border-radius:20px;
+    border:1px solid;
+    opacity:.35;
+  }
+  .tag.on{ opacity:1; }
+
+  /* ===== Quiz ===== */
+  .quiz{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:26px 28px 30px;
+  }
+  .quiz-head{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px; flex-wrap:wrap; gap:8px;
+  }
+  .quiz-head h3{ font-family:'Reem Kufi',sans-serif; font-size:20px; margin:0;}
+  .quiz-progress{ color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:13px;}
+  .quiz-number{
+    text-align:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:44px;
+    font-weight:700;
+    background:var(--bg-panel-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:20px;
+    letter-spacing:.02em;
+  }
+  .quiz-options{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .opt{
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:14px 10px;
+    text-align:center;
+    cursor:pointer;
+    user-select:none;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .opt .opt-sym{ font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; display:block; margin-bottom:4px;}
+  .opt .opt-name{ font-size:12.5px; color:var(--muted);}
+  .opt.selected{ background:var(--bg-panel-2); }
+  .opt.correct{ border-color:var(--r-color); background:rgba(79,209,165,.12); }
+  .opt.incorrect{ border-color:#e5657a; background:rgba(229,101,122,.12); }
+
+  .quiz-actions{ display:flex; gap:10px; justify-content:center; }
+  .quiz-actions button{
+    font-family:'Cairo',sans-serif; font-weight:700;
+    border:none; border-radius:10px; padding:11px 26px; cursor:pointer; font-size:14.5px;
+  }
+  .btn-primary{ background:var(--r-color); color:#04241a; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-primary:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; border:1px solid var(--line) !important; color:var(--muted); }
+
+  .quiz-feedback{ text-align:center; font-size:14px; min-height:20px; margin-bottom:14px; }
+  .quiz-feedback.good{ color:var(--r-color); }
+  .quiz-feedback.bad{ color:#e5657a; }
+
+  .quiz-final{ text-align:center; }
+  .quiz-final .score{ font-family:'Reem Kufi',sans-serif; font-size:30px; margin-bottom:8px; }
+
+  footer{
+    position:relative; z-index:2;
+    text-align:center;
+    color:var(--muted);
+    font-size:12.5px;
+    padding:20px;
+  }
+
+  @media (max-width:640px){
+    .checker-form{ flex-direction:column; }
+    .checker-form button{ padding:12px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<header>
+  <div class="eyebrow">ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ</div>
+  <h1>تصنيف الأعداد</h1>
+  <p>كل مجموعة من الأعداد تدور داخل مجموعة أوسع منها، تماماً كالمدارات. اضغط على أي مدار لتكتشف تعريفه، أو أرسل مسباراً ليكتشف لك أعمق مدار ينتمي إليه أي عدد تختاره.</p>
+</header>
+
+<main>
+
+  <section class="orbit-wrap">
+    <div class="orbit-stage" id="stage">
+      <div class="ring ring-r" data-set="R">
+        <span class="ring-label">ℝ — حقيقية</span>
+      </div>
+      <div class="ring ring-q" data-set="Q">
+        <span class="ring-label">ℚ — نسبية</span>
+      </div>
+      <div class="ring ring-z" data-set="Z">
+        <span class="ring-label">ℤ — صحيحة</span>
+      </div>
+      <div class="ring ring-n" data-set="N">
+        <span class="ring-label">ℕ</span>
+      </div>
+      <div class="probe" id="probe"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel">
+    <div class="panel-empty">اضغط على أحد المدارات في الرسم أعلاه لعرض تعريف المجموعة وأمثلتها ⤴</div>
+  </section>
+
+  <section class="checker">
+    <h3>مسبار الأعداد</h3>
+    <div class="hint">اكتب عدداً — مثلاً 5 أو -3/4 أو 2.5 أو √2 أو π — وشاهد أعمق مدار ينتمي إليه</div>
+    <div class="checker-form">
+      <input type="text" id="numInput" placeholder="مثال: -7/2" />
+      <button id="checkBtn">تحقق</button>
+    </div>
+    <div class="quick-try">
+      <button data-v="5">5</button>
+      <button data-v="-3">-3</button>
+      <button data-v="3/4">3/4</button>
+      <button data-v="-2.5">-2.5</button>
+      <button data-v="√2">√2</button>
+      <button data-v="π">π</button>
+      <button data-v="√9">√9</button>
+    </div>
+    <div class="result" id="result"></div>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <div class="quiz-head">
+      <h3>اختبر نفسك</h3>
+      <div class="quiz-progress" id="quizProgress">1 / 8</div>
+    </div>
+    <div class="quiz-number" id="quizNumber">—</div>
+    <div class="quiz-options" id="quizOptions"></div>
+    <div class="quiz-feedback" id="quizFeedback"></div>
+    <div class="quiz-actions">
+      <button class="btn-primary" id="quizCheckBtn">تحقق من الإجابة</button>
+      <button class="btn-primary btn-ghost" id="quizNextBtn" style="display:none;">السؤال التالي</button>
+    </div>
+    <div class="quiz-final" id="quizFinal" style="display:none;">
+      <div class="score" id="quizScore"></div>
+      <button class="btn-primary" id="quizRestartBtn">أعد المحاولة</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>تصنيف الأعداد: ℕ الطبيعية ⊂ ℤ الصحيحة ⊂ ℚ النسبية ⊂ ℝ الحقيقية</footer>
+
+<script>
+/* ---------- Starfield ---------- */
+const starsEl = document.getElementById('stars');
+for(let i=0;i<90;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  const size=Math.random()*2+0.6;
+  s.style.width=size+'px';
+  s.style.height=size+'px';
+  s.style.top=Math.random()*100+'%';
+  s.style.left=Math.random()*100+'%';
+  s.style.animationDelay=(Math.random()*4)+'s';
+  starsEl.appendChild(s);
+}
+
+/* ---------- Set info ---------- */
+const SET_INFO = {
+  N:{
+    name:'الأعداد الطبيعية', sym:'ℕ', color:'var(--n-color)',
+    chain:'ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ',
+    def:'الأعداد المستعملة للعد، تبدأ من الصفر وتتوالى بلا نهاية: 0، 1، 2، 3 ...',
+    examples:['0','1','7','42','1000']
+  },
+  Z:{
+    name:'الأعداد الصحيحة', sym:'ℤ', color:'var(--z-color)',
+    chain:'ℤ ⊂ ℚ ⊂ ℝ',
+    def:'تضم كل الأعداد الطبيعية، إضافة إلى نظيراتها السالبة. أي عدد بدون فاصلة عشرية أو كسر.',
+    examples:['-5','-1','0','3','120']
+  },
+  Q:{
+    name:'الأعداد النسبية', sym:'ℚ', color:'var(--q-color)',
+    chain:'ℚ ⊂ ℝ',
+    def:'كل عدد يمكن كتابته على شكل كسر a/b حيث a وb عددان صحيحان وb مختلف عن الصفر. تشمل الأعداد الصحيحة والكسور والأعداد العشرية المحدودة أو الدورية.',
+    examples:['3/4','-7/2','2.5','-0.333...','6']
+  },
+  R:{
+    name:'الأعداد الحقيقية', sym:'ℝ', color:'var(--r-color)',
+    chain:'المجموعة الأشمل',
+    def:'تضم كل الأعداد النسبية، إضافة إلى الأعداد غير النسبية (الصمّاء) التي لا يمكن كتابتها على شكل كسر، مثل الجذور غير الكاملة والعدد π.',
+    examples:['√2','π','-√5','e','1.010010001...']
+  }
+};
+
+const panel = document.getElementById('panel');
+document.querySelectorAll('.ring').forEach(ring=>{
+  ring.addEventListener('click', ()=>{
+    document.querySelectorAll('.ring').forEach(r=>r.classList.remove('active'));
+    ring.classList.add('active');
+    showSetInfo(ring.dataset.set);
+  });
+});
+
+function showSetInfo(key){
+  const info = SET_INFO[key];
+  panel.innerHTML = `
+    <h2><span class="sym" style="background:${info.color}22;color:${info.color};border:1px solid ${info.color};">${info.sym}</span>${info.name}</h2>
+    <div class="subset-chain">${info.chain}</div>
+    <p>${info.def}</p>
+    <div class="examples">${info.examples.map(e=>`<span class="ex-chip">${e}</span>`).join('')}</div>
+  `;
+}
+
+/* ---------- Number parsing & classification ---------- */
+function classify(raw){
+  let input = raw.trim().replace(/\s+/g,'');
+  if(input==='') return {error:true};
+  input = input.replace(/pi/i,'π');
+
+  if(input==='π' || input==='e'){
+    return { sets:['R'], irrational:true, displayVal: input==='π' ? Math.PI.toFixed(4)+'…' : Math.E.toFixed(4)+'…' };
+  }
+
+  let sqrtMatch = input.match(/^(-?)(?:√|sqrt)\(?(\d+(?:\.\d+)?)\)?$/i);
+  if(sqrtMatch){
+    const neg = sqrtMatch[1] === '-';
+    const n = parseFloat(sqrtMatch[2]);
+    const root = Math.sqrt(n);
+    if(Number.isInteger(root)){
+      return classifyRational(neg ? -root : root);
+    } else {
+      return { sets:['R'], irrational:true, displayVal:(neg?-root:root).toFixed(4)+'…' };
+    }
+  }
+
+  let fracMatch = input.match(/^(-?\d+)\/(-?\d+)$/);
+  if(fracMatch){
+    const a = parseInt(fracMatch[1],10);
+    const b = parseInt(fracMatch[2],10);
+    if(b===0) return {error:true};
+    return classifyRational(a/b);
+  }
+
+  if(/^-?\d+(\.\d+)?$/.test(input)){
+    return classifyRational(parseFloat(input));
+  }
+
+  return {error:true};
+}
+
+function classifyRational(val){
+  const order = ['N','Z','Q','R'];
+  const sets = ['Q','R'];
+  if(Number.isInteger(val)){
+    sets.push('Z');
+    if(val>=0) sets.push('N');
+  }
+  return { sets: order.filter(s=>sets.includes(s)), irrational:false, value:val };
+}
+
+/* ---------- Probe animation ---------- */
+const probe = document.getElementById('probe');
+const stage = document.getElementById('stage');
+const ringTopFor = { R:2, Q:'13%', Z:'26%', N:'38%' };
+
+function animateProbe(deepestSet, sets){
+  probe.style.transition='none';
+  probe.style.opacity='1';
+  probe.style.top='0px';
+  void probe.offsetWidth;
+  probe.style.transition='top 1.4s cubic-bezier(.4,0,.2,1), opacity .3s ease';
+
+  const targets = {N:'50%', Z:'26%', Q:'13%', R:'2px'};
+  const stopAt = deepestSet ? targets[deepestSet] : '2px';
+  requestAnimationFrame(()=>{
+    probe.style.top = deepestSet==='N' ? '50%' : stopAt;
+  });
+
+  sets.forEach((s,i)=>{
+    setTimeout(()=>{
+      const ringEl = document.querySelector('.ring-'+s.toLowerCase());
+      if(ringEl){
+        ringEl.classList.remove('lit');
+        void ringEl.offsetWidth;
+        ringEl.classList.add('lit');
+      }
+    }, 250 + i*180);
+  });
+
+  setTimeout(()=>{ probe.style.opacity='0'; }, 2600);
+}
+
+/* ---------- Checker UI ---------- */
+const numInput = document.getElementById('numInput');
+const checkBtn = document.getElementById('checkBtn');
+const resultEl = document.getElementById('result');
+
+const TAG_LABEL = {N:'ℕ طبيعية', Z:'ℤ صحيحة', Q:'ℚ نسبية', R:'ℝ حقيقية'};
+const TAG_COLOR = {N:'var(--n-color)', Z:'var(--z-color)', Q:'var(--q-color)', R:'var(--r-color)'};
+
+function runCheck(){
+  const raw = numInput.value;
+  const res = classify(raw);
+  if(res.error){
+    resultEl.innerHTML = `<div class="headline" style="color:#e5657a;">لم أفهم هذا العدد 🤔 — جرّب صيغة مثل 5 أو -3/4 أو 2.5 أو √2</div>`;
+    return;
+  }
+  const order = ['N','Z','Q','R'];
+  const deepest = res.sets[0];
+  const tagsHtml = order.map(s=>{
+    const on = res.sets.includes(s);
+    return `<span class="tag ${on?'on':''}" style="border-color:${TAG_COLOR[s]};color:${TAG_COLOR[s]};">${TAG_LABEL[s]}</span>`;
+  }).join('');
+
+  const deepestName = SET_INFO[deepest].name;
+  resultEl.innerHTML = `
+    <div class="headline">أعمق مدار: ${SET_INFO[deepest].sym} — ${deepestName}</div>
+    <div class="set-tags">${tagsHtml}</div>
+  `;
+  animateProbe(deepest, res.sets);
+  showSetInfo(deepest);
+  document.querySelectorAll('.ring').forEach(r=>r.classList.toggle('active', r.dataset.set===deepest));
+}
+
+checkBtn.addEventListener('click', runCheck);
+numInput.addEventListener('keydown', e=>{ if(e.key==='Enter') runCheck(); });
+document.querySelectorAll('.quick-try button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    numInput.value = btn.dataset.v;
+    runCheck();
+  });
+});
+
+/* ---------- Quiz ---------- */
+const QUIZ_BANK = [
+  {display:'5', sets:['N','Z','Q','R']},
+  {display:'-3', sets:['Z','Q','R']},
+  {display:'0', sets:['N','Z','Q','R']},
+  {display:'3/4', sets:['Q','R']},
+  {display:'-7/2', sets:['Q','R']},
+  {display:'2.5', sets:['Q','R']},
+  {display:'√2', sets:['R']},
+  {display:'π', sets:['R']},
+  {display:'√9', sets:['N','Z','Q','R']},
+  {display:'-√16', sets:['Z','Q','R']},
+];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+let quizQuestions = [];
+let quizIndex = 0;
+let quizScore = 0;
+let selected = new Set();
+let answered = false;
+
+const quizNumberEl = document.getElementById('quizNumber');
+const quizOptionsEl = document.getElementById('quizOptions');
+const quizProgressEl = document.getElementById('quizProgress');
+const quizFeedbackEl = document.getElementById('quizFeedback');
+const quizCheckBtn = document.getElementById('quizCheckBtn');
+const quizNextBtn = document.getElementById('quizNextBtn');
+const quizFinalEl = document.getElementById('quizFinal');
+const quizScoreEl = document.getElementById('quizScore');
+const quizRestartBtn = document.getElementById('quizRestartBtn');
+const quizMain = [quizNumberEl.parentElement];
+
+function startQuiz(){
+  quizQuestions = shuffle(QUIZ_BANK).slice(0,8);
+  quizIndex = 0;
+  quizScore = 0;
+  quizFinalEl.style.display='none';
+  document.getElementById('quiz').querySelectorAll('.quiz-number,.quiz-options,.quiz-feedback,.quiz-actions').forEach(el=>el.style.display='');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  answered = false;
+  selected = new Set();
+  quizFeedbackEl.textContent='';
+  quizFeedbackEl.className='quiz-feedback';
+  quizNextBtn.style.display='none';
+  quizCheckBtn.style.display='inline-block';
+  quizCheckBtn.disabled = false;
+
+  const q = quizQuestions[quizIndex];
+  quizNumberEl.textContent = q.display;
+  quizProgressEl.textContent = `${quizIndex+1} / ${quizQuestions.length}`;
+
+  const order = ['N','Z','Q','R'];
+  quizOptionsEl.innerHTML = order.map(s=>`
+    <div class="opt" data-set="${s}">
+      <span class="opt-sym" style="color:${TAG_COLOR[s]}">${s==='N'?'ℕ':s==='Z'?'ℤ':s==='Q'?'ℚ':'ℝ'}</span>
+      <span class="opt-name">${SET_INFO[s].name}</span>
+    </div>
+  `).join('');
+
+  quizOptionsEl.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      if(answered) return;
+      const s = opt.dataset.set;
+      if(selected.has(s)){ selected.delete(s); opt.classList.remove('selected'); }
+      else { selected.add(s); opt.classList.add('selected'); }
+    });
+  });
+}
+
+quizCheckBtn.addEventListener('click', ()=>{
+  if(answered) return;
+  answered = true;
+  const q = quizQuestions[quizIndex];
+  const correctSet = new Set(q.sets);
+  let allCorrect = true;
+
+  quizOptionsEl.querySelectorAll('.opt').forEach(opt=>{
+    const s = opt.dataset.set;
+    const shouldBeOn = correctSet.has(s);
+    const isOn = selected.has(s);
+    if(shouldBeOn && isOn){ opt.classList.add('correct'); }
+    else if(!shouldBeOn && isOn){ opt.classList.add('incorrect'); allCorrect=false; }
+    else if(shouldBeOn && !isOn){ opt.classList.add('incorrect'); allCorrect=false; }
+  });
+
+  if(allCorrect){
+    quizScore++;
+    quizFeedbackEl.textContent = 'إجابة صحيحة! ✓';
+    quizFeedbackEl.className = 'quiz-feedback good';
+  } else {
+    const correctLabels = q.sets.map(s=>TAG_LABEL[s]).join('، ');
+    quizFeedbackEl.textContent = `الإجابة الصحيحة: ${correctLabels}`;
+    quizFeedbackEl.className = 'quiz-feedback bad';
+  }
+
+  quizCheckBtn.style.display='none';
+  quizNextBtn.style.display='inline-block';
+  quizNextBtn.textContent = quizIndex < quizQuestions.length-1 ? 'السؤال التالي' : 'عرض النتيجة';
+});
+
+quizNextBtn.addEventListener('click', ()=>{
+  quizIndex++;
+  if(quizIndex >= quizQuestions.length){
+    showQuizFinal();
+  } else {
+    renderQuizQuestion();
+  }
+});
+
+function showQuizFinal(){
+  document.getElementById('quiz').querySelectorAll('.quiz-number,.quiz-options,.quiz-feedback,.quiz-actions').forEach(el=>el.style.display='none');
+  quizFinalEl.style.display='block';
+  const pct = Math.round((quizScore/quizQuestions.length)*100);
+  let msg = pct===100 ? 'ممتاز! نتيجة كاملة 🌟' : pct>=70 ? 'أحسنت! 👏' : pct>=40 ? 'جيد، واصل التمرن' : 'حاول مرة أخرى';
+  quizScoreEl.textContent = `${quizScore} / ${quizQuestions.length} — ${msg}`;
+}
+
+quizRestartBtn.addEventListener('click', startQuiz);
+
+startQuiz();
+</script>
+
+</body>
+</html>
