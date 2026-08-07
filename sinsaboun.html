@@ -1,0 +1,417 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة صناعة الصابون</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Tahoma', 'Segoe UI', sans-serif;
+    background: linear-gradient(160deg, #fdf6ec 0%, #f3e6d0 50%, #ecdcc0 100%);
+    min-height:100vh;
+    color:#4a3520;
+    padding-bottom:60px;
+  }
+  header {
+    background: linear-gradient(120deg, #b98a4d, #d9a441);
+    color:#fff;
+    padding:28px 16px 34px;
+    text-align:center;
+    box-shadow:0 4px 18px rgba(0,0,0,0.15);
+    position:relative; overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0, transparent 40%),
+               radial-gradient(circle at 80% 70%, rgba(255,255,255,0.12) 0, transparent 45%);
+  }
+  header h1{ font-size:1.8rem; position:relative; }
+  header p{ margin-top:8px; opacity:0.92; font-size:0.95rem; position:relative; }
+
+  nav.tabs{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+    margin:22px auto 10px; max-width:900px; padding:0 12px;
+  }
+  nav.tabs button{
+    background:#fff; border:2px solid #b98a4d; color:#a06f2e;
+    padding:10px 18px; border-radius:30px; font-size:0.95rem; cursor:pointer;
+    font-weight:bold; transition:.25s;
+  }
+  nav.tabs button.active, nav.tabs button:hover{
+    background:#b98a4d; color:#fff; transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(185,138,77,0.35);
+  }
+
+  main{ max-width:1000px; margin:0 auto; padding:10px 16px; }
+  section{ display:none; animation:fadeIn .4s ease; }
+  section.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  h2.section-title{ text-align:center; margin:14px 0 20px; color:#8a5f22; font-size:1.4rem; }
+
+  /* ---- المكونات ---- */
+  .ingredients{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px; margin-bottom:20px;
+  }
+  .ing-card{
+    background:#fff; border-radius:16px; padding:16px 10px;
+    text-align:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    border:3px solid transparent; transition:.25s;
+  }
+  .ing-card:hover{ transform:translateY(-5px); box-shadow:0 10px 20px rgba(0,0,0,0.15); }
+  .ing-card.selected{ border-color:#b98a4d; background:#fdf1de; }
+  .ing-card .icon{ font-size:2.6rem; margin-bottom:8px; display:block; }
+  .ing-card .name{ font-weight:bold; font-size:0.95rem; }
+
+  .info-panel{
+    background:#fff; border-radius:18px; padding:20px; margin-top:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.1); border-right:6px solid #b98a4d;
+    display:none;
+  }
+  .info-panel.show{ display:block; animation:fadeIn .35s ease; }
+  .info-panel h3{ color:#8a5f22; margin-bottom:10px; font-size:1.25rem; }
+  .info-panel .row{ margin:8px 0; line-height:1.7; }
+  .info-panel .row b{ color:#b98a4d; }
+  .info-panel .warn{
+    margin-top:12px; background:#fff3e0; border-right:5px solid #e08b00;
+    padding:10px 12px; border-radius:8px; font-size:0.9rem;
+  }
+
+  /* ---- خط الإنتاج (المراحل) ---- */
+  .process-track{
+    display:flex; overflow-x:auto; gap:10px; padding:10px 4px 18px;
+    scroll-snap-type:x proximity;
+  }
+  .step-chip{
+    flex:0 0 auto; scroll-snap-align:center;
+    background:#fff; border:3px solid #e5d2ae; border-radius:14px;
+    padding:10px 16px; text-align:center; cursor:pointer; transition:.25s;
+    min-width:110px;
+  }
+  .step-chip.active{ border-color:#b98a4d; background:#fdf1de; transform:translateY(-3px); }
+  .step-chip .num{
+    width:26px; height:26px; border-radius:50%; background:#b98a4d; color:#fff;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:0.85rem;
+  }
+  .step-chip .label{ font-size:0.85rem; font-weight:bold; }
+
+  .stage-panel{
+    background:#fff; border-radius:18px; padding:22px; box-shadow:0 6px 18px rgba(0,0,0,0.1);
+    min-height:220px;
+  }
+  .stage-panel h3{ color:#8a5f22; font-size:1.3rem; margin-bottom:10px; }
+  .stage-panel p{ line-height:1.8; margin-bottom:10px; }
+  .stage-visual{
+    height:120px; border-radius:14px; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:center; font-size:3rem;
+    background:linear-gradient(120deg,#fdf1de,#f3e0bd);
+    position:relative; overflow:hidden;
+  }
+  .stage-visual .float-icon{ animation:float 2.6s ease-in-out infinite; }
+  @keyframes float{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  .stage-nav{ display:flex; justify-content:space-between; margin-top:16px; }
+  .stage-nav button{
+    background:#b98a4d; color:#fff; border:none; padding:10px 22px;
+    border-radius:24px; cursor:pointer; font-size:0.95rem;
+  }
+  .stage-nav button:disabled{ opacity:0.4; cursor:default; }
+  .stage-caution{
+    margin-top:10px; background:#fdeaea; border-right:5px solid #d64545;
+    padding:10px 12px; border-radius:8px; font-size:0.9rem; color:#8a1f1f;
+  }
+
+  /* ---- الاختبار ---- */
+  .quiz-box{
+    background:#fff; border-radius:18px; padding:22px; box-shadow:0 6px 18px rgba(0,0,0,0.1);
+  }
+  .quiz-progress{ text-align:center; color:#8a5f22; margin-bottom:10px; font-weight:bold; }
+  .quiz-question{ font-size:1.1rem; margin-bottom:16px; text-align:center; line-height:1.6; }
+  .quiz-options{ display:grid; gap:10px; }
+  .quiz-options button{
+    padding:12px 14px; border-radius:10px; border:2px solid #e5d2ae;
+    background:#fdf8f0; cursor:pointer; font-size:0.98rem; text-align:right; transition:.2s;
+  }
+  .quiz-options button:hover{ border-color:#b98a4d; }
+  .quiz-options button.correct{ background:#e3f7e9; border-color:#4bbf76; }
+  .quiz-options button.wrong{ background:#fdeaea; border-color:#e05555; }
+  .quiz-feedback{ margin-top:14px; text-align:center; font-size:0.95rem; min-height:24px; }
+  .quiz-score{ text-align:center; margin-top:16px; font-weight:bold; color:#8a5f22; }
+  .quiz-nav{ text-align:center; margin-top:16px; }
+  .quiz-nav button{
+    background:#b98a4d; color:#fff; border:none; padding:10px 26px;
+    border-radius:24px; cursor:pointer; font-size:0.95rem; display:none;
+  }
+
+  footer{ text-align:center; margin-top:30px; color:#7a5f3e; font-size:0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧼 محاكاة صناعة الصابون</h1>
+  <p>تعرّف على المكونات، مراحل تفاعل التصبّن، وأمان التصنيع</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-target="ing-section">🧴 المكونات</button>
+  <button class="tab-btn" data-target="process-section">⚙️ مراحل التصنيع</button>
+  <button class="tab-btn" data-target="quiz-section">📝 اختبار</button>
+</nav>
+
+<main>
+
+  <!-- ============ قسم المكونات ============ -->
+  <section id="ing-section" class="active">
+    <h2 class="section-title">اضغط على مكوّن للتعرف عليه</h2>
+    <div class="ingredients" id="ingredients"></div>
+    <div class="info-panel" id="infoPanel"></div>
+  </section>
+
+  <!-- ============ قسم مراحل التصنيع ============ -->
+  <section id="process-section">
+    <h2 class="section-title">⚙️ من الزيت إلى قالب الصابون</h2>
+    <div class="process-track" id="processTrack"></div>
+    <div class="stage-panel" id="stagePanel"></div>
+  </section>
+
+  <!-- ============ قسم الاختبار ============ -->
+  <section id="quiz-section">
+    <h2 class="section-title">📝 اختبر معلوماتك</h2>
+    <div class="quiz-box">
+      <div class="quiz-progress" id="quizProgress"></div>
+      <div class="quiz-question" id="quizQuestion"></div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <div class="quiz-nav"><button id="nextBtn">السؤال التالي</button></div>
+      <div class="quiz-score" id="quizScore"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>محاكاة تعليمية تفاعلية — صناعة الصابون ومبدأ التصبّن</footer>
+
+<script>
+/* ============ المكونات ============ */
+const ingredients = [
+  {
+    icon:"🫒", name:"الزيت أو الدهن",
+    use:"المادة الأساسية التي تتفاعل مع القلوي لتكوين الصابون (زيت الزيتون، زيت النخيل، دهن جوز الهند...).",
+    detail:"يحدد نوع الزيت خصائص الصابون النهائي: الصلابة، الرغوة، وقدرة الترطيب.",
+    warn:"جودة الزيت تؤثر مباشرة على جودة الصابون النهائي."
+  },
+  {
+    icon:"⚗️", name:"الصودا الكاوية (NaOH)",
+    use:"القلوي الذي يتفاعل مع الزيت في عملية تسمى «التصبّن» لإنتاج الصابون والجليسرين.",
+    detail:"تُستخدم لصناعة الصابون الصلب، وتُذاب في الماء قبل خلطها بالزيت.",
+    warn:"مادة أكّالة خطيرة — يجب ارتداء قفازات ونظارات واقية والعمل في مكان جيد التهوية."
+  },
+  {
+    icon:"💧", name:"الماء المقطر",
+    use:"يُستخدم لإذابة الصودا الكاوية وتكوين المحلول القلوي قبل مزجه بالزيت.",
+    detail:"يُفضّل الماء المقطر لتجنب الشوائب التي قد تؤثر على جودة التفاعل.",
+    warn:"يُضاف الصودا إلى الماء دائماً وليس العكس، لتجنب التطاير الحراري المفاجئ."
+  },
+  {
+    icon:"🌿", name:"الزيوت العطرية أو المعطرات",
+    use:"تُضاف في نهاية التصنيع لإعطاء الصابون رائحة مميزة.",
+    detail:"تشمل زيوت طبيعية مثل اللافندر والنعناع، أو عطور صناعية.",
+    warn:"تُضاف بكميات محسوبة لتجنب تهيج الجلد."
+  },
+  {
+    icon:"🎨", name:"الألوان والإضافات",
+    use:"تُستخدم لتلوين الصابون أو إضافة خصائص إضافية (عسل، شوفان، فحم...).",
+    detail:"تشمل أصباغ طبيعية (كالطين والأعشاب) أو ملونات مخصصة لصناعة الصابون.",
+    warn:"يجب التأكد أن المواد المضافة آمنة على البشرة."
+  },
+  {
+    icon:"🧊", name:"القوالب",
+    use:"تُستخدم لتشكيل الصابون بالشكل المطلوب أثناء تصلبه.",
+    detail:"يمكن أن تكون خشبية، سيليكونية، أو بلاستيكية.",
+    warn:"يُفضّل استخدام قوالب مقاومة للحرارة الخفيفة الناتجة عن التفاعل."
+  }
+];
+
+const ingBox = document.getElementById("ingredients");
+const infoPanel = document.getElementById("infoPanel");
+
+ingredients.forEach(item=>{
+  const card=document.createElement("div");
+  card.className="ing-card";
+  card.innerHTML=`<span class="icon">${item.icon}</span><span class="name">${item.name}</span>`;
+  card.addEventListener("click",()=>{
+    document.querySelectorAll(".ing-card").forEach(c=>c.classList.remove("selected"));
+    card.classList.add("selected");
+    infoPanel.innerHTML=`
+      <h3>${item.icon} ${item.name}</h3>
+      <div class="row"><b>الدور:</b> ${item.use}</div>
+      <div class="row"><b>تفصيل:</b> ${item.detail}</div>
+      <div class="warn">⚠️ ${item.warn}</div>
+    `;
+    infoPanel.classList.add("show");
+  });
+  ingBox.appendChild(card);
+});
+
+/* ============ مراحل التصنيع ============ */
+const stages = [
+  {
+    icon:"⚗️", title:"1. تحضير المحلول القلوي",
+    text:"تُذاب الصودا الكاوية (NaOH) في الماء البارد تدريجياً، مع التقليب المستمر. يرتفع الحرارة تلقائياً نتيجة التفاعل، لذا يجب الانتظار حتى يبرد المحلول.",
+    caution:"يُضاف الصودا إلى الماء وليس العكس، وتجنّب استنشاق الأبخرة الناتجة."
+  },
+  {
+    icon:"🫒", title:"2. تسخين وتحضير الزيت",
+    text:"يُسخّن الزيت أو مزيج الزيوت إلى درجة حرارة مناسبة (غالباً قريبة من حرارة المحلول القلوي) لضمان مزج متجانس لاحقاً.",
+    caution:"يجب تقريب درجتي حرارة الزيت والمحلول القلوي لتفادي تفاعل غير متجانس."
+  },
+  {
+    icon:"🔄", title:"3. التصبّن (Saponification)",
+    text:"يُصب المحلول القلوي على الزيت تدريجياً مع الخلط المستمر حتى يصل الخليط إلى مرحلة «الأثر» (Trace) حيث يصبح قوامه أكثر كثافة، وهنا يبدأ التفاعل الكيميائي الفعلي بين الزيت والقلوي لإنتاج الصابون والجليسرين.",
+    caution:"هذه المرحلة تُنتج حرارة وأبخرة قلوية — يُفضّل ارتداء قفازات ونظارات واقية."
+  },
+  {
+    icon:"🌿", title:"4. إضافة العطور والألوان",
+    text:"بعد الوصول لمرحلة «الأثر»، تُضاف الزيوت العطرية والألوان والإضافات الأخرى ويُخلط الجميع بسرعة قبل أن يتصلب الخليط.",
+    caution:"يجب العمل بسرعة في هذه المرحلة لأن الخليط يبدأ بالتصلب."
+  },
+  {
+    icon:"🧊", title:"5. الصب في القوالب",
+    text:"يُصب الخليط في القوالب المخصصة ويُترك لمدة 24 إلى 48 ساعة ليتصلب في درجة حرارة الغرفة.",
+    caution:"يُغطى القالب لحمايته من الغبار والتغيرات المفاجئة في الحرارة."
+  },
+  {
+    icon:"📅", title:"6. مرحلة النضج (Curing)",
+    text:"يُقطّع الصابون بعد التصلب الأولي، ثم يُترك في مكان جاف جيد التهوية لمدة 4 إلى 6 أسابيع حتى يكتمل التفاعل الكيميائي وتقل قلويته.",
+    caution:"استخدام الصابون قبل اكتمال النضج قد يُسبب تهيجاً للبشرة بسبب بقايا القلوية."
+  }
+];
+
+const track = document.getElementById("processTrack");
+const stagePanel = document.getElementById("stagePanel");
+let currentStage = 0;
+
+stages.forEach((s,i)=>{
+  const chip=document.createElement("div");
+  chip.className="step-chip";
+  chip.innerHTML=`<div class="num">${i+1}</div><div class="label">${s.title.split(". ")[1]}</div>`;
+  chip.addEventListener("click",()=>{ currentStage=i; renderStage(); });
+  track.appendChild(chip);
+});
+
+function renderStage(){
+  document.querySelectorAll(".step-chip").forEach((c,i)=>c.classList.toggle("active", i===currentStage));
+  const s = stages[currentStage];
+  stagePanel.innerHTML = `
+    <div class="stage-visual"><span class="float-icon">${s.icon}</span></div>
+    <h3>${s.title}</h3>
+    <p>${s.text}</p>
+    <div class="stage-caution">⚠️ ${s.caution}</div>
+    <div class="stage-nav">
+      <button id="prevStage" ${currentStage===0?"disabled":""}>◀ السابقة</button>
+      <button id="nextStage" ${currentStage===stages.length-1?"disabled":""}>التالية ▶</button>
+    </div>
+  `;
+  document.getElementById("prevStage").addEventListener("click",()=>{ if(currentStage>0){currentStage--; renderStage();} });
+  document.getElementById("nextStage").addEventListener("click",()=>{ if(currentStage<stages.length-1){currentStage++; renderStage();} });
+}
+renderStage();
+
+/* ============ تبديل الأقسام ============ */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.target).classList.add("active");
+  });
+});
+
+/* ============ الاختبار ============ */
+const quizData = [
+  {
+    q:"ما اسم التفاعل الكيميائي الذي يحدث بين الزيت والصودا الكاوية لإنتاج الصابون؟",
+    options:["الأكسدة","التصبّن (Saponification)","التبخر"],
+    correct:1,
+    feedback:"صحيح، تفاعل التصبّن هو التفاعل بين الزيت (أو الدهن) والقلوي لإنتاج الصابون والجليسرين."
+  },
+  {
+    q:"عند تحضير المحلول القلوي، ما الترتيب الصحيح والآمن؟",
+    options:["إضافة الماء إلى الصودا الكاوية","إضافة الصودا الكاوية إلى الماء","لا فرق بين الترتيبين"],
+    correct:1,
+    feedback:"صحيح، يجب دائماً إضافة الصودا الكاوية إلى الماء وليس العكس، لتجنب ردة فعل حرارية عنيفة ومفاجئة."
+  },
+  {
+    q:"لماذا يُترك الصابون فترة «نضج» تمتد لعدة أسابيع قبل استخدامه؟",
+    options:["لتجفيف الماء الزائد فقط","لاكتمال التفاعل الكيميائي وتقليل القلوية المتبقية","لتغيير لونه فقط"],
+    correct:1,
+    feedback:"صحيح، فترة النضج ضرورية لاكتمال تفاعل التصبّن وتقليل القلوية الزائدة التي قد تُهيّج البشرة."
+  },
+  {
+    q:"في أي مرحلة تُضاف الزيوت العطرية والألوان عادة؟",
+    options:["قبل خلط الصودا بالماء","بعد الوصول لمرحلة «الأثر» (Trace)","بعد اكتمال النضج فقط"],
+    correct:1,
+    feedback:"صحيح، تُضاف العطور والألوان بعد وصول الخليط لمرحلة الأثر، ثم يُصب بسرعة في القوالب."
+  },
+  {
+    q:"ما أهم إجراء أمان عند التعامل مع الصودا الكاوية؟",
+    options:["استنشاقها للتأكد من نقائها","ارتداء قفازات ونظارات واقية والعمل في مكان جيد التهوية","تذوقها لمعرفة تركيزها"],
+    correct:1,
+    feedback:"صحيح، الصودا الكاوية مادة أكّالة خطيرة وتستوجب استخدام معدات الوقاية والتهوية الجيدة."
+  }
+];
+
+let currentQ=0, score=0, answered=false;
+
+function loadQuestion(){
+  answered=false;
+  const item = quizData[currentQ];
+  document.getElementById("quizProgress").textContent = `السؤال ${currentQ+1} من ${quizData.length}`;
+  document.getElementById("quizQuestion").textContent = item.q;
+  const optsBox = document.getElementById("quizOptions");
+  optsBox.innerHTML="";
+  item.options.forEach((opt,i)=>{
+    const b=document.createElement("button");
+    b.textContent=opt;
+    b.addEventListener("click", ()=>selectAnswer(i,b));
+    optsBox.appendChild(b);
+  });
+  document.getElementById("quizFeedback").textContent="";
+  document.getElementById("nextBtn").style.display="none";
+  document.getElementById("quizScore").textContent="";
+}
+
+function selectAnswer(i, btnEl){
+  if(answered) return;
+  answered=true;
+  const item = quizData[currentQ];
+  const buttons = document.querySelectorAll(".quiz-options button");
+  buttons.forEach((b,idx)=>{
+    if(idx===item.correct) b.classList.add("correct");
+    else if(idx===i) b.classList.add("wrong");
+  });
+  if(i===item.correct){
+    score++;
+    document.getElementById("quizFeedback").innerHTML = `✅ إجابة صحيحة! ${item.feedback}`;
+  } else {
+    document.getElementById("quizFeedback").innerHTML = `❌ ${item.feedback}`;
+  }
+  if(currentQ < quizData.length-1){
+    document.getElementById("nextBtn").style.display="inline-block";
+  } else {
+    document.getElementById("quizScore").textContent = `🎯 نتيجتك النهائية: ${score} من ${quizData.length}`;
+  }
+}
+
+document.getElementById("nextBtn").addEventListener("click", ()=>{
+  currentQ++;
+  loadQuestion();
+});
+
+loadQuestion();
+</script>
+</body>
+</html>
