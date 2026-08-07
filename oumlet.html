@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكي تحويل العملات العالمية</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Oswald:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root{
+    --navy:#0b1b2b;
+    --navy-deep:#071320;
+    --panel:#12283d;
+    --amber:#f5a623;
+    --teal:#2fbf9f;
+    --off:#edeff2;
+    --slate:#6f8aa3;
+    --up:#2fbf9f;
+    --down:#e0654f;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(47,191,159,0.07), transparent 45%),
+      radial-gradient(circle at 90% 100%, rgba(245,166,35,0.06), transparent 45%),
+      var(--navy);
+    color:var(--off);
+    font-family:'Cairo', sans-serif;
+    min-height:100vh;
+    padding:30px 16px 60px;
+  }
+
+  .wrap{ max-width:960px; margin:0 auto; }
+
+  .eyebrow{
+    font-family:'DM Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:3px;
+    color:var(--teal);
+    text-transform:uppercase;
+    text-align:center;
+    margin-bottom:10px;
+  }
+
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-size:36px;
+    font-weight:600;
+    letter-spacing:1px;
+    text-align:center;
+    margin:0 0 8px;
+    color:var(--off);
+  }
+
+  .subtitle{
+    text-align:center;
+    color:var(--slate);
+    font-size:14px;
+    max-width:560px;
+    margin:0 auto 30px;
+    line-height:1.9;
+  }
+
+  /* Departure-board panel */
+  .board{
+    background:var(--navy-deep);
+    border:1px solid rgba(237,239,242,0.08);
+    border-radius:10px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02);
+    padding:28px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  .board::before{
+    content:"";
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.012) 0px,
+      rgba(255,255,255,0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events:none;
+  }
+
+  .converter-row{
+    display:grid;
+    grid-template-columns:1fr 46px 1fr;
+    gap:14px;
+    align-items:end;
+    margin-bottom:22px;
+    position:relative; z-index:1;
+  }
+  @media (max-width:600px){
+    .converter-row{ grid-template-columns:1fr; }
+    .swap-btn{ justify-self:center; }
+  }
+
+  .field label{
+    display:block;
+    font-family:'DM Mono', monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--amber);
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+
+  select, input[type=number]{
+    width:100%;
+    background:var(--panel);
+    border:1.5px solid rgba(237,239,242,0.15);
+    color:var(--off);
+    padding:11px 12px;
+    border-radius:6px;
+    font-family:'DM Mono', monospace;
+    font-size:15px;
+  }
+  select:focus, input:focus-visible{
+    outline:2px solid var(--teal);
+    outline-offset:1px;
+  }
+  select option{ background:var(--navy-deep); color:var(--off); }
+
+  .swap-btn{
+    background:var(--teal);
+    color:var(--navy-deep);
+    border:none;
+    width:44px; height:44px;
+    border-radius:50%;
+    font-size:18px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .2s ease;
+  }
+  .swap-btn:hover{ transform:rotate(180deg); }
+  .swap-btn:active{ transform:rotate(180deg) scale(0.9); }
+
+  .amount-field{ margin-bottom:22px; position:relative; z-index:1; }
+
+  /* Split-flap style result */
+  .flap-display{
+    text-align:center;
+    padding:26px 10px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+    border-radius:8px;
+    border:1px solid rgba(245,166,35,0.2);
+    margin-bottom:22px;
+    position:relative; z-index:1;
+  }
+  .flap-label{
+    font-family:'DM Mono', monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--slate);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .flap-number{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:52px;
+    color:var(--amber);
+    letter-spacing:1px;
+    line-height:1;
+    direction:ltr;
+    unicode-bidi:embed;
+  }
+  .flap-currency{
+    font-family:'DM Mono', monospace;
+    font-size:15px;
+    color:var(--off);
+    margin-top:6px;
+    letter-spacing:2px;
+  }
+  .flap-rate{
+    margin-top:14px;
+    font-family:'DM Mono', monospace;
+    font-size:12.5px;
+    color:var(--slate);
+    direction:ltr;
+    unicode-bidi:embed;
+  }
+
+  .ticker-title{
+    font-family:'DM Mono', monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--teal);
+    text-transform:uppercase;
+    margin-bottom:14px;
+    text-align:center;
+    position:relative; z-index:1;
+  }
+
+  .ticker-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    position:relative; z-index:1;
+  }
+  .ticker-row{
+    display:grid;
+    grid-template-columns:26px 1fr 100px 60px;
+    align-items:center;
+    gap:10px;
+    background:rgba(255,255,255,0.02);
+    padding:9px 12px;
+    border-radius:6px;
+    font-size:13.5px;
+  }
+  .flag{ font-size:17px; text-align:center; }
+  .ccy-name{ color:var(--off); }
+  .ccy-code{ color:var(--slate); font-family:'DM Mono', monospace; font-size:11.5px; }
+  .ticker-val{
+    font-family:'DM Mono', monospace;
+    font-size:13px;
+    text-align:left;
+    direction:ltr;
+    color:var(--off);
+  }
+  .ticker-tag{
+    font-family:'DM Mono', monospace;
+    font-size:10.5px;
+    text-align:center;
+    padding:2px 6px;
+    border-radius:4px;
+    background:rgba(47,191,159,0.15);
+    color:var(--teal);
+  }
+  .ticker-tag.weak{ background:rgba(224,101,79,0.15); color:var(--down); }
+
+  .footnote{
+    margin-top:26px;
+    font-size:11.5px;
+    color:var(--slate);
+    text-align:center;
+    line-height:1.9;
+    font-family:'DM Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">لوحة تحويل · تقديرات تقريبية</div>
+  <h1>محاكي تحويل العملات العالمية</h1>
+  <p class="subtitle">اختر عملتين وأدخل مبلغاً لترى تحويلاً تقريبياً بينهما، إلى جانب لوحة أسعار مبسطة لأبرز عملات العالم مقابل الدولار الأمريكي.</p>
+
+  <div class="board">
+    <div class="converter-row">
+      <div class="field">
+        <label for="from">من عملة</label>
+        <select id="from"></select>
+      </div>
+      <button class="swap-btn" id="swapBtn" title="تبديل العملتين" aria-label="تبديل العملتين">⇄</button>
+      <div class="field">
+        <label for="to">إلى عملة</label>
+        <select id="to"></select>
+      </div>
+    </div>
+
+    <div class="amount-field field">
+      <label for="amount">المبلغ</label>
+      <input type="number" id="amount" value="100" min="0" step="1">
+    </div>
+
+    <div class="flap-display">
+      <div class="flap-label">النتيجة التقريبية</div>
+      <div class="flap-number" id="resultNum">0.00</div>
+      <div class="flap-currency" id="resultCcy">—</div>
+      <div class="flap-rate" id="rateText">—</div>
+    </div>
+
+    <div class="ticker-title">لوحة أسعار العملات مقابل الدولار الأمريكي (USD)</div>
+    <div class="ticker-list" id="tickerList"></div>
+  </div>
+
+  <p class="footnote">الأسعار تقريبية وثابتة لأغراض المحاكاة والتوضيح فقط، وليست أسعار صرف حية أو رسمية — أسعار الصرف الفعلية تتغير باستمرار في السوق.</p>
+</div>
+
+<script>
+// Approximate static exchange rates: units of currency per 1 USD
+const currencies = [
+  {code:"USD", name:"دولار أمريكي", flag:"🇺🇸", rate:1},
+  {code:"EUR", name:"يورو", flag:"🇪🇺", rate:0.92},
+  {code:"GBP", name:"جنيه إسترليني", flag:"🇬🇧", rate:0.79},
+  {code:"JPY", name:"ين ياباني", flag:"🇯🇵", rate:151.5},
+  {code:"CNY", name:"يوان صيني", flag:"🇨🇳", rate:7.24},
+  {code:"CHF", name:"فرنك سويسري", flag:"🇨🇭", rate:0.88},
+  {code:"CAD", name:"دولار كندي", flag:"🇨🇦", rate:1.37},
+  {code:"AUD", name:"دولار أسترالي", flag:"🇦🇺", rate:1.52},
+  {code:"AED", name:"درهم إماراتي", flag:"🇦🇪", rate:3.67},
+  {code:"SAR", name:"ريال سعودي", flag:"🇸🇦", rate:3.75},
+  {code:"QAR", name:"ريال قطري", flag:"🇶🇦", rate:3.64},
+  {code:"KWD", name:"دينار كويتي", flag:"🇰🇼", rate:0.31},
+  {code:"DZD", name:"دينار جزائري", flag:"🇩🇿", rate:134.5},
+  {code:"MAD", name:"درهم مغربي", flag:"🇲🇦", rate:9.9},
+  {code:"TND", name:"دينار تونسي", flag:"🇹🇳", rate:3.11},
+  {code:"EGP", name:"جنيه مصري", flag:"🇪🇬", rate:48.5},
+  {code:"JOD", name:"دينار أردني", flag:"🇯🇴", rate:0.71},
+  {code:"LBP", name:"ليرة لبنانية", flag:"🇱🇧", rate:89500},
+  {code:"TRY", name:"ليرة تركية", flag:"🇹🇷", rate:33.2},
+  {code:"INR", name:"روبية هندية", flag:"🇮🇳", rate:83.6},
+  {code:"BRL", name:"ريال برازيلي", flag:"🇧🇷", rate:5.1},
+  {code:"MXN", name:"بيزو مكسيكي", flag:"🇲🇽", rate:17.9},
+  {code:"ZAR", name:"راند جنوب أفريقي", flag:"🇿🇦", rate:18.4},
+  {code:"RUB", name:"روبل روسي", flag:"🇷🇺", rate:92.3},
+  {code:"KRW", name:"ون كوري جنوبي", flag:"🇰🇷", rate:1345},
+];
+
+const fromSel = document.getElementById('from');
+const toSel = document.getElementById('to');
+const amountInput = document.getElementById('amount');
+
+currencies.forEach((c,i)=>{
+  const o1 = document.createElement('option');
+  o1.value = i; o1.textContent = `${c.flag} ${c.name} (${c.code})`;
+  fromSel.appendChild(o1);
+  const o2 = document.createElement('option');
+  o2.value = i; o2.textContent = `${c.flag} ${c.name} (${c.code})`;
+  toSel.appendChild(o2);
+});
+
+fromSel.value = currencies.findIndex(c=>c.code==="USD");
+toSel.value = currencies.findIndex(c=>c.code==="DZD");
+
+function fmt(n){
+  const decimals = n >= 1000 ? 0 : n >= 1 ? 2 : 4;
+  return n.toLocaleString('en-US', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+}
+
+function convert(){
+  const from = currencies[parseInt(fromSel.value)];
+  const to = currencies[parseInt(toSel.value)];
+  const amount = parseFloat(amountInput.value) || 0;
+
+  const usdAmount = amount / from.rate;
+  const result = usdAmount * to.rate;
+
+  document.getElementById('resultNum').textContent = fmt(result);
+  document.getElementById('resultCcy').textContent = `${to.flag} ${to.name} (${to.code})`;
+
+  const oneRate = (1 / from.rate) * to.rate;
+  document.getElementById('rateText').textContent = `1 ${from.code} ≈ ${fmt(oneRate)} ${to.code}`;
+}
+
+function renderTicker(){
+  const list = document.getElementById('tickerList');
+  list.innerHTML = "";
+  currencies.forEach(c=>{
+    const row = document.createElement('div');
+    row.className = 'ticker-row';
+    const strong = c.rate <= 4; // roughly stronger-than-or-near-USD currencies
+    row.innerHTML = `
+      <span class="flag">${c.flag}</span>
+      <span class="ccy-name">${c.name} <span class="ccy-code">${c.code}</span></span>
+      <span class="ticker-val">${fmt(c.rate)}</span>
+      <span class="ticker-tag ${strong ? '' : 'weak'}">${strong ? 'قوية' : 'ضعيفة نسبياً'}</span>
+    `;
+    list.appendChild(row);
+  });
+}
+
+document.getElementById('swapBtn').addEventListener('click', ()=>{
+  const tmp = fromSel.value;
+  fromSel.value = toSel.value;
+  toSel.value = tmp;
+  convert();
+});
+
+[fromSel, toSel, amountInput].forEach(el=> el.addEventListener('input', convert));
+
+convert();
+renderTicker();
+</script>
+</body>
+</html>
