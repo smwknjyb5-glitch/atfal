@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>محاكاة كرة على مستويين مائلين</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: #1e2530;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+  }
+  h2 { margin: 10px 0; }
+  #canvasWrap {
+    background: #0f141c;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+  canvas { display: block; border-radius: 12px; }
+  .panel {
+    margin-top: 16px;
+    background: #2a3444;
+    border-radius: 10px;
+    padding: 16px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    max-width: 800px;
+  }
+  .control { display: flex; flex-direction: column; align-items: center; min-width: 140px; }
+  .control label { margin-bottom: 6px; font-size: 14px; }
+  .control span { font-size: 13px; color: #7fd1ff; margin-top: 4px; }
+  input[type=range] { width: 140px; }
+  button {
+    background: #3d8bff;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+  }
+  button:hover { background: #2f6fd6; }
+  button.secondary { background: #555f6e; }
+  button.secondary:hover { background: #444d5a; }
+  #info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #b8c4d4;
+    display: flex;
+    gap: 24px;
+  }
+  #timeVal { color: #8cffa0; font-weight: bold; }
+  #msg { color: #ffcf5c; font-weight: bold; min-height: 20px; }
+</style>
+</head>
+<body>
+
+<h2>محاكاة: كرة تنزلق بين مستويين مائلين متغيري الميل</h2>
+
+<div id="canvasWrap">
+  <canvas id="c" width="820" height="420"></canvas>
+</div>
+
+<div id="info">
+  <div>السرعة: <span id="velVal">0.00</span> م/ث</div>
+  <div>الارتفاع الحالي: <span id="heightVal">0.00</span> م</div>
+  <div>الزمن الكلي للحركة: <span id="timeVal">0.00</span> ث</div>
+  <div id="msg"></div>
+</div>
+
+<div class="panel">
+  <div class="control">
+    <label>ميل المستوى الأيسر: <span id="angle1Val">35°</span></label>
+    <input type="range" id="angle1" min="5" max="65" value="35">
+  </div>
+  <div class="control">
+    <label>ميل المستوى الأيمن: <span id="angle2Val">25°</span></label>
+    <input type="range" id="angle2" min="5" max="65" value="25">
+  </div>
+  <div class="control">
+    <label>معامل الاحتكاك: <span id="frictionVal">0.05</span></label>
+    <input type="range" id="friction" min="0" max="50" value="5">
+  </div>
+  <div class="control" style="flex-direction: row; gap:10px;">
+    <button id="startBtn">تشغيل</button>
+    <button id="resetBtn" class="secondary">إعادة الضبط</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// ------- إعدادات هندسية عامة -------
+const W = canvas.width, H = canvas.height;
+const groundY = 330;      // ارتفاع الخط الأفقي على الشاشة (بكسل)
+const scale = 5;          // بكسل لكل "متر" افتراضي
+const L1 = 45;            // طول المستوى المائل الأيسر (بالمتر الافتراضي = px/scale)
+const Lh = 40;             // طول المقطع الأفقي
+const L2 = 45;            // طول المستوى المائل الأيمن
+const startX = 60;        // بداية الرسم أفقياً (بكسل)
+const g = 9.8;
+
+let angle1 = 35, angle2 = 25, mu = 0.05;
+let s = 0;                // الموضع على طول المسار (بالوحدة الافتراضية)
+let v = 0;                // السرعة المماسية
+let running = false;
+let message = "";
+let simTime = 0;          // الزمن الكلي المنقضي منذ بدء حركة الكرة (بالثواني)
+let motionStopped = false; // تصبح true عندما تتوقف الكرة نهائياً (يُجمّد عندها الزمن)
+
+const angle1Input = document.getElementById('angle1');
+const angle2Input = document.getElementById('angle2');
+const frictionInput = document.getElementById('friction');
+const angle1Val = document.getElementById('angle1Val');
+const angle2Val = document.getElementById('angle2Val');
+const frictionVal = document.getElementById('frictionVal');
+const velVal = document.getElementById('velVal');
+const heightVal = document.getElementById('heightVal');
+const timeVal = document.getElementById('timeVal');
+const msgEl = document.getElementById('msg');
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+angle1Input.addEventListener('input', () => {
+  angle1 = parseFloat(angle1Input.value);
+  angle1Val.textContent = angle1 + '°';
+  if (!running) draw(); // تحديث فوري للرسم عند تغيير الميل والكرة ساكنة
+});
+angle2Input.addEventListener('input', () => {
+  angle2 = parseFloat(angle2Input.value);
+  angle2Val.textContent = angle2 + '°';
+  if (!running) draw();
+});
+frictionInput.addEventListener('input', () => {
+  mu = parseFloat(frictionInput.value) / 100;
+  frictionVal.textContent = mu.toFixed(2);
+});
+
+startBtn.addEventListener('click', () => {
+  running = !running;
+  startBtn.textContent = running ? "إيقاف مؤقت" : "تشغيل";
+  message = "";
+  if (running) requestAnimationFrame(loop);
+});
+resetBtn.addEventListener('click', () => {
+  s = 0; v = 0; running = false; message = "";
+  simTime = 0; motionStopped = false;
+  startBtn.textContent = "تشغيل";
+  draw();
+});
+
+// طول المقاطع بوحدة "متر افتراضي" (يتغير طول الأفقي على الشاشة حسب الميل ثابت، لكن الارتفاع يتغير)
+function segLengths() {
+  return { l1: L1, lh: Lh, l2: L2, total: L1 + Lh + L2 };
+}
+
+// إحداثيات نقاط المسار الأساسية بالبكسل، بناءً على الزاويتين الحاليتين
+function getPathPoints() {
+  const a1 = angle1 * Math.PI / 180;
+  const a2 = angle2 * Math.PI / 180;
+
+  // نقطة قمة المستوى الأيسر
+  const topLeftX = startX;
+  const topLeftY = groundY - L1 * Math.sin(a1) * scale;
+
+  // أسفل المستوى الأيسر (بداية الأفقي)
+  const bottomLeftX = topLeftX + L1 * Math.cos(a1) * scale;
+  const bottomLeftY = groundY;
+
+  // نهاية الأفقي (بداية المستوى الأيمن)
+  const bottomRightX = bottomLeftX + Lh * scale;
+  const bottomRightY = groundY;
+
+  // قمة المستوى الأيمن
+  const topRightX = bottomRightX + L2 * Math.cos(a2) * scale;
+  const topRightY = groundY - L2 * Math.sin(a2) * scale;
+
+  return { topLeftX, topLeftY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY, topRightX, topRightY, a1, a2 };
+}
+
+// تحويل الموضع s (على طول المسار) إلى إحداثيات بكسل + معلومات المقطع
+function sToXY(sVal) {
+  const p = getPathPoints();
+  const { l1, lh, l2 } = segLengths();
+
+  if (sVal <= l1) {
+    const t = sVal / l1;
+    return {
+      x: p.topLeftX + t * (p.bottomLeftX - p.topLeftX),
+      y: p.topLeftY + t * (p.bottomLeftY - p.topLeftY),
+      segment: 1,
+      heightM: (l1 - sVal) * Math.sin(p.a1)
+    };
+  } else if (sVal <= l1 + lh) {
+    const t = (sVal - l1) / lh;
+    return {
+      x: p.bottomLeftX + t * (p.bottomRightX - p.bottomLeftX),
+      y: groundY,
+      segment: 2,
+      heightM: 0
+    };
+  } else {
+    const t = (sVal - l1 - lh) / l2;
+    return {
+      x: p.bottomRightX + t * (p.topRightX - p.bottomRightX),
+      y: p.bottomRightY + t * (p.topRightY - p.bottomRightY),
+      segment: 3,
+      heightM: t * l2 * Math.sin(p.a2)
+    };
+  }
+}
+
+// حساب التسارع اللحظي بناءً على المقطع الحالي
+function acceleration(sVal, vVal) {
+  const { l1, lh } = segLengths();
+  const a1 = angle1 * Math.PI / 180;
+  const a2 = angle2 * Math.PI / 180;
+  const sign = vVal > 0.001 ? 1 : (vVal < -0.001 ? -1 : 0);
+
+  if (sVal <= l1) {
+    // مستوى مائل أيسر: الحركة في اتجاه +s تعني النزول -> الجاذبية تسرّع
+    return g * Math.sin(a1) - mu * g * Math.cos(a1) * sign;
+  } else if (sVal <= l1 + lh) {
+    // مقطع أفقي: فقط احتكاك
+    return -mu * g * sign;
+  } else {
+    // مستوى مائل أيمن: الحركة في اتجاه +s تعني الصعود -> الجاذبية تُبطئ
+    return -g * Math.sin(a2) - mu * g * Math.cos(a2) * sign;
+  }
+}
+
+// يتحقق مما إذا كانت الكرة ستبقى ساكنة عند سرعة شبه معدومة (الاحتكاك الساكن يوازن الجاذبية)
+function isStaticStop(sVal) {
+  const { l1, lh } = segLengths();
+  const a1 = angle1 * Math.PI / 180;
+  const a2 = angle2 * Math.PI / 180;
+  let driving, maxFriction;
+  if (sVal <= l1) {
+    driving = g * Math.sin(a1); maxFriction = mu * g * Math.cos(a1);
+  } else if (sVal <= l1 + lh) {
+    driving = 0; maxFriction = mu * g;
+  } else {
+    driving = g * Math.sin(a2); maxFriction = mu * g * Math.cos(a2);
+  }
+  return driving <= maxFriction;
+}
+
+function step(dt) {
+  const { total } = segLengths();
+  const a = acceleration(s, v);
+  v += a * dt;
+  s += v * dt;
+  simTime += dt;
+
+  if (s <= 0 && v < 0) {
+    s = 0; v = 0; running = false; motionStopped = true;
+    message = "الكرة عادت إلى أعلى المستوى الأيسر وتوقفت.";
+  }
+  if (s >= total && v > 0) {
+    s = total;
+    running = false; motionStopped = true;
+    message = "الكرة تجاوزت قمة المستوى الأيمن (طاقتها كانت كافية لتجاوزه)!";
+  }
+  if (running && Math.abs(v) < 0.02 && isStaticStop(s)) {
+    v = 0; running = false; motionStopped = true;
+    message = "توقفت الكرة نهائياً بسبب الاحتكاك.";
+  }
+}
+
+function loop() {
+  if (!running) return;
+  const dt = 0.02;
+  // عدة خطوات صغيرة لدقة أفضل
+  for (let i = 0; i < 4; i++) {
+    if (running) step(dt / 4);
+  }
+  draw();
+  if (running) requestAnimationFrame(loop);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  const p = getPathPoints();
+
+  // خط الأرض الممتد
+  ctx.strokeStyle = "#3a4658";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, groundY + 40);
+  ctx.lineTo(W, groundY + 40);
+  ctx.stroke();
+
+  // تظليل تحت المسار (كتلة صلبة)
+  ctx.fillStyle = "#38455a";
+  ctx.beginPath();
+  ctx.moveTo(p.topLeftX, p.topLeftY);
+  ctx.lineTo(p.bottomLeftX, p.bottomLeftY);
+  ctx.lineTo(p.bottomRightX, p.bottomRightY);
+  ctx.lineTo(p.topRightX, p.topRightY);
+  ctx.lineTo(p.topRightX, groundY + 40);
+  ctx.lineTo(p.topLeftX, groundY + 40);
+  ctx.closePath();
+  ctx.fill();
+
+  // خط المسار
+  ctx.strokeStyle = "#7fd1ff";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(p.topLeftX, p.topLeftY);
+  ctx.lineTo(p.bottomLeftX, p.bottomLeftY);
+  ctx.lineTo(p.bottomRightX, p.bottomRightY);
+  ctx.lineTo(p.topRightX, p.topRightY);
+  ctx.stroke();
+
+  // تسميات الزوايا
+  ctx.fillStyle = "#ffcf5c";
+  ctx.font = "14px Tahoma";
+  ctx.fillText(angle1.toFixed(0) + "°", p.topLeftX + 10, p.topLeftY + 30);
+  ctx.fillText(angle2.toFixed(0) + "°", p.topRightX - 35, p.topRightY + 30);
+
+  // رسم الكرة
+  const pos = sToXY(s);
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y - 10, 10, 0, Math.PI * 2);
+  const grad = ctx.createRadialGradient(pos.x - 3, pos.y - 13, 2, pos.x, pos.y - 10, 10);
+  grad.addColorStop(0, "#ffffff");
+  grad.addColorStop(1, "#ff5c5c");
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // تحديث المعلومات النصية
+  velVal.textContent = Math.abs(v).toFixed(2);
+  heightVal.textContent = pos.heightM.toFixed(2);
+  timeVal.textContent = simTime.toFixed(2);
+  msgEl.textContent = message;
+}
+
+// رسم أولي
+draw();
+</script>
+</body>
+</html>
