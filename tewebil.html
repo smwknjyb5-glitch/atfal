@@ -1,0 +1,753 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>توابل الذوق الرفيع</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#2A1810;
+    --bg-deeper:#1D110A;
+    --parchment:#F2E2C4;
+    --parchment-dim:#E4CDA0;
+    --saffron:#D9A22C;
+    --paprika:#C1440E;
+    --cardamom:#4F6B4A;
+    --cumin:#8B5A2B;
+    --clove:#5B3A29;
+    --ink:#2A1810;
+    --line:rgba(242,226,196,0.14);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(217,162,44,0.16), transparent 55%),
+      radial-gradient(ellipse at 90% 10%, rgba(193,68,14,0.10), transparent 50%),
+      var(--bg-deep);
+    color:var(--parchment);
+    font-family:'Tajawal',sans-serif;
+    min-height:100vh;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  /* texture grain */
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:radial-gradient(rgba(242,226,196,0.035) 1px, transparent 1px);
+    background-size:3px 3px;
+    opacity:0.5;
+  }
+
+  header.hero{
+    position:relative;
+    padding:70px 24px 50px;
+    text-align:center;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-size:14px;
+    letter-spacing:2px;
+    color:var(--saffron);
+    font-weight:700;
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .eyebrow::before,.eyebrow::after{content:"";width:30px;height:1px;background:var(--saffron);opacity:0.6;}
+  h1.title{
+    font-family:'Amiri',serif;
+    font-size:clamp(38px,7vw,68px);
+    margin:0 0 16px;
+    font-weight:700;
+    color:var(--parchment);
+    text-shadow:0 0 40px rgba(217,162,44,0.25);
+  }
+  .subtitle{
+    font-size:17px;
+    color:var(--parchment-dim);
+    max-width:560px;
+    margin:0 auto;
+    line-height:1.9;
+    opacity:0.85;
+  }
+
+  /* floating spice particles */
+  .spice-dust span{
+    position:absolute;
+    border-radius:50%;
+    opacity:0.5;
+    animation:drift 14s ease-in-out infinite;
+  }
+  @keyframes drift{
+    0%,100%{transform:translateY(0) translateX(0);}
+    50%{transform:translateY(-24px) translateX(10px);}
+  }
+
+  section{
+    max-width:1080px;
+    margin:0 auto;
+    padding:60px 24px;
+    position:relative;
+    z-index:1;
+  }
+  .section-head{
+    text-align:center;
+    margin-bottom:40px;
+  }
+  .section-head h2{
+    font-family:'Amiri',serif;
+    font-size:clamp(26px,4vw,36px);
+    margin:0 0 10px;
+    color:var(--saffron);
+  }
+  .section-head p{
+    color:var(--parchment-dim);
+    opacity:0.8;
+    font-size:15px;
+    max-width:520px;
+    margin:0 auto;
+  }
+
+  /* ===== Shelf ===== */
+  .shelf-wrap{
+    position:relative;
+  }
+  .shelf{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:18px;
+    padding:26px 20px 34px;
+    background:linear-gradient(180deg, rgba(139,90,43,0.18), rgba(139,90,43,0.05));
+    border-radius:18px;
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .shelf::after{
+    content:"";
+    position:absolute;
+    bottom:14px; left:20px; right:20px;
+    height:10px;
+    background:linear-gradient(180deg, var(--cumin), var(--clove));
+    border-radius:4px;
+    box-shadow:0 8px 18px rgba(0,0,0,0.35);
+  }
+  .jar{
+    background:none;
+    border:none;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    padding:10px 6px 4px;
+    position:relative;
+    z-index:1;
+    color:inherit;
+    font-family:inherit;
+    transition:transform 0.25s ease;
+  }
+  .jar:hover, .jar:focus-visible{transform:translateY(-6px);}
+  .jar:focus-visible{outline:2px solid var(--saffron); outline-offset:4px; border-radius:8px;}
+  .jar.active .jar-glass{box-shadow:0 0 0 3px var(--saffron), 0 10px 24px rgba(217,162,44,0.3);}
+  .jar-glass{
+    width:56px;height:70px;
+    border-radius:8px 8px 14px 14px;
+    background:rgba(242,226,196,0.08);
+    border:1.5px solid rgba(242,226,196,0.35);
+    position:relative;
+    overflow:hidden;
+    transition:box-shadow 0.25s ease;
+  }
+  .jar-glass::before{ /* lid */
+    content:"";
+    position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+    width:38px; height:12px;
+    background:var(--clove);
+    border-radius:3px;
+  }
+  .jar-fill{
+    position:absolute; bottom:0; left:0; right:0;
+    border-radius:0 0 12px 12px;
+  }
+  .jar-label{
+    font-size:13px;
+    font-weight:700;
+    text-align:center;
+    color:var(--parchment);
+  }
+  .jar-tag{
+    font-size:10px;
+    color:var(--parchment-dim);
+    opacity:0.7;
+  }
+
+  /* ===== Detail panel ===== */
+  .detail{
+    margin-top:30px;
+    background:rgba(242,226,196,0.05);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:30px;
+    display:none;
+    animation:fadeUp 0.4s ease;
+  }
+  .detail.show{display:block;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .detail-top{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .detail-swatch{
+    width:52px;height:52px;border-radius:50%;
+    flex-shrink:0;
+    box-shadow:inset 0 0 0 3px rgba(0,0,0,0.15);
+  }
+  .detail-top h3{
+    font-family:'Amiri',serif;
+    font-size:28px;
+    margin:0;
+    color:var(--saffron);
+  }
+  .detail-top .origin{
+    font-size:13px;
+    color:var(--parchment-dim);
+    opacity:0.8;
+    margin-top:4px;
+  }
+  .detail-grid{
+    display:grid;
+    grid-template-columns:1.1fr 1fr;
+    gap:28px;
+  }
+  @media(max-width:640px){.detail-grid{grid-template-columns:1fr;}}
+  .flavor-bars .bar-row{
+    display:grid;
+    grid-template-columns:70px 1fr 30px;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+    font-size:13px;
+  }
+  .bar-track{
+    height:8px;
+    background:rgba(242,226,196,0.1);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    border-radius:4px;
+    transition:width 0.6s ease;
+  }
+  .uses-box{
+    background:rgba(0,0,0,0.15);
+    border-radius:12px;
+    padding:16px 18px;
+    font-size:14px;
+    line-height:2;
+  }
+  .uses-box h4{
+    margin:0 0 8px;
+    font-size:13px;
+    color:var(--saffron);
+    letter-spacing:0.5px;
+  }
+  .fact{
+    margin-top:16px;
+    font-size:13.5px;
+    color:var(--parchment-dim);
+    line-height:1.9;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+    display:flex;
+    gap:10px;
+  }
+  .fact-icon{flex-shrink:0;font-size:18px;}
+
+  /* ===== Blend Lab ===== */
+  .lab{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:26px;
+  }
+  @media(max-width:760px){.lab{grid-template-columns:1fr;}}
+  .lab-select{
+    background:rgba(242,226,196,0.04);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px;
+  }
+  .lab-select h4{margin:0 0 14px;font-size:15px;color:var(--parchment-dim);}
+  .chip-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .chip{
+    padding:8px 14px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--parchment);
+    font-family:inherit;
+    font-size:13px;
+    cursor:pointer;
+    transition:all 0.2s ease;
+  }
+  .chip.selected{
+    background:var(--saffron);
+    color:var(--bg-deeper);
+    border-color:var(--saffron);
+    font-weight:700;
+  }
+  .chip:disabled{opacity:0.35;cursor:not-allowed;}
+  .lab-result{
+    background:linear-gradient(160deg, rgba(217,162,44,0.1), rgba(193,68,14,0.06));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-height:200px;
+  }
+  .lab-result h4{margin:0 0 10px;font-size:15px;color:var(--saffron);}
+  .lab-result p{margin:0;font-size:14px;line-height:1.9;color:var(--parchment-dim);}
+  .lab-hint{font-size:13px;opacity:0.6;text-align:center;margin-top:14px;}
+
+  /* ===== Quiz ===== */
+  .quiz-card{
+    background:rgba(242,226,196,0.04);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:28px;
+    max-width:680px;
+    margin:0 auto;
+  }
+  .q-progress{
+    font-size:13px;
+    color:var(--parchment-dim);
+    opacity:0.7;
+    margin-bottom:10px;
+  }
+  .q-text{
+    font-size:19px;
+    font-weight:700;
+    margin-bottom:20px;
+    line-height:1.7;
+  }
+  .q-options{display:flex;flex-direction:column;gap:10px;}
+  .q-opt{
+    text-align:right;
+    padding:13px 16px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:rgba(0,0,0,0.1);
+    color:var(--parchment);
+    font-family:inherit;
+    font-size:14.5px;
+    cursor:pointer;
+    transition:all 0.2s ease;
+  }
+  .q-opt:hover{border-color:var(--saffron);}
+  .q-opt.correct{background:rgba(79,107,74,0.35);border-color:var(--cardamom);}
+  .q-opt.wrong{background:rgba(193,68,14,0.3);border-color:var(--paprika);}
+  .q-opt:disabled{cursor:default;}
+  .q-feedback{
+    margin-top:16px;
+    font-size:14px;
+    color:var(--parchment-dim);
+    min-height:20px;
+    line-height:1.8;
+  }
+  .q-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:22px;
+  }
+  .btn{
+    background:var(--saffron);
+    color:var(--bg-deeper);
+    border:none;
+    padding:10px 22px;
+    border-radius:10px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn.ghost{
+    background:transparent;
+    color:var(--parchment);
+    border:1px solid var(--line);
+  }
+  .score-pill{
+    font-size:13px;
+    color:var(--parchment-dim);
+  }
+  .quiz-done{text-align:center;}
+  .quiz-done .big{
+    font-family:'Amiri',serif;
+    font-size:42px;
+    color:var(--saffron);
+    margin:8px 0;
+  }
+
+  footer{
+    text-align:center;
+    padding:40px 20px 60px;
+    font-size:12.5px;
+    color:var(--parchment-dim);
+    opacity:0.5;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="spice-dust" aria-hidden="true"></div>
+  <div class="eyebrow">رحلة حسّية</div>
+  <h1 class="title">توابل الذوق الرفيع</h1>
+  <p class="subtitle">افتح الرفّ، تعرّف على كل نوع من خلال نكهته وأصله واستخداماته، ثم امزج توابلك الخاصة في مختبر النكهة، وأنهِ الرحلة باختبار قصير.</p>
+</header>
+
+<section id="shelf-section">
+  <div class="section-head">
+    <h2>رفّ التوابل</h2>
+    <p>اضغط على أي برطمان لتكتشف قصته وملامح نكهته</p>
+  </div>
+  <div class="shelf-wrap">
+    <div class="shelf" id="shelf"></div>
+    <div class="detail" id="detail"></div>
+  </div>
+</section>
+
+<section id="lab-section">
+  <div class="section-head">
+    <h2>مختبر المزج</h2>
+    <p>اختر توابل معينة وشاهد ملامح النكهة الناتجة عن مزجها</p>
+  </div>
+  <div class="lab">
+    <div class="lab-select">
+      <h4>اختر حتى 3 توابل</h4>
+      <div class="chip-grid" id="chipGrid"></div>
+    </div>
+    <div class="lab-result" id="labResult">
+      <p style="opacity:0.6;">اختر توابل من القائمة لترى نتيجة المزيج هنا.</p>
+    </div>
+  </div>
+</section>
+
+<section id="quiz-section">
+  <div class="section-head">
+    <h2>اختبر ذائقتك</h2>
+    <p>هل يمكنك التعرّف على التوابل من وصفها أو استخدامها؟</p>
+  </div>
+  <div class="quiz-card" id="quizCard"></div>
+</section>
+
+<footer>محاكاة تفاعلية تعليمية — توابل الذوق الرفيع</footer>
+
+<script>
+const SPICES = [
+  {
+    id:'saffron', name:'الزعفران', origin:'إيران، الشرق الأوسط، وحوض المتوسط',
+    color:'#D9A22C',
+    flavors:{sweet:2,spicy:1,bitter:2,earthy:4,sour:1},
+    uses:['يُنقع في ماء دافئ قبل الاستخدام لإطلاق لونه ونكهته', 'أساسي في الأرز المُعطّر والمرق والحلويات الفاخرة', 'يُستخدم بكميات ضئيلة جداً لثمنه المرتفع'],
+    fact:'يُستخرج الزعفران يدوياً من ميسم زهرة الزعفران، ويحتاج إنتاج 450 غراماً منه إلى نحو 75000 زهرة.',
+    tag:'الذهب الأحمر'
+  },
+  {
+    id:'cardamom', name:'الهيل', origin:'جنوب الهند وسريلانكا',
+    color:'#4F6B4A',
+    flavors:{sweet:3,spicy:2,bitter:1,earthy:3,sour:2},
+    uses:['يُضاف كاملاً أو مطحوناً إلى القهوة العربية والشاي', 'ينكّه الحلويات كالمعمول والأرز بالحليب', 'يدخل في خلطات البهارات الشرقية المركبة'],
+    fact:'يُعرف الهيل بأنه ثالث أغلى تابل في العالم بعد الزعفران والفانيليا.',
+    tag:'ملكة التوابل'
+  },
+  {
+    id:'cinnamon', name:'القرفة', origin:'سريلانكا وجنوب شرق آسيا',
+    color:'#8B5A2B',
+    flavors:{sweet:4,spicy:2,bitter:1,earthy:2,sour:1},
+    uses:['تُرش على الحلويات والمشروبات الساخنة', 'تدخل في طواجن اللحم والدجاج المغربية', 'تُستخدم أعواداً كاملة في المشروبات المُنقّعة'],
+    fact:'كانت القرفة تُقايض بالذهب في العصور القديمة لندرتها وقيمتها العالية.',
+    tag:'دفء البيت'
+  },
+  {
+    id:'clove', name:'القرنفل', origin:'جزر الملوك بإندونيسيا',
+    color:'#5B3A29',
+    flavors:{sweet:2,spicy:4,bitter:2,earthy:3,sour:1},
+    uses:['يُغرز في البصل أو اللحم لتعطير المرق', 'يدخل في خلطات البهارات الحارة والحلويات الشتوية', 'يُستخدم تقليدياً لتسكين ألم الأسنان'],
+    fact:'زهرة القرنفل هي في الحقيقة برعم زهرة مُجفّف لم يتفتح بعد.',
+    tag:'العطر الحاد'
+  },
+  {
+    id:'cumin', name:'الكمون', origin:'حوض البحر المتوسط والشرق الأوسط',
+    color:'#B4863C',
+    flavors:{sweet:1,spicy:3,bitter:2,earthy:5,sour:1},
+    uses:['أساسي في أطباق البقول كالحمص والفول', 'يدخل في خلطات التتبيل للحوم المشوية', 'يُحمّص قليلاً قبل الطحن لإبراز نكهته'],
+    fact:'يمنح الكمون نكهته الترابية المميزة لأطباق كثيرة حول العالم، من المكسيك إلى الهند.',
+    tag:'النكهة الترابية'
+  },
+  {
+    id:'turmeric', name:'الكركم', origin:'جنوب آسيا',
+    color:'#D97D1A',
+    flavors:{sweet:1,spicy:2,bitter:3,earthy:4,sour:1},
+    uses:['يمنح الأطباق لوناً ذهبياً مميزاً كالكاري والأرز', 'يُشرب مع الحليب الدافئ في وصفات تقليدية', 'يدخل في خلطات التوابل الهندية المركبة'],
+    fact:'يحتوي الكركم على مادة الكركمين التي تمنحه لونه الأصفر الذهبي المميز.',
+    tag:'الضوء الذهبي'
+  },
+  {
+    id:'nutmeg', name:'جوزة الطيب', origin:'جزر باندا بإندونيسيا',
+    color:'#6B4423',
+    flavors:{sweet:3,spicy:3,bitter:2,earthy:3,sour:1},
+    uses:['تُبشر طازجة فوق الصلصات البيضاء والمعجنات', 'تدخل في خلطات البهارات الشتوية الدافئة', 'تُستخدم بكميات صغيرة جداً لقوة نكهتها'],
+    fact:'جوزة الطيب هي بذرة داخل ثمرة شجرة استوائية، وتُستخرج منها أيضاً توابل القشرة المحيطة بها.',
+    tag:'الدفء الخفي'
+  },
+  {
+    id:'pepper', name:'الفلفل الأسود', origin:'ساحل مالابار بالهند',
+    color:'#3A2A1E',
+    flavors:{sweet:1,spicy:4,bitter:2,earthy:2,sour:1},
+    uses:['يُطحن طازجاً فوق الأطباق الجاهزة لأقصى نكهة', 'أساسي في كل خلطة بهارات تقريباً حول العالم', 'يُضاف في نهاية الطهي لحماية نكهته الحادة'],
+    fact:'كان يُعرف الفلفل الأسود بـ"ذهب أسود" وقادت أهميته التجارية جزءاً من رحلات الاستكشاف الأوروبية.',
+    tag:'ملك التوابل'
+  }
+];
+
+const FLAVOR_LABELS = {sweet:'حلو', spicy:'حار', bitter:'مر', earthy:'ترابي', sour:'حامض'};
+
+/* ---------- Shelf ---------- */
+const shelf = document.getElementById('shelf');
+const detail = document.getElementById('detail');
+
+SPICES.forEach(sp=>{
+  const btn = document.createElement('button');
+  btn.className = 'jar';
+  btn.setAttribute('aria-pressed','false');
+  btn.innerHTML = `
+    <div class="jar-glass">
+      <div class="jar-fill" style="background:${sp.color};height:55%;"></div>
+    </div>
+    <div class="jar-label">${sp.name}</div>
+    <div class="jar-tag">${sp.tag}</div>
+  `;
+  btn.addEventListener('click', ()=> showDetail(sp, btn));
+  shelf.appendChild(btn);
+});
+
+function showDetail(sp, btn){
+  document.querySelectorAll('.jar').forEach(j=>{j.classList.remove('active'); j.setAttribute('aria-pressed','false');});
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed','true');
+
+  const bars = Object.entries(sp.flavors).map(([k,v])=>`
+    <div class="bar-row">
+      <span>${FLAVOR_LABELS[k]}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${v*20}%;background:${sp.color};"></div></div>
+      <span>${v}/5</span>
+    </div>
+  `).join('');
+
+  const uses = sp.uses.map(u=>`<div>• ${u}</div>`).join('');
+
+  detail.innerHTML = `
+    <div class="detail-top">
+      <div class="detail-swatch" style="background:${sp.color};"></div>
+      <div>
+        <h3>${sp.name}</h3>
+        <div class="origin">الأصل: ${sp.origin}</div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="flavor-bars">${bars}</div>
+      <div class="uses-box">
+        <h4>الاستخدامات</h4>
+        ${uses}
+      </div>
+    </div>
+    <div class="fact"><span class="fact-icon">✨</span><span>${sp.fact}</span></div>
+  `;
+  detail.classList.add('show');
+  detail.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* ---------- Blend Lab ---------- */
+const chipGrid = document.getElementById('chipGrid');
+const labResult = document.getElementById('labResult');
+let selected = [];
+
+SPICES.forEach(sp=>{
+  const chip = document.createElement('button');
+  chip.className = 'chip';
+  chip.textContent = sp.name;
+  chip.dataset.id = sp.id;
+  chip.addEventListener('click', ()=>{
+    if(selected.includes(sp.id)){
+      selected = selected.filter(id=>id!==sp.id);
+    } else {
+      if(selected.length >= 3) return;
+      selected.push(sp.id);
+    }
+    renderChips();
+    renderBlend();
+  });
+  chipGrid.appendChild(chip);
+});
+
+function renderChips(){
+  [...chipGrid.children].forEach(chip=>{
+    const isSel = selected.includes(chip.dataset.id);
+    chip.classList.toggle('selected', isSel);
+    chip.disabled = !isSel && selected.length >= 3;
+  });
+}
+
+function renderBlend(){
+  if(selected.length === 0){
+    labResult.innerHTML = `<p style="opacity:0.6;">اختر توابل من القائمة لترى نتيجة المزيج هنا.</p>`;
+    return;
+  }
+  const chosen = SPICES.filter(sp=>selected.includes(sp.id));
+  const avg = {sweet:0,spicy:0,bitter:0,earthy:0,sour:0};
+  chosen.forEach(sp=>{
+    Object.keys(avg).forEach(k=> avg[k]+= sp.flavors[k]);
+  });
+  Object.keys(avg).forEach(k=> avg[k] = avg[k]/chosen.length);
+
+  const dominant = Object.entries(avg).sort((a,b)=>b[1]-a[1])[0][0];
+  const dominantLabel = FLAVOR_LABELS[dominant];
+
+  const suggestions = {
+    sweet:'حلويات وقهوة ومشروبات دافئة',
+    spicy:'أطباق اللحم المشوي والمرق الحار',
+    bitter:'مرق نباتي أو أطباق مُحمّصة',
+    earthy:'أطباق البقول والأرز والطواجن',
+    sour:'صلصات وتتبيلات منعشة'
+  };
+
+  const names = chosen.map(sp=>sp.name).join(' + ');
+
+  labResult.innerHTML = `
+    <h4>مزيج: ${names}</h4>
+    <p>النكهة الغالبة في هذا المزيج هي <strong style="color:var(--saffron);">${dominantLabel}</strong>، مما يجعله مناسباً لـ ${suggestions[dominant]}.</p>
+  `;
+}
+
+/* ---------- Quiz ---------- */
+const QUESTIONS = [
+  {
+    q:'أي التوابل يُطلق عليه "الذهب الأحمر" لندرته وطريقة استخراجه اليدوية؟',
+    options:['الزعفران','الكمون','القرنفل','الكركم'],
+    correct:0,
+    explain:'الزعفران يُستخرج يدوياً من ميسم الزهرة، مما يجعله من أغلى التوابل في العالم.'
+  },
+  {
+    q:'أي تابل يمنح أطباق الكاري والأرز لونها الذهبي المميز؟',
+    options:['جوزة الطيب','الكركم','الفلفل الأسود','الهيل'],
+    correct:1,
+    explain:'يحتوي الكركم على الكركمين، وهو ما يمنحه لونه الأصفر الذهبي القوي.'
+  },
+  {
+    q:'ما هو أصل القرنفل الحقيقي كنبات؟',
+    options:['جذر نبات','ورقة مجففة','برعم زهرة لم يتفتح','قشرة ثمرة'],
+    correct:2,
+    explain:'القرنفل هو برعم زهرة مُجفّف، يُقطف قبل أن يتفتح بالكامل.'
+  },
+  {
+    q:'أي تابل يُعرف بنكهته الترابية القوية ويُعد أساسياً في أطباق الحمص والفول؟',
+    options:['القرفة','الكمون','جوزة الطيب','الزعفران'],
+    correct:1,
+    explain:'الكمون معروف بنكهته الترابية العميقة، وهو مكوّن أساسي في أطباق البقول.'
+  },
+  {
+    q:'أي تابل كان يُقايض بالذهب في العصور القديمة؟',
+    options:['الكركم','القرفة','الهيل','الفلفل الأسود'],
+    correct:1,
+    explain:'كانت القرفة نادرة وثمينة جداً لدرجة أنها كانت تُقايض بالذهب في العصور القديمة.'
+  }
+];
+
+let qIndex = 0;
+let score = 0;
+const quizCard = document.getElementById('quizCard');
+
+function renderQuestion(){
+  if(qIndex >= QUESTIONS.length){
+    renderQuizDone();
+    return;
+  }
+  const item = QUESTIONS[qIndex];
+  quizCard.innerHTML = `
+    <div class="q-progress">سؤال ${qIndex+1} من ${QUESTIONS.length}</div>
+    <div class="q-text">${item.q}</div>
+    <div class="q-options">
+      ${item.options.map((opt,i)=>`<button class="q-opt" data-i="${i}">${opt}</button>`).join('')}
+    </div>
+    <div class="q-feedback" id="qFeedback"></div>
+    <div class="q-footer">
+      <span class="score-pill">النقاط: ${score}</span>
+      <button class="btn" id="nextBtn" disabled>${qIndex === QUESTIONS.length-1 ? 'إنهاء' : 'التالي'}</button>
+    </div>
+  `;
+  const opts = quizCard.querySelectorAll('.q-opt');
+  const feedback = document.getElementById('qFeedback');
+  const nextBtn = document.getElementById('nextBtn');
+
+  opts.forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      const i = parseInt(opt.dataset.i);
+      opts.forEach(o=>o.disabled = true);
+      if(i === item.correct){
+        opt.classList.add('correct');
+        score++;
+        feedback.textContent = 'إجابة صحيحة! ' + item.explain;
+      } else {
+        opt.classList.add('wrong');
+        opts[item.correct].classList.add('correct');
+        feedback.textContent = 'إجابة غير دقيقة. ' + item.explain;
+      }
+      nextBtn.disabled = false;
+    });
+  });
+
+  nextBtn.addEventListener('click', ()=>{
+    qIndex++;
+    renderQuestion();
+  });
+}
+
+function renderQuizDone(){
+  quizCard.innerHTML = `
+    <div class="quiz-done">
+      <div>انتهت الرحلة</div>
+      <div class="big">${score} / ${QUESTIONS.length}</div>
+      <p style="color:var(--parchment-dim);">${score === QUESTIONS.length ? 'ذائقة رفيعة حقاً!' : 'استكشف الرفّ مرة أخرى لتتذكر المزيد.'}</p>
+      <button class="btn ghost" id="restartBtn">إعادة الاختبار</button>
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    qIndex = 0; score = 0; renderQuestion();
+  });
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
