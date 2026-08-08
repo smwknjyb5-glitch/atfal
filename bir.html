@@ -1,0 +1,437 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة سقوط كرة في بئر — الزمن حتى سماع الارتطام</title>
+<style>
+  :root{
+    --sky-top:#8fc7e8;
+    --sky-bot:#d9ecf5;
+    --stone-1:#7a6a58;
+    --stone-2:#5b4d3f;
+    --stone-3:#3f342a;
+    --water-1:#1f6f8b;
+    --water-2:#0d4a63;
+    --accent:#e8792c;
+    --accent-2:#f2b134;
+    --sound:#3fb6c4;
+    --paper:#f3ece1;
+    --ink:#2b241d;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    min-height:100vh;
+    font-family:"Tahoma","Segoe UI",sans-serif;
+    background:radial-gradient(ellipse at 50% 0%, #eaf4fa 0%, var(--paper) 55%);
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:28px 14px 40px;
+  }
+  .wrap{width:100%;max-width:900px;}
+  header{text-align:center;margin-bottom:18px;}
+  h1{font-size:clamp(20px,3vw,30px);margin:0 0 6px;letter-spacing:0.5px;}
+  .sub{color:#6b5f50;font-size:14px;}
+  .stage{
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width:740px){ .stage{grid-template-columns:1fr;} }
+
+  /* ===== البئر ===== */
+  .well-card{
+    background:linear-gradient(180deg,#fff,var(--paper));
+    border:1px solid #e2d8c6;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 10px 30px rgba(60,45,25,0.08);
+    position:relative;
+  }
+  .stopwatch{
+    position:absolute;
+    top:26px; left:50%;
+    transform:translateX(-50%);
+    background:rgba(20,16,12,0.82);
+    color:#ffe9c9;
+    font-family:"Consolas",monospace;
+    font-size:26px;
+    letter-spacing:1px;
+    padding:6px 18px;
+    border-radius:10px;
+    z-index:9;
+    box-shadow:0 6px 16px rgba(0,0,0,0.3);
+    direction:ltr;
+  }
+  .stopwatch small{
+    display:block;
+    text-align:center;
+    font-size:10px;
+    color:#c8b79a;
+    letter-spacing:2px;
+    direction:rtl;
+    font-family:"Tahoma",sans-serif;
+  }
+  .well-frame{
+    position:relative;
+    width:100%;
+    height:520px;
+    border-radius:12px;
+    overflow:hidden;
+    background:linear-gradient(180deg,var(--sky-top),var(--sky-bot) 22%);
+  }
+  .grass{
+    position:absolute; top:20%; left:0;right:0; height:14px;
+    background:repeating-linear-gradient(90deg,#5a9a4a 0 6px,#4c8a3d 6px 12px);
+  }
+  .shaft{
+    position:absolute;
+    top:calc(20% + 14px); bottom:0; left:50%;
+    transform:translateX(-50%);
+    width:120px;
+    background:repeating-linear-gradient(0deg, var(--stone-2) 0 26px, var(--stone-1) 26px 52px);
+    box-shadow: inset 14px 0 20px rgba(0,0,0,0.35), inset -14px 0 20px rgba(0,0,0,0.35);
+  }
+  .rim{
+    position:absolute; top:calc(20% + 14px); left:50%;
+    transform:translate(-50%,-55%);
+    width:170px; height:34px;
+    background:linear-gradient(180deg,#a2937c,#6f5f4c);
+    border-radius:50%;
+    box-shadow:0 6px 10px rgba(0,0,0,0.25);
+    z-index:3;
+  }
+  .depth-marks{
+    position:absolute; top:calc(20% + 14px); bottom:0; left:50%;
+    width:120px; transform:translateX(-50%);
+    z-index:2; pointer-events:none;
+  }
+  .depth-marks span{
+    position:absolute; right:100%; margin-inline-end:6px;
+    font-size:11px; color:#5a4e3f;
+    background:rgba(243,236,225,0.85);
+    padding:1px 4px; border-radius:4px;
+    transform:translateY(-50%); white-space:nowrap;
+  }
+  .water{
+    position:absolute; left:50%; transform:translateX(-50%); bottom:0;
+    width:120px;
+    background:linear-gradient(180deg,var(--water-1),var(--water-2));
+    transition:height .25s ease;
+    z-index:2;
+  }
+  .water::before{
+    content:""; position:absolute; top:-6px;left:0;right:0;height:10px;
+    background:repeating-linear-gradient(90deg, rgba(255,255,255,0.35) 0 8px, transparent 8px 16px);
+    opacity:.6;
+  }
+  .ball{
+    position:absolute; left:50%; top:calc(20% + 14px + 10px);
+    width:22px;height:22px; margin-left:-11px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--accent-2), var(--accent) 70%);
+    box-shadow:0 3px 6px rgba(0,0,0,0.35);
+    z-index:4;
+  }
+  .splash{
+    position:absolute; left:50%; width:10px;height:10px; margin-left:-5px;
+    border:2px solid #cdeffa; border-radius:50%; opacity:0; z-index:5;
+  }
+  @keyframes splashRing{
+    0%{opacity:.9; width:10px;height:10px;margin-left:-5px;}
+    100%{opacity:0; width:100px;height:38px;margin-left:-50px;border-radius:50%;}
+  }
+  .splash.active{ animation: splashRing .6s ease-out forwards; }
+
+  /* موجة الصوت الصاعدة */
+  .sound-wave{
+    position:absolute; left:50%; transform:translateX(-50%);
+    width:110px; height:14px; margin-left:0;
+    border:2px solid var(--sound);
+    border-radius:50%;
+    opacity:0;
+    z-index:6;
+    pointer-events:none;
+  }
+  .sound-wave.active{
+    transition: top linear, opacity linear;
+  }
+  .ear{
+    position:absolute;
+    top:calc(20% + 14px - 34px);
+    left:50%;
+    transform:translateX(-50%);
+    font-size:22px;
+    z-index:7;
+    opacity:0;
+    transition:opacity .3s ease;
+  }
+  .ear.active{opacity:1;}
+
+  /* ===== لوحة التحكم ===== */
+  .panel{
+    background:linear-gradient(180deg,#fff,var(--paper));
+    border:1px solid #e2d8c6;
+    border-radius:18px;
+    padding:18px;
+    box-shadow:0 10px 30px rgba(60,45,25,0.08);
+    height:fit-content;
+  }
+  .field{margin-bottom:16px;}
+  label{ display:flex; justify-content:space-between; font-size:13px; color:#6b5f50; margin-bottom:6px; }
+  label b{color:var(--ink); font-size:14px;}
+  input[type=range]{ width:100%; accent-color:var(--accent); }
+  .num-row{ display:flex; gap:8px; margin-top:8px; }
+  .num-row input[type=number]{
+    width:100%; padding:7px 8px; border:1px solid #d9cdb8; border-radius:8px;
+    font-size:14px; background:#fffdf8; color:var(--ink);
+  }
+  .go-btn{
+    width:100%; padding:11px; border:none; border-radius:10px;
+    background:linear-gradient(180deg,var(--accent-2),var(--accent));
+    color:#fff; font-weight:bold; font-size:15px; cursor:pointer;
+    box-shadow:0 6px 14px rgba(232,121,44,0.35);
+  }
+  .go-btn:active{transform:translateY(1px);}
+  .go-btn:disabled{opacity:.6;cursor:default;}
+
+  .results{ margin-top:18px; border-top:1px dashed #d9cdb8; padding-top:14px; }
+  .res-row{ display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:14px; }
+  .res-row.total{ border-top:1px solid #d9cdb8; margin-top:4px; padding-top:10px; }
+  .res-row .val{ font-weight:bold; color:var(--accent); font-size:16px; direction:ltr; }
+  .res-row.total .val{ color:#0d4a63; font-size:19px; }
+  .tag{
+    font-size:10px; padding:1px 6px; border-radius:6px; margin-inline-start:6px;
+    background:#efe6d2; color:#8a7a63; direction:rtl;
+  }
+  .status-line{
+    margin-top:10px;
+    font-size:13px;
+    text-align:center;
+    color:#4c8a3d;
+    min-height:18px;
+    font-weight:bold;
+  }
+  .formula-box{
+    margin-top:14px; background:#efe6d2; border-radius:10px; padding:10px 12px;
+    font-size:13px; color:#5a4e3f; line-height:1.8;
+  }
+  .formula-box code{ direction:ltr; display:inline-block; font-family:"Consolas",monospace; color:var(--ink); }
+  footer{ text-align:center; color:#9a8c76; font-size:12px; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🪣 محاكاة سقوط كرة في بئر</h1>
+    <div class="sub">الزمن الكلي من لحظة ترك الكرة إلى لحظة سماع صوت ارتطامها بالماء</div>
+  </header>
+
+  <div class="stage">
+    <!-- منظر البئر -->
+    <div class="well-card">
+      <div class="stopwatch" id="stopwatch">
+        0.00 s
+        <small>عداد الزمن</small>
+      </div>
+      <div class="well-frame" id="wellFrame">
+        <div class="grass"></div>
+        <div class="rim"></div>
+        <div class="ear" id="ear">👂</div>
+        <div class="shaft"></div>
+        <div class="depth-marks" id="depthMarks"></div>
+        <div class="water" id="water" style="height:60px;"></div>
+        <div class="sound-wave" id="soundWave"></div>
+        <div class="splash" id="splash"></div>
+        <div class="ball" id="ball"></div>
+      </div>
+    </div>
+
+    <!-- لوحة التحكم -->
+    <div class="panel">
+      <div class="field">
+        <label><span>عمق البئر (المسافة حتى سطح الماء)</span><b id="hLabel">20 م</b></label>
+        <input type="range" id="hRange" min="2" max="150" step="1" value="20">
+        <div class="num-row">
+          <input type="number" id="hNumber" min="2" max="150" step="0.1" value="20">
+        </div>
+      </div>
+
+      <button class="go-btn" id="dropBtn">أسقط الكرة ⬇️</button>
+      <div class="status-line" id="statusLine">&nbsp;</div>
+
+      <div class="results">
+        <div class="res-row"><span>زمن سقوط الكرة حتى الماء t₁ <span class="tag">سقوط حر</span></span><span class="val" id="rT1">— s</span></div>
+        <div class="res-row"><span>زمن صعود الصوت حتى الحافة t₂ <span class="tag">سرعة الصوت</span></span><span class="val" id="rT2">— s</span></div>
+        <div class="res-row total"><span>الزمن الكلي حتى سماع الارتطام T</span><span class="val" id="rTtotal">— s</span></div>
+      </div>
+
+      <div class="formula-box">
+        نهمل مقاومة الهواء، والسرعة الابتدائية = صفر:<br>
+        <code>t₁ = √(2h / g)</code> &nbsp; g = 9.8 m/s²<br>
+        <code>t₂ = h / v_sound</code> &nbsp; v_sound ≈ 340 m/s<br>
+        <code>T = t₁ + t₂</code>
+      </div>
+    </div>
+  </div>
+
+  <footer>عداد الزمن أعلى المحاكاة يعمل بالزمن الحقيقي المحسوب فعلياً، ويتوقف تلقائياً عند اكتمال الظاهرة (لحظة سماع صوت الارتطام).</footer>
+</div>
+
+<script>
+const g = 9.8;
+const V_SOUND = 340; // m/s
+
+const hRange = document.getElementById('hRange');
+const hNumber = document.getElementById('hNumber');
+const hLabel = document.getElementById('hLabel');
+const rT1 = document.getElementById('rT1');
+const rT2 = document.getElementById('rT2');
+const rTtotal = document.getElementById('rTtotal');
+const ball = document.getElementById('ball');
+const water = document.getElementById('water');
+const splash = document.getElementById('splash');
+const soundWave = document.getElementById('soundWave');
+const ear = document.getElementById('ear');
+const dropBtn = document.getElementById('dropBtn');
+const depthMarks = document.getElementById('depthMarks');
+const wellFrame = document.getElementById('wellFrame');
+const stopwatch = document.getElementById('stopwatch');
+const statusLine = document.getElementById('statusLine');
+
+const RIM_PX = 14;
+
+function frameHeight(){ return wellFrame.clientHeight; }
+function shaftTop(){ return frameHeight()*0.20 + RIM_PX; }
+function shaftHeight(){ return frameHeight() - shaftTop(); }
+
+function computeTimes(h){
+  const t1 = Math.sqrt(2*h/g);
+  const t2 = h / V_SOUND;
+  const T = t1 + t2;
+  return {t1, t2, T};
+}
+
+function drawDepthMarks(h){
+  depthMarks.innerHTML = '';
+  const steps = 4;
+  for(let i=0;i<=steps;i++){
+    const frac = i/steps;
+    const span = document.createElement('span');
+    span.textContent = (h*frac).toFixed(0) + ' م';
+    span.style.top = (frac*100) + '%';
+    depthMarks.appendChild(span);
+  }
+}
+
+function fmt(t){ return t.toFixed(3) + ' s'; }
+
+function updateStaticView(){
+  const h = parseFloat(hNumber.value);
+  const {t1, t2, T} = computeTimes(h);
+
+  hLabel.textContent = h.toFixed(1) + ' م';
+  rT1.textContent = fmt(t1);
+  rT2.textContent = fmt(t2);
+  rTtotal.textContent = fmt(T);
+
+  const waterPx = Math.max(30, Math.min(90, shaftHeight()*0.14));
+  water.style.height = waterPx + 'px';
+
+  drawDepthMarks(h);
+  resetScene();
+}
+
+function resetScene(){
+  ball.style.transition = 'none';
+  ball.style.top = (shaftTop()+10) + 'px';
+  splash.classList.remove('active');
+  soundWave.classList.remove('active');
+  soundWave.style.transition = 'none';
+  soundWave.style.opacity = 0;
+  ear.classList.remove('active');
+  stopwatch.firstChild.textContent = '0.00 s';
+  statusLine.textContent = '\u00A0';
+}
+
+function syncInputs(src){
+  if(src==='range'){ hNumber.value = hRange.value; }
+  else { hRange.value = hNumber.value; }
+  updateStaticView();
+}
+hRange.addEventListener('input', ()=>syncInputs('range'));
+hNumber.addEventListener('input', ()=>syncInputs('number'));
+
+let rafId = null;
+function runStopwatch(startTime, totalSeconds){
+  function tick(){
+    const elapsed = (performance.now() - startTime)/1000;
+    if(elapsed >= totalSeconds){
+      stopwatch.firstChild.textContent = totalSeconds.toFixed(2) + ' s';
+      return;
+    }
+    stopwatch.firstChild.textContent = elapsed.toFixed(2) + ' s';
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+dropBtn.addEventListener('click', ()=>{
+  const h = parseFloat(hNumber.value);
+  const {t1, t2, T} = computeTimes(h);
+
+  resetScene();
+  dropBtn.disabled = true;
+  statusLine.textContent = 'الكرة تسقط...';
+
+  const startTop = shaftTop()+10;
+  const waterTopPx = frameHeight() - parseFloat(water.style.height);
+  const earTop = shaftTop() - 34;
+
+  const t0 = performance.now();
+  if(rafId) cancelAnimationFrame(rafId);
+  runStopwatch(t0, T);
+
+  // مرحلة 1: سقوط الكرة (مدة t1 بالثواني الحقيقية)
+  requestAnimationFrame(()=>{
+    ball.style.transition = `top ${t1}s cubic-bezier(.55,.05,.9,.6)`;
+    ball.style.top = waterTopPx-8 + 'px';
+  });
+
+  setTimeout(()=>{
+    // لحظة الارتطام بالماء
+    splash.style.top = waterTopPx + 'px';
+    splash.classList.add('active');
+    ball.style.transition = 'none';
+    ball.style.top = (waterTopPx-4)+'px';
+    statusLine.textContent = 'الصوت يصعد نحو الفوهة...';
+
+    // مرحلة 2: صعود الصوت (مدة t2 بالثواني الحقيقية)
+    soundWave.style.top = waterTopPx + 'px';
+    soundWave.style.opacity = 1;
+    void soundWave.offsetWidth;
+    soundWave.style.transition = `top ${t2}s linear, opacity ${t2}s linear`;
+    soundWave.classList.add('active');
+    requestAnimationFrame(()=>{
+      soundWave.style.top = earTop + 'px';
+      soundWave.style.opacity = 0.15;
+    });
+  }, t1*1000);
+
+  setTimeout(()=>{
+    // لحظة سماع صوت الارتطام: اكتمال الظاهرة
+    ear.classList.add('active');
+    statusLine.textContent = '✔ سُمع صوت الارتطام — الزمن الكلي = ' + T.toFixed(2) + ' s';
+    dropBtn.disabled = false;
+  }, T*1000);
+});
+
+window.addEventListener('resize', updateStaticView);
+window.addEventListener('load', updateStaticView);
+updateStaticView();
+</script>
+</body>
+</html>

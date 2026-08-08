@@ -1,0 +1,531 @@
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>محاكاة العداد الكهربائي</title>
+<style>
+  :root{
+    --bg1:#0f172a;
+    --bg2:#1e293b;
+    --panel:#111827;
+    --accent:#22c55e;
+    --accent2:#f59e0b;
+    --danger:#ef4444;
+    --text:#e5e7eb;
+    --muted:#94a3b8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    font-family:'Segoe UI', Tahoma, Arial, sans-serif;
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:24px 12px;
+  }
+  .app{
+    width:100%;
+    max-width:920px;
+  }
+  h1{
+    text-align:center;
+    font-size:26px;
+    margin-bottom:4px;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--muted);
+    margin-bottom:22px;
+    font-size:14px;
+  }
+
+  .meter-box{
+    background:linear-gradient(145deg,#1f2937,#0b0f17);
+    border:2px solid #374151;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5), inset 0 0 20px rgba(0,0,0,.4);
+    position:relative;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .meter-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  .brand{
+    font-weight:bold;
+    letter-spacing:1px;
+    color:var(--accent2);
+    font-size:14px;
+  }
+  .status-dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--muted);
+    display:inline-block;
+    margin-left:6px;
+    box-shadow:0 0 6px var(--muted);
+  }
+  .status-dot.on{
+    background:var(--accent);
+    box-shadow:0 0 10px var(--accent);
+  }
+  .status-line{
+    font-size:12px; color:var(--muted);
+    display:flex; align-items:center;
+  }
+
+  .display-row{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:10px 0 18px;
+  }
+
+  .digital-display{
+    background:#000;
+    border:3px solid #333;
+    border-radius:10px;
+    padding:16px 20px;
+    display:flex;
+    gap:4px;
+    box-shadow:inset 0 0 15px rgba(0,255,120,.15);
+  }
+  .digit{
+    font-family:'Courier New', monospace;
+    font-weight:bold;
+    font-size:38px;
+    width:28px;
+    text-align:center;
+    color:#22c55e;
+    text-shadow:0 0 8px rgba(34,197,94,.9), 0 0 2px #22c55e;
+  }
+  .digit.decimal{
+    color:#fbbf24;
+    text-shadow:0 0 8px rgba(251,191,36,.9);
+  }
+  .dot{
+    font-size:38px;
+    font-weight:bold;
+    color:#e5e7eb;
+    width:10px;
+    text-align:center;
+  }
+  .unit-label{
+    font-size:13px;
+    color:var(--muted);
+    text-align:center;
+    margin-top:6px;
+    letter-spacing:2px;
+  }
+
+  .disc-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .disc{
+    width:90px;height:90px;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 35% 30%, #4b5563, #111827 70%);
+    border:4px solid #374151;
+    position:relative;
+    box-shadow:0 0 12px rgba(0,0,0,.6);
+  }
+  .disc::before{
+    content:"";
+    position:absolute;
+    top:6px;left:50%;
+    width:4px;height:38px;
+    background:#f59e0b;
+    transform:translateX(-50%);
+    border-radius:2px;
+  }
+  .disc.spin{
+    animation:spin linear infinite;
+  }
+  @keyframes spin{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+  }
+  .disc-label{
+    font-size:11px;color:var(--muted);
+  }
+
+  .kpi-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:6px;
+  }
+  .kpi{
+    background:rgba(255,255,255,.04);
+    border:1px solid #2d3748;
+    border-radius:10px;
+    padding:10px;
+    text-align:center;
+  }
+  .kpi .val{
+    font-size:20px;
+    font-weight:bold;
+    color:var(--accent2);
+  }
+  .kpi .lbl{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  .controls-panel{
+    background:var(--panel);
+    border:1px solid #2d3748;
+    border-radius:16px;
+    padding:20px;
+  }
+  .controls-panel h2{
+    font-size:16px;
+    margin:0 0 14px;
+    color:var(--muted);
+    font-weight:600;
+  }
+
+  .appliances{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .appliance{
+    background:#1a2233;
+    border:1px solid #2d3748;
+    border-radius:12px;
+    padding:12px;
+    text-align:center;
+    cursor:pointer;
+    transition:.2s;
+    user-select:none;
+  }
+  .appliance:hover{
+    border-color:var(--accent2);
+  }
+  .appliance.active{
+    background:linear-gradient(145deg,#14532d,#052e14);
+    border-color:var(--accent);
+    box-shadow:0 0 14px rgba(34,197,94,.35);
+  }
+  .appliance .icon{
+    font-size:28px;
+    display:block;
+    margin-bottom:6px;
+  }
+  .appliance .name{
+    font-size:13px;
+    font-weight:600;
+  }
+  .appliance .power{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  .action-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .buttons{
+    display:flex;
+    gap:10px;
+  }
+  button.main-btn{
+    border:none;
+    border-radius:10px;
+    padding:10px 20px;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .btn-start{background:var(--accent); color:#052e14;}
+  .btn-start:hover{filter:brightness(1.1);}
+  .btn-stop{background:#374151; color:#e5e7eb;}
+  .btn-stop:hover{background:#4b5563;}
+  .btn-reset{background:transparent; color:var(--danger); border:1px solid var(--danger) !important;}
+  .btn-reset:hover{background:rgba(239,68,68,.1);}
+
+  .speed-control{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .speed-control input{
+    accent-color:var(--accent2);
+  }
+
+  .price-row{
+    display:flex;
+    gap:16px;
+    margin-top:16px;
+    flex-wrap:wrap;
+    font-size:13px;
+    color:var(--muted);
+    align-items:center;
+  }
+  .price-row input{
+    width:80px;
+    padding:5px 8px;
+    border-radius:6px;
+    border:1px solid #374151;
+    background:#0b0f17;
+    color:var(--text);
+    text-align:center;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:11px;
+    margin-top:18px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>⚡ محاكاة العداد الكهربائي</h1>
+  <p class="subtitle">فعّل الأجهزة لترى كيف يزداد استهلاك الطاقة على العداد لحظة بلحظة</p>
+
+  <div class="meter-box">
+    <div class="meter-header">
+      <span class="brand">EL-METER 3000</span>
+      <span class="status-line"><span id="statusDot" class="status-dot"></span> <span id="statusText">متوقف</span></span>
+    </div>
+
+    <div class="display-row">
+      <div class="disc-wrap">
+        <div id="disc" class="disc"></div>
+        <span class="disc-label">قرص الدوران</span>
+      </div>
+
+      <div>
+        <div class="digital-display" id="digitalDisplay"></div>
+        <div class="unit-label">كيلوواط / ساعة (kWh)</div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="val" id="loadVal">0 واط</div>
+        <div class="lbl">الحمل الحالي</div>
+      </div>
+      <div class="kpi">
+        <div class="val" id="timeVal">00:00:00</div>
+        <div class="lbl">وقت التشغيل</div>
+      </div>
+      <div class="kpi">
+        <div class="val" id="costVal">0.00</div>
+        <div class="lbl">التكلفة التقديرية</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-panel">
+    <h2>الأجهزة المتصلة (اضغط لتشغيل/إيقاف)</h2>
+    <div class="appliances" id="appliances"></div>
+
+    <div class="action-row">
+      <div class="buttons">
+        <button class="main-btn btn-start" id="startBtn">▶ تشغيل المحاكاة</button>
+        <button class="main-btn btn-stop" id="stopBtn">⏸ إيقاف مؤقت</button>
+        <button class="main-btn btn-reset" id="resetBtn">↺ إعادة تصفير</button>
+      </div>
+      <div class="speed-control">
+        <label for="speedRange">سرعة المحاكاة</label>
+        <input type="range" id="speedRange" min="1" max="20" value="5">
+        <span id="speedLabel">×5</span>
+      </div>
+    </div>
+
+    <div class="price-row">
+      <span>سعر الكيلوواط:</span>
+      <input type="number" id="priceInput" value="4.5" step="0.1" min="0">
+      <span>دج / kWh</span>
+    </div>
+  </div>
+
+  <footer>محاكاة تعليمية لفهم عمل العداد الكهربائي — الأرقام تقريبية ولا تعكس عدادًا حقيقيًا</footer>
+</div>
+
+<script>
+const appliancesData = [
+  {name:"لمبة", icon:"💡", power:60},
+  {name:"مروحة", icon:"🌀", power:75},
+  {name:"ثلاجة", icon:"🧊", power:150},
+  {name:"تلفاز", icon:"📺", power:100},
+  {name:"مكيف", icon:"❄️", power:1500},
+  {name:"غسالة", icon:"🧺", power:500},
+  {name:"فرن كهربائي", icon:"🍞", power:1200},
+  {name:"حاسوب", icon:"💻", power:200},
+];
+
+let kwh = 0;          // إجمالي الاستهلاك
+let running = false;
+let elapsedSeconds = 0;
+let simSpeed = 5;     // مضاعف السرعة
+let intervalId = null;
+let activePower = 0;
+
+const applianceContainer = document.getElementById('appliances');
+const digitalDisplay = document.getElementById('digitalDisplay');
+const disc = document.getElementById('disc');
+const loadVal = document.getElementById('loadVal');
+const timeVal = document.getElementById('timeVal');
+const costVal = document.getElementById('costVal');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const speedRange = document.getElementById('speedRange');
+const speedLabel = document.getElementById('speedLabel');
+const priceInput = document.getElementById('priceInput');
+
+// بناء بطاقات الأجهزة
+appliancesData.forEach((app, idx) => {
+  const div = document.createElement('div');
+  div.className = 'appliance';
+  div.dataset.power = app.power;
+  div.dataset.active = "0";
+  div.innerHTML = `
+    <span class="icon">${app.icon}</span>
+    <span class="name">${app.name}</span>
+    <span class="power">${app.power} واط</span>
+  `;
+  div.addEventListener('click', () => {
+    const isActive = div.dataset.active === "1";
+    div.dataset.active = isActive ? "0" : "1";
+    div.classList.toggle('active');
+    updateLoad();
+  });
+  applianceContainer.appendChild(div);
+});
+
+function updateLoad(){
+  let total = 0;
+  document.querySelectorAll('.appliance').forEach(el=>{
+    if(el.dataset.active === "1"){
+      total += Number(el.dataset.power);
+    }
+  });
+  activePower = total;
+  loadVal.textContent = total.toLocaleString('ar') + " واط";
+
+  // سرعة دوران القرص تتناسب مع الحمل
+  if(total > 0 && running){
+    const duration = Math.max(0.3, 4 - (total/1500)*3.5);
+    disc.style.animationDuration = duration + "s";
+    disc.classList.add('spin');
+  } else {
+    disc.classList.remove('spin');
+  }
+}
+
+function renderDisplay(){
+  // نعرض 5 أرقام صحيحة + رقمين عشريين
+  const intPart = Math.floor(kwh).toString().padStart(5,'0');
+  const decPart = Math.round((kwh - Math.floor(kwh))*100).toString().padStart(2,'0');
+
+  digitalDisplay.innerHTML = '';
+  intPart.split('').forEach(d=>{
+    const s = document.createElement('span');
+    s.className = 'digit';
+    s.textContent = d;
+    digitalDisplay.appendChild(s);
+  });
+  const dotEl = document.createElement('span');
+  dotEl.className = 'dot';
+  dotEl.textContent = '.';
+  digitalDisplay.appendChild(dotEl);
+  decPart.split('').forEach(d=>{
+    const s = document.createElement('span');
+    s.className = 'digit decimal';
+    s.textContent = d;
+    digitalDisplay.appendChild(s);
+  });
+}
+
+function formatTime(totalSec){
+  const h = Math.floor(totalSec/3600).toString().padStart(2,'0');
+  const m = Math.floor((totalSec%3600)/60).toString().padStart(2,'0');
+  const s = Math.floor(totalSec%60).toString().padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+
+function tick(){
+  // كل تكة = 1 ثانية محاكاة × سرعة
+  elapsedSeconds += 1 * simSpeed;
+  // الطاقة بالكيلوواط ساعة = (واط * ساعات) / 1000
+  const hoursIncrement = simSpeed / 3600;
+  kwh += (activePower * hoursIncrement) / 1000;
+
+  renderDisplay();
+  timeVal.textContent = formatTime(elapsedSeconds);
+  const price = Number(priceInput.value) || 0;
+  costVal.textContent = (kwh * price).toFixed(2) + " دج";
+}
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  if(running) return;
+  running = true;
+  statusDot.classList.add('on');
+  statusText.textContent = "قيد التشغيل";
+  updateLoad();
+  intervalId = setInterval(tick, 1000);
+});
+
+document.getElementById('stopBtn').addEventListener('click', ()=>{
+  running = false;
+  statusDot.classList.remove('on');
+  statusText.textContent = "متوقف مؤقتًا";
+  disc.classList.remove('spin');
+  clearInterval(intervalId);
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  running = false;
+  clearInterval(intervalId);
+  kwh = 0;
+  elapsedSeconds = 0;
+  activePower = 0;
+  disc.classList.remove('spin');
+  statusDot.classList.remove('on');
+  statusText.textContent = "متوقف";
+  document.querySelectorAll('.appliance').forEach(el=>{
+    el.dataset.active = "0";
+    el.classList.remove('active');
+  });
+  renderDisplay();
+  timeVal.textContent = "00:00:00";
+  costVal.textContent = "0.00 دج";
+  loadVal.textContent = "0 واط";
+});
+
+speedRange.addEventListener('input', ()=>{
+  simSpeed = Number(speedRange.value);
+  speedLabel.textContent = "×" + simSpeed;
+  updateLoad();
+});
+
+// تهيئة أولية
+renderDisplay();
+</script>
+</body>
+</html>
