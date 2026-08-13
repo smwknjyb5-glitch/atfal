@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>محاكاة نسبية الحركة - الحافلة</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background: #f4f3ef;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+  }
+  .wrap {
+    max-width: 720px;
+    width: 100%;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    color: #222;
+  }
+  p.intro {
+    font-size: 14px;
+    color: #555;
+    margin: 0 0 16px;
+    line-height: 1.7;
+  }
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+  }
+  button:hover { background: #f0f0f0; }
+  .frame-toggle {
+    display: flex;
+    background: #e9e7e0;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .frame-toggle button {
+    border: none;
+    background: transparent;
+  }
+  .frame-toggle button.active {
+    background: #fff;
+    box-shadow: 0 0 0 1px #bbb;
+  }
+  .speed-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-inline-start: auto;
+    font-size: 13px;
+    color: #555;
+  }
+  .scene-card {
+    background: #efeee8;
+    border-radius: 12px;
+    padding: 10px;
+  }
+  svg { width: 100%; height: auto; display: block; }
+  .caption {
+    font-size: 13px;
+    color: #555;
+    margin: 10px 2px 0;
+    line-height: 1.7;
+  }
+  .c-green  { fill: #639922; }
+  .c-blue   { fill: #378ADD; }
+  .c-amber  { fill: #BA7517; }
+  .c-purple { fill: #7F77DD; }
+  .c-teal   { fill: #1D9E75; }
+  .c-coral  { fill: #D85A30; }
+  .c-pink   { fill: #D4537E; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>محاكاة نسبية الحركة: الحافلة والركاب</h1>
+  <p class="intro">
+    الحركة نسبية، لا مطلقة. اختر المرجع لترى كيف يختلف وصف الحركة حسب موقع المراقب.
+  </p>
+
+  <div class="controls">
+    <button id="playBtn">▶ تشغيل</button>
+    <div class="frame-toggle">
+      <button id="groundFrameBtn" class="active">مرجع الأرض</button>
+      <button id="busFrameBtn">مرجع الحافلة</button>
+    </div>
+    <div class="speed-box">
+      <label for="speed">السرعة</label>
+      <input type="range" id="speed" min="10" max="80" step="5" value="35">
+    </div>
+  </div>
+
+  <div class="scene-card">
+    <svg id="scene" viewBox="0 0 680 260">
+      <rect x="0" y="0" width="680" height="180" fill="#f7f6f2"></rect>
+      <rect x="0" y="180" width="680" height="80" fill="#e9e7e0"></rect>
+      <rect x="0" y="200" width="680" height="6" fill="#bbb"></rect>
+
+      <g id="worldLayer">
+        <g id="waitingGroup">
+          <rect x="470" y="188" width="60" height="4" fill="#bbb" rx="2"></rect>
+          <g id="waitPeople"></g>
+        </g>
+      </g>
+
+      <g id="busGroup"></g>
+    </svg>
+  </div>
+
+  <p class="caption" id="caption">
+    من مرجع الأرض: الحافلة والركاب يتحركون، والأشجار والأشخاص المنتظرون ثابتون.
+  </p>
+</div>
+
+<script>
+(function(){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const worldLayer = document.getElementById('worldLayer');
+  const busGroup = document.getElementById('busGroup');
+  const waitPeople = document.getElementById('waitPeople');
+  const caption = document.getElementById('caption');
+  const playBtn = document.getElementById('playBtn');
+  const groundBtn = document.getElementById('groundFrameBtn');
+  const busBtn = document.getElementById('busFrameBtn');
+  const speedInput = document.getElementById('speed');
+
+  function el(tag, attrs){
+    const e = document.createElementNS(svgNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function makeTree(x, y, scale){
+    const g = el('g', {transform: `translate(${x},${y}) scale(${scale})`});
+    g.appendChild(el('rect', {x:-4, y:0, width:8, height:26, fill:'#8a6a4a', rx:2}));
+    g.appendChild(el('circle', {cx:0, cy:-16, r:22, class:'c-green'}));
+    g.appendChild(el('circle', {cx:-14, cy:-4, r:14, class:'c-green'}));
+    g.appendChild(el('circle', {cx:14, cy:-4, r:14, class:'c-green'}));
+    return g;
+  }
+
+  function makePerson(x, y, color){
+    const g = el('g', {transform: `translate(${x},${y})`});
+    g.appendChild(el('circle', {cx:0, cy:-24, r:6, class:color}));
+    g.appendChild(el('rect', {x:-6, y:-18, width:12, height:16, rx:4, class:color}));
+    g.appendChild(el('rect', {x:-6, y:-2, width:5, height:12, rx:2, class:color}));
+    g.appendChild(el('rect', {x:1, y:-2, width:5, height:12, rx:2, class:color}));
+    return g;
+  }
+
+  const treeXs = [60, 260, 460, 640, 840, 1040, 1220, 1420];
+  treeXs.forEach((x,i)=>{
+    worldLayer.appendChild(makeTree(x, 190, i%2===0 ? 1 : 0.85));
+  });
+
+  waitPeople.appendChild(makePerson(485, 200, 'c-coral'));
+  waitPeople.appendChild(makePerson(510, 200, 'c-pink'));
+
+  function makeBus(){
+    const g = el('g', {id:'busInner'});
+    g.appendChild(el('rect', {x:0, y:0, width:150, height:70, rx:10, class:'c-blue'}));
+    g.appendChild(el('rect', {x:0, y:52, width:150, height:14, fill:'#000', opacity:'0.12'}));
+    const seats = [
+      {x:14, color:'c-amber'}, {x:52, color:'c-purple'},
+      {x:90, color:'c-teal'}, {x:118, color:'c-coral'}
+    ];
+    seats.forEach(s=>{
+      g.appendChild(el('rect', {x:s.x, y:10, width:26, height:30, rx:5, fill:'#f7f6f2'}));
+      const p = makePerson(s.x+13, 34, s.color);
+      p.setAttribute('transform', `translate(${s.x+13},34) scale(0.7)`);
+      g.appendChild(p);
+    });
+    g.appendChild(el('circle', {cx:30, cy:70, r:11, fill:'#222'}));
+    g.appendChild(el('circle', {cx:120, cy:70, r:11, fill:'#222'}));
+    g.appendChild(el('circle', {cx:30, cy:70, r:4, fill:'#e9e7e0'}));
+    g.appendChild(el('circle', {cx:120, cy:70, r:4, fill:'#e9e7e0'}));
+    return g;
+  }
+  busGroup.appendChild(makeBus());
+
+  let frame = 'ground';
+  let playing = false;
+  let t = 0;
+  let raf = null;
+
+  function layout(){
+    if (frame === 'ground'){
+      busGroup.setAttribute('transform', `translate(${(t % 900) - 150},120)`);
+      worldLayer.setAttribute('transform', `translate(0,0)`);
+      caption.textContent = 'من مرجع الأرض: الحافلة والركاب يتحركون، والأشجار والأشخاص المنتظرون ثابتون.';
+    } else {
+      busGroup.setAttribute('transform', `translate(265,120)`);
+      worldLayer.setAttribute('transform', `translate(${-((t % 900) - 150) + 265},0)`);
+      caption.textContent = 'من مرجع الحافلة: الركاب ثابتون بالنسبة للحافلة، بينما الأشجار والأشخاص المنتظرون (وهم ثابتان معًا بالنسبة للأرض) يتحركان معًا إلى الخلف بنفس السرعة.';
+    }
+  }
+
+  function tick(){
+    const speed = parseFloat(speedInput.value) / 1000;
+    t += speed * 16;
+    if (t > 900 * 20) t = t % 900;
+    layout();
+    if (playing) raf = requestAnimationFrame(tick);
+  }
+
+  function setPlaying(v){
+    playing = v;
+    playBtn.textContent = playing ? '⏸ إيقاف' : '▶ تشغيل';
+    if (playing) raf = requestAnimationFrame(tick);
+    else if (raf) cancelAnimationFrame(raf);
+  }
+
+  playBtn.addEventListener('click', ()=> setPlaying(!playing));
+
+  groundBtn.addEventListener('click', ()=>{
+    frame = 'ground';
+    groundBtn.classList.add('active');
+    busBtn.classList.remove('active');
+    layout();
+  });
+  busBtn.addEventListener('click', ()=>{
+    frame = 'bus';
+    busBtn.classList.add('active');
+    groundBtn.classList.remove('active');
+    layout();
+  });
+
+  layout();
+  setPlaying(true);
+})();
+</script>
+</body>
+</html>
