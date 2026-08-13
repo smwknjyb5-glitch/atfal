@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الأفراد الكيميائية | محاكاة تفاعلية</title>
+<style>
+:root{
+  --bg1:#050814; --bg2:#0b1330; --panel:#0e1638; --panel2:#131c47;
+  --line:#25316f; --accent:#5fe3c0; --accent2:#7aa2ff; --warn:#ff8a65;
+  --pink:#ff6fae; --gold:#ffd166; --text:#eaf0ff; --dim:#8fa0d0;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family:'Tahoma','Segoe UI',sans-serif;
+  background:radial-gradient(ellipse at 50% -10%, #142058 0%, var(--bg1) 55%, #020309 100%);
+  color:var(--text); min-height:100vh; padding:24px 14px 60px; overflow-x:hidden;
+}
+.stars{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 70% 60%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40% 80%, #fff, transparent),
+    radial-gradient(2px 2px at 90% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 55% 15%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 10% 65%, #fff, transparent);
+  background-size:600px 600px;
+}
+.wrap{max-width:1100px; margin:0 auto; position:relative; z-index:1;}
+header{text-align:center; margin-bottom:28px;}
+h1{
+  font-size:clamp(24px,5vw,38px); font-weight:800;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  letter-spacing:.5px;
+}
+.subtitle{color:var(--dim); margin-top:8px; font-size:15px;}
+.badge{display:inline-block; margin-top:12px; padding:6px 16px; border:1px solid var(--line);
+  border-radius:999px; font-size:12.5px; color:var(--accent); background:#0a1230;}
+
+/* ==== نطاق التكبير (زووم) ==== */
+.zoom-strip{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin:26px 0 20px; flex-wrap:wrap; background:var(--panel);
+  border:1px solid var(--line); border-radius:16px; padding:14px 18px;
+}
+.zoom-strip .lbl{font-size:12px; color:var(--dim); white-space:nowrap;}
+.zoom-item{
+  font-size:13px; padding:6px 12px; border-radius:8px; background:#0a1230;
+  border:1px solid var(--line); color:var(--dim);
+}
+.zoom-item.on{background:var(--accent); color:#04140f; border-color:var(--accent); font-weight:700;}
+.zoom-arrow{color:var(--dim); font-size:14px;}
+
+/* ==== شبكة البطاقات ==== */
+.grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:14px; margin-bottom:26px;
+}
+.card{
+  background:linear-gradient(160deg,var(--panel),var(--panel2));
+  border:1px solid var(--line); border-radius:16px; padding:16px 10px;
+  text-align:center; cursor:pointer; transition:.25s; position:relative; overflow:hidden;
+}
+.card:hover{transform:translateY(-4px); border-color:var(--accent); box-shadow:0 8px 24px -8px rgba(95,227,192,.35);}
+.card.active{border-color:var(--accent); background:linear-gradient(160deg,#0f2440,#0a3b34); box-shadow:0 0 0 2px var(--accent) inset;}
+.card .ic{width:64px; height:64px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;}
+.card .nm{font-weight:700; font-size:14.5px;}
+.card .en{font-size:10.5px; color:var(--dim); margin-top:2px;}
+
+/* ==== لوحة العرض التفصيلية ==== */
+.stage{
+  background:var(--panel); border:1px solid var(--line); border-radius:20px;
+  padding:26px; margin-bottom:26px; display:grid; grid-template-columns:1fr 1fr; gap:26px;
+}
+@media(max-width:760px){.stage{grid-template-columns:1fr;}}
+.stage-visual{
+  display:flex; align-items:center; justify-content:center; min-height:260px;
+  background:radial-gradient(circle at 50% 50%, #0c1840 0%, #060a1e 80%);
+  border-radius:16px; border:1px solid var(--line); position:relative; overflow:hidden;
+}
+.stage-info h2{font-size:22px; color:var(--accent); margin-bottom:4px;}
+.stage-info .en-title{font-size:13px; color:var(--dim); margin-bottom:14px;}
+.stage-info p{font-size:14.5px; line-height:2; color:#dbe3ff; margin-bottom:10px;}
+.tags{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+.tag{background:#0a1230; border:1px solid var(--line); padding:5px 10px; border-radius:8px; font-size:12px; color:var(--accent2);}
+.example-box{
+  margin-top:14px; background:#0a1230; border:1px dashed var(--line); border-radius:10px;
+  padding:10px 12px; font-size:13px; color:var(--gold);
+}
+
+/* SVG animations */
+.orbit{animation:spin 6s linear infinite; transform-origin:center;}
+.orbit2{animation:spin 9s linear infinite reverse; transform-origin:center;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:1} 50%{opacity:.5}}
+.pulse{animation:pulse 1.6s ease-in-out infinite;}
+@keyframes drift{0%{transform:translate(0,0)} 50%{transform:translate(3px,-4px)} 100%{transform:translate(0,0)}}
+.drift{animation:drift 3s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)}}
+
+/* ==== مختبر التصنيف (اللعبة) ==== */
+.lab{
+  background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:24px; margin-bottom:26px;
+}
+.lab h2{color:var(--gold); font-size:19px; margin-bottom:6px;}
+.lab .sub{color:var(--dim); font-size:13px; margin-bottom:18px;}
+.lab-scene{
+  display:flex; align-items:center; justify-content:center; min-height:170px;
+  background:#080d24; border-radius:14px; border:1px solid var(--line); margin-bottom:16px;
+}
+.lab-question{text-align:center; font-size:15px; margin-bottom:16px; color:#dbe3ff; min-height:40px;}
+.lab-options{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; max-width:640px; margin:0 auto;}
+.opt-btn{
+  background:#0a1230; border:1px solid var(--line); color:var(--text); padding:12px 8px;
+  border-radius:10px; cursor:pointer; font-size:14px; transition:.2s;
+}
+.opt-btn:hover{border-color:var(--accent2);}
+.opt-btn.correct{background:#0e3d2e; border-color:var(--accent); color:var(--accent);}
+.opt-btn.wrong{background:#3d1414; border-color:var(--warn); color:var(--warn);}
+.lab-feedback{text-align:center; margin-top:14px; font-size:14px; min-height:22px; color:var(--accent);}
+.lab-footer{display:flex; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap; gap:10px;}
+.score-pill{background:#0a1230; border:1px solid var(--line); border-radius:999px; padding:6px 14px; font-size:13px;}
+.next-btn{
+  background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#04140f; border:none;
+  padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; font-size:14px;
+}
+.next-btn:disabled{opacity:.4; cursor:not-allowed;}
+
+/* ==== مقارنة شحنات ==== */
+.compare{background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:24px;}
+.compare h2{color:var(--pink); font-size:19px; margin-bottom:16px;}
+.ctable{width:100%; border-collapse:collapse; font-size:13.5px;}
+.ctable th, .ctable td{padding:10px 8px; text-align:center; border-bottom:1px solid var(--line);}
+.ctable th{color:var(--dim); font-weight:600; font-size:12.5px;}
+.ctable td.name{text-align:right; font-weight:700;}
+.ctable tr:hover td{background:#0a1a3a;}
+
+footer{text-align:center; margin-top:30px; color:var(--dim); font-size:12px;}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="wrap">
+  <header>
+    <h1>عالَم الأفراد الكيميائية</h1>
+    <p class="subtitle">رحلة داخل المادة إلى المستوى المجهري: ذرّات، جزيئات، شوارد، نظائر... وما دون ذلك</p>
+    <span class="badge">🔬 من المستوى العياني إلى المستوى المجهري</span>
+  </header>
+
+  <div class="zoom-strip">
+    <span class="lbl">🧊 المادة (عياني)</span>
+    <span class="zoom-arrow">→</span>
+    <span class="zoom-item on">⚛️ الأفراد الكيميائية (مجهري)</span>
+    <span class="zoom-arrow">→</span>
+    <span class="lbl">هنا نتوقف: لا ننظر إلى الشكل الخارجي للمادة، بل إلى مكوناتها الدقيقة</span>
+  </div>
+
+  <div class="grid" id="cardGrid"></div>
+
+  <div class="stage">
+    <div class="stage-visual" id="stageVisual"></div>
+    <div class="stage-info">
+      <h2 id="infoTitle">-</h2>
+      <div class="en-title" id="infoEn">-</div>
+      <p id="infoDesc">-</p>
+      <div class="tags" id="infoTags"></div>
+      <div class="example-box" id="infoExample"></div>
+    </div>
+  </div>
+
+  <div class="compare">
+    <h2>⚖️ مقارنة سريعة: الحجم والشحنة والكتلة</h2>
+    <table class="ctable">
+      <thead><tr><th>الفرد</th><th>الشحنة</th><th>الكتلة النسبية</th><th>يوجد وحيدًا في الطبيعة؟</th></tr></thead>
+      <tbody>
+        <tr><td class="name">إلكترون e⁻</td><td style="color:#7aa2ff">سالبة (-1)</td><td>≈ 1/1836</td><td>نادرًا</td></tr>
+        <tr><td class="name">بروتون p⁺</td><td style="color:#ff8a65">موجبة (+1)</td><td>1</td><td>نعم (نواة الهيدروجين)</td></tr>
+        <tr><td class="name">نوترون n</td><td style="color:#dbe3ff">معدومة (0)</td><td>≈ 1</td><td>لا (باستثناء إشعاعات خاصة)</td></tr>
+        <tr><td class="name">ذرة</td><td style="color:#5fe3c0">معدومة إجمالًا</td><td>حسب العنصر</td><td>نعم (غازات نبيلة مثلًا)</td></tr>
+        <tr><td class="name">شاردة (أيون)</td><td style="color:#ffd166">موجبة أو سالبة</td><td>حسب الذرة/الجزيء الأصل</td><td>نعم (محاليل، بلورات)</td></tr>
+        <tr><td class="name">جزيء</td><td style="color:#5fe3c0">معدومة إجمالًا</td><td>مجموع كتل الذرات</td><td>نعم (O₂ وH₂O مثلًا)</td></tr>
+        <tr><td class="name">نظير</td><td style="color:#5fe3c0">معدومة إجمالًا</td><td>يختلف بعدد النوترونات</td><td>نعم (C-12 وC-14)</td></tr>
+        <tr><td class="name">جذر حر</td><td style="color:#ff6fae">غالبًا معدومة</td><td>متغيرة</td><td>نعم لكن لفترة قصيرة جدًا</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="lab" style="margin-top:26px;">
+    <h2>🧪 مختبر التصنيف: ما هو هذا الفرد؟</h2>
+    <p class="sub">شاهد التمثيل، ثم حدد نوع الفرد الكيميائي الصحيح</p>
+    <div class="lab-scene" id="labScene"></div>
+    <div class="lab-question" id="labQuestion"></div>
+    <div class="lab-options" id="labOptions"></div>
+    <div class="lab-feedback" id="labFeedback"></div>
+    <div class="lab-footer">
+      <span class="score-pill">النتيجة: <span id="scoreVal">0</span> / <span id="totalVal">0</span></span>
+      <button class="next-btn" id="nextBtn" disabled>السؤال التالي ⟵</button>
+    </div>
+  </div>
+
+  <footer>محاكاة تفاعلية تعليمية — الأفراد الكيميائية (الدقائق المجهرية المكوّنة للمادة)</footer>
+</div>
+
+<script>
+/* ============ بيانات الأفراد الكيميائية ============ */
+const PARTICLES = [
+  {
+    id:'atom', name:'ذرّة', en:'Atom',
+    icon:svgAtom(1),
+    desc:'أصغر فرد يحتفظ بخصائص العنصر الكيميائي. تتكوّن من نواة مركزية (بروتونات ونوترونات) يدور حولها سحابة إلكترونية. الذرة متعادلة كهربائيًا لأن عدد الإلكترونات يساوي عدد البروتونات.',
+    tags:['متعادلة كهربائيًا','لبنة العناصر','نواة + إلكترونات'],
+    example:'مثال: ذرّة الهيليوم He تحوي 2 بروتون، 2 نوترون، و2 إلكترون.',
+    stage:svgAtom(2.2)
+  },
+  {
+    id:'molecule', name:'جزيء', en:'Molecule',
+    icon:svgMolecule(1),
+    desc:'مجموعة من ذرّتين أو أكثر مرتبطة فيما بينها بروابط كيميائية (تساهمية غالبًا)، وتشكّل وحدة مستقلة ومتعادلة كهربائيًا. قد تكون الذرات المكوّنة من نفس العنصر أو من عناصر مختلفة.',
+    tags:['روابط تساهمية','متعادل كهربائيًا','بسيط أو مركّب'],
+    example:'مثال: جزيء الماء H₂O (ذرّتا هيدروجين + ذرّة أكسجين)، وجزيء ثنائي الأكسجين O₂.',
+    stage:svgMolecule(2.2)
+  },
+  {
+    id:'isotope', name:'نظير', en:'Isotope',
+    icon:svgIsotope(1),
+    desc:'ذرّات لنفس العنصر الكيميائي (نفس عدد البروتونات Z) لكنها تختلف في عدد النوترونات، وبالتالي في العدد الكتلي A. للنظائر نفس الخصائص الكيميائية تقريبًا لكن كتلها وخصائصها الفيزيائية (وأحيانًا استقرارها النووي) تختلف.',
+    tags:['نفس Z','A مختلف','قد يكون مشعًا'],
+    example:'مثال: الكربون-12 (⁶ نوترونات) والكربون-14 (⁸ نوترونات) نظيران لعنصر الكربون.',
+    stage:svgIsotope(2.2)
+  },
+  {
+    id:'cation', name:'شاردة موجبة (كاتيون)', en:'Cation',
+    icon:svgIon(1,'+'),
+    desc:'ذرّة أو مجموعة ذرّات فقدت إلكترونًا واحدًا أو أكثر، فأصبح عدد البروتونات أكبر من عدد الإلكترونات، فاكتسبت شحنة إجمالية موجبة.',
+    tags:['فقدان إلكترونات','شحنة موجبة','فلزّات غالبًا'],
+    example:'مثال: أيون الصوديوم Na⁺ ناتج عن فقدان ذرّة Na لإلكترون واحد.',
+    stage:svgIon(2.2,'+')
+  },
+  {
+    id:'anion', name:'شاردة سالبة (أنيون)', en:'Anion',
+    icon:svgIon(1,'−'),
+    desc:'ذرّة أو مجموعة ذرّات اكتسبت إلكترونًا واحدًا أو أكثر، فأصبح عدد الإلكترونات أكبر من عدد البروتونات، فاكتسبت شحنة إجمالية سالبة.',
+    tags:['اكتساب إلكترونات','شحنة سالبة','لافلزّات غالبًا'],
+    example:'مثال: أيون الكلور Cl⁻ ناتج عن اكتساب ذرّة Cl لإلكترون واحد.',
+    stage:svgIon(2.2,'−')
+  },
+  {
+    id:'radical', name:'جذر حر', en:'Free Radical',
+    icon:svgRadical(1),
+    desc:'فرد كيميائي (ذرّة أو جزيء) يحتوي على إلكترون واحد غير متزاوج (غير مرتبط بزوج) في مداره الخارجي، مما يجعله شديد التفاعلية وقصير العمر عادةً، إذ يسعى لتكوين زوج إلكتروني مستقر.',
+    tags:['إلكترون وحيد','شديد التفاعلية','عمر قصير'],
+    example:'مثال: جذر الهيدروكسيل •OH وجذر الميثيل •CH₃.',
+    stage:svgRadical(2.2)
+  },
+  {
+    id:'electron', name:'إلكترون', en:'Electron (e⁻)',
+    icon:svgElectron(1),
+    desc:'جسيم دون-ذرّي أولي يحمل شحنة كهربائية سالبة أساسية، وكتلته صغيرة جدًا مقارنة بالبروتون والنوترون (حوالي 1/1836 من كتلة البروتون). يدور في المستويات الطاقية حول نواة الذرّة.',
+    tags:['شحنة سالبة','كتلة مهملة تقريبًا','جسيم أولي'],
+    example:'مثال: ذرّة الهيدروجين المتعادلة تحتوي على إلكترون واحد فقط.',
+    stage:svgElectron(2.2)
+  },
+  {
+    id:'proton', name:'بروتون', en:'Proton (p⁺)',
+    icon:svgNucleon(1,'p'),
+    desc:'جسيم نووي (نوكليون) يحمل شحنة كهربائية موجبة أساسية، ويوجد في نواة الذرّة. عدد البروتونات في الذرّة يُسمّى العدد الذرّي Z ويحدّد هوية العنصر الكيميائي.',
+    tags:['شحنة موجبة','في النواة','يحدّد العنصر (Z)'],
+    example:'مثال: كل ذرّات الأكسجين تحتوي بالضبط على 8 بروتونات.',
+    stage:svgNucleon(2.2,'p')
+  },
+  {
+    id:'neutron', name:'نوترون', en:'Neutron (n)',
+    icon:svgNucleon(1,'n'),
+    desc:'جسيم نووي متعادل كهربائيًا (بلا شحنة)، يوجد في نواة الذرّة إلى جانب البروتونات، وكتلته قريبة جدًا من كتلة البروتون. عدد النوترونات يمكن أن يختلف بين نظائر نفس العنصر.',
+    tags:['بلا شحنة','في النواة','يحدّد النظير'],
+    example:'مثال: الديتريوم (نظير الهيدروجين) يحتوي على بروتون واحد ونوترون واحد.',
+    stage:svgNucleon(2.2,'n')
+  }
+];
+
+/* ============ توليد SVGs ============ */
+function svgAtom(s){
+  return `<svg width="${64*s}" height="${64*s}" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="9" fill="#ff8a65"/>
+    <g class="orbit"><ellipse cx="50" cy="50" rx="40" ry="16" fill="none" stroke="#5fe3c0" stroke-width="1.5"/><circle cx="90" cy="50" r="4" fill="#7aa2ff"/></g>
+    <g class="orbit2"><ellipse cx="50" cy="50" rx="16" ry="40" fill="none" stroke="#7aa2ff" stroke-width="1.5"/><circle cx="50" cy="10" r="4" fill="#5fe3c0"/></g>
+    <g class="orbit" style="animation-duration:12s"><ellipse cx="50" cy="50" rx="30" ry="30" fill="none" stroke="#ffd166" stroke-width="1" opacity=".6" transform="rotate(45 50 50)"/><circle cx="71" cy="29" r="3.5" fill="#ffd166"/></g>
+  </svg>`;
+}
+function svgMolecule(s){
+  return `<svg width="${64*s}" height="${64*s}" viewBox="0 0 100 100">
+    <line x1="35" y1="55" x2="65" y2="30" stroke="#8fa0d0" stroke-width="3"/>
+    <line x1="35" y1="55" x2="65" y2="75" stroke="#8fa0d0" stroke-width="3"/>
+    <circle class="drift" cx="35" cy="55" r="16" fill="#ff8a65"/>
+    <circle class="drift" cx="65" cy="30" r="11" fill="#7aa2ff" style="animation-delay:.3s"/>
+    <circle class="drift" cx="65" cy="75" r="11" fill="#7aa2ff" style="animation-delay:.6s"/>
+  </svg>`;
+}
+function svgIsotope(s){
+  return `<svg width="${64*s}" height="${64*s}" viewBox="0 0 100 100">
+    <circle cx="35" cy="50" r="26" fill="#0a1230" stroke="#5fe3c0" stroke-width="1.5"/>
+    <circle cx="27" cy="42" r="5" fill="#ff8a65"/><circle cx="43" cy="42" r="5" fill="#ff8a65"/>
+    <circle cx="35" cy="55" r="5" fill="#dbe3ff"/><circle cx="27" cy="60" r="5" fill="#dbe3ff"/>
+    <text x="35" y="90" text-anchor="middle" font-size="11" fill="#5fe3c0">A₁</text>
+    <circle cx="75" cy="50" r="26" fill="#0a1230" stroke="#ffd166" stroke-width="1.5"/>
+    <circle cx="67" cy="40" r="5" fill="#ff8a65"/><circle cx="83" cy="40" r="5" fill="#ff8a65"/>
+    <circle cx="75" cy="53" r="5" fill="#dbe3ff"/><circle cx="65" cy="58" r="5" fill="#dbe3ff"/><circle cx="83" cy="58" r="5" fill="#dbe3ff"/>
+    <text x="75" y="90" text-anchor="middle" font-size="11" fill="#ffd166">A₂</text>
+  </svg>`;
+}
+function svgIon(s,sign){
+  const col = sign==='+' ? '#ff8a65' : '#7aa2ff';
+  return `<svg width="${64*s}" height="${64*s}" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="30" fill="${col}22" stroke="${col}" stroke-width="2"/>
+    <circle class="pulse" cx="50" cy="50" r="10" fill="${col}"/>
+    <text x="50" y="57" text-anchor="middle" font-size="24" font-weight="bold" fill="${col}">${sign}</text>
+    <text x="50" y="20" text-anchor="middle" font-size="14" fill="${col}">${sign}</text>
+  </svg>`;
+}
+function svgRadical(s){
+  return `<svg width="${64*s}" height="${64*s}" viewBox="0 0 100 100">
+    <circle cx="50" cy="55" r="22" fill="#ff6fae22" stroke="#ff6fae" stroke-width="2"/>
+    <circle class="pulse" cx="70" cy="28" r="6" fill="#ff6fae"/>
+    <text x="50" y="60" text-anchor="middle" font-size="13" fill="#ff6fae">e⁻ وحيد</text>
+  </svg>`;
+}
+function svgElectron(s){
+  return `<svg width="${64*s}" height="${64*s}" viewBox="0 0 100 100">
+    <g class="orbit"><ellipse cx="50" cy="50" rx="38" ry="14" fill="none" stroke="#3a4680" stroke-width="1"/></g>
+    <circle class="pulse" cx="50" cy="50" r="14" fill="#7aa2ff"/>
+    <text x="50" y="55" text-anchor="middle" font-size="14" font-weight="bold" fill="#04101f">e⁻</text>
+  </svg>`;
+}
+function svgNucleon(s,type){
+  const col = type==='p' ? '#ff8a65' : '#dbe3ff';
+  const lbl = type==='p' ? 'p⁺' : 'n';
+  return `<svg width="${64*s}" height="${64*s}" viewBox="0 0 100 100">
+    <circle class="pulse" cx="50" cy="50" r="24" fill="${col}"/>
+    <text x="50" y="58" text-anchor="middle" font-size="18" font-weight="bold" fill="#04101f">${lbl}</text>
+  </svg>`;
+}
+
+/* ============ عرض البطاقات ============ */
+const grid = document.getElementById('cardGrid');
+PARTICLES.forEach(p=>{
+  const c = document.createElement('div');
+  c.className='card'; c.dataset.id=p.id;
+  c.innerHTML = `<div class="ic">${p.icon}</div><div class="nm">${p.name}</div><div class="en">${p.en}</div>`;
+  c.addEventListener('click',()=>selectParticle(p.id));
+  grid.appendChild(c);
+});
+
+function selectParticle(id){
+  const p = PARTICLES.find(x=>x.id===id);
+  document.querySelectorAll('.card').forEach(c=>c.classList.toggle('active', c.dataset.id===id));
+  document.getElementById('stageVisual').innerHTML = p.stage;
+  document.getElementById('infoTitle').textContent = p.name;
+  document.getElementById('infoEn').textContent = p.en;
+  document.getElementById('infoDesc').textContent = p.desc;
+  document.getElementById('infoTags').innerHTML = p.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+  document.getElementById('infoExample').textContent = p.example;
+}
+selectParticle('atom');
+
+/* ============ مختبر التصنيف (اختبار) ============ */
+const QUESTIONS = [
+  {visual:svgAtom(1.6), q:'فرد متعادل كهربائيًا، له نواة يحيط بها إلكترونات، ويمثّل أصغر وحدة لعنصر كيميائي.', correct:'atom'},
+  {visual:svgMolecule(1.6), q:'فرد ناتج عن ارتباط ذرّتين أو أكثر برابطة كيميائية، ومتعادل كهربائيًا.', correct:'molecule'},
+  {visual:svgIon(1.6,'+'), q:'فرد فقد إلكترونًا أو أكثر فأصبحت شحنته الإجمالية موجبة.', correct:'cation'},
+  {visual:svgIon(1.6,'−'), q:'فرد اكتسب إلكترونًا أو أكثر فأصبحت شحنته الإجمالية سالبة.', correct:'anion'},
+  {visual:svgIsotope(1.6), q:'ذرّتان لهما نفس عدد البروتونات لكن عدد نوتروناتهما مختلف.', correct:'isotope'},
+  {visual:svgRadical(1.6), q:'فرد يحمل إلكترونًا وحيدًا غير متزاوج، وشديد التفاعلية غالبًا.', correct:'radical'},
+  {visual:svgElectron(1.6), q:'جسيم أولي شحنته سالبة وكتلته مهملة تقريبًا مقارنة بمكوّنات النواة.', correct:'electron'},
+  {visual:svgNucleon(1.6,'p'), q:'جسيم نووي شحنته موجبة، وعدده في الذرّة يحدد هوية العنصر الكيميائي (Z).', correct:'proton'},
+  {visual:svgNucleon(1.6,'n'), q:'جسيم نووي متعادل كهربائيًا (بلا شحنة)، ويختلف عدده بين نظائر العنصر الواحد.', correct:'neutron'}
+];
+let qOrder=[], qIdx=0, score=0, total=0, answered=false;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startLab(){
+  qOrder = shuffle([...QUESTIONS.keys()]);
+  qIdx=0; score=0; total=0; answered=false;
+  updateScore(); loadQuestion();
+}
+function updateScore(){
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('totalVal').textContent = total;
+}
+function loadQuestion(){
+  answered=false;
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('labFeedback').textContent = '';
+  const item = QUESTIONS[qOrder[qIdx]];
+  document.getElementById('labScene').innerHTML = item.visual;
+  document.getElementById('labQuestion').textContent = item.q;
+  const opts = shuffle([...PARTICLES]);
+  const optsHtml = opts.map(p=>`<button class="opt-btn" data-id="${p.id}">${p.name}</button>`).join('');
+  const box = document.getElementById('labOptions');
+  box.innerHTML = optsHtml;
+  box.querySelectorAll('.opt-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>checkAnswer(btn, item.correct));
+  });
+}
+function checkAnswer(btn, correctId){
+  if(answered) return;
+  answered=true; total++;
+  const chosen = btn.dataset.id;
+  const isCorrect = chosen===correctId;
+  if(isCorrect) score++;
+  document.querySelectorAll('.opt-btn').forEach(b=>{
+    if(b.dataset.id===correctId) b.classList.add('correct');
+    else if(b===btn) b.classList.add('wrong');
+    b.style.pointerEvents='none';
+  });
+  document.getElementById('labFeedback').textContent = isCorrect ? '✅ إجابة صحيحة!' : '❌ إجابة خاطئة، لاحظ التسمية الصحيحة أعلاه.';
+  document.getElementById('labFeedback').style.color = isCorrect ? '#5fe3c0' : '#ff8a65';
+  document.getElementById('nextBtn').disabled = false;
+  updateScore();
+}
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  qIdx = (qIdx+1) % qOrder.length;
+  if(qIdx===0) shuffle(qOrder);
+  loadQuestion();
+});
+startLab();
+</script>
+</body>
+</html>
