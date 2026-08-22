@@ -1,542 +1,243 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>   
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> موقع  نجيب</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7174828243666618"
+<title> محاكاة  </title>
+ <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7174828243666618"
      crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy-deep:#080b1f;
-    --navy:#0e1330;
-    --navy-light:#161c40;
-    --gold:#d4af37;
-    --gold-soft:#f0d78c;
-    --text:#e9e7e0;
-    --muted:#8b93b8;
-    --card-border: rgba(212,175,55,0.18);
+    --bg-deep:#0A0F24;
+    --bg-panel:#121A38;
+    --card:#161F44;
+    --gold:#E3B24C;
+    --gold-soft:#C79A3A;
+    --ink:#F3F1E8;
+    --muted:#9AA3C4;
+    --line:rgba(227,178,76,.25);
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
+  *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
-    background:var(--navy-deep);
-    color:var(--text);
-    font-family:'Cairo', sans-serif;
-    overflow-x:hidden;
-    min-height:100vh;
+    margin:0;
+    font-family:'Tajawal', sans-serif;
+    background:var(--bg-deep);
+    color:var(--ink);
+    line-height:1.7;
   }
-  #stars{position:fixed;inset:0;z-index:0;}
-  .content{position:relative;z-index:1;}
+  h1,h2,h3{font-family:'Almarai', sans-serif; margin:0;}
 
-  /* ===== نافبار ===== */
-  nav{
-    position:sticky;top:0;z-index:10;
-    display:flex;justify-content:space-between;align-items:center;
-    padding:18px 6%;
-    background:rgba(8,11,31,0.75);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--card-border);
+  /* ===== starfield header ===== */
+  header{
+    position:relative;
+    overflow:hidden;
+    text-align:center;
+    padding:90px 20px 80px;
+    background:linear-gradient(180deg, #0A0F24 0%, #0E1638 55%, #121A38 100%);
+    border-bottom:1px solid var(--line);
   }
-  .logo{
-    font-family:'Amiri', serif;
-    font-size:1.6rem;
-    color:var(--gold-soft);
-    letter-spacing:1px;
+  header::before, header::after{
+    content:'';
+    position:absolute; inset:0;
+    background-repeat:repeat;
+    opacity:.9;
   }
-  .logo span{color:var(--gold);}
-  nav ul{
-    list-style:none;display:flex;gap:32px;
+  header::before{
+    background-image:
+      radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
+      radial-gradient(1px 1px at 90px 80px, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 160px 40px, #fff, transparent),
+      radial-gradient(1px 1px at 230px 110px, #fff, transparent),
+      radial-gradient(1px 1px at 300px 20px, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 40px 140px, #fff, transparent),
+      radial-gradient(1px 1px at 260px 150px, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 340px 90px, #fff, transparent);
+    background-size:380px 180px;
+    animation:drift 90s linear infinite;
   }
-  nav a{
-    color:var(--muted);text-decoration:none;font-weight:600;font-size:.95rem;
-    transition:color .25s;
+  header::after{
+    background-image:
+      radial-gradient(1px 1px at 60px 60px, var(--gold), transparent),
+      radial-gradient(1px 1px at 200px 20px, var(--gold), transparent),
+      radial-gradient(1px 1px at 320px 130px, var(--gold), transparent);
+    background-size:380px 180px;
+    opacity:.5;
+    animation:twinkle 4s ease-in-out infinite alternate;
   }
-  nav a:hover{color:var(--gold-soft);}
+  @keyframes drift{ from{background-position:0 0;} to{background-position:-1000px 400px;} }
+  @keyframes twinkle{ from{opacity:.2;} to{opacity:.65;} }
 
-  /* ===== الهيرو ===== */
-  .hero{
-    min-height:88vh;
-    display:flex;flex-direction:column;justify-content:center;align-items:center;
-    text-align:center;padding:0 6%;position:relative;
-  }
+  header .inner{position:relative; z-index:2;}
   .eyebrow{
-    color:var(--gold);
-    letter-spacing:4px;font-size:.85rem;font-weight:700;
-    text-transform:uppercase;margin-bottom:18px;
-    opacity:.85;
+    display:inline-block; letter-spacing:2px; font-size:.8rem; font-weight:700;
+    color:var(--gold); border:1px solid var(--line); border-radius:999px;
+    padding:6px 18px; margin-bottom:18px;
   }
-  .hero h1{
-    font-family:'Amiri', serif;
-    font-size:clamp(2.8rem, 7vw, 5.5rem);
-    font-weight:700;
-    background:linear-gradient(120deg, var(--gold-soft), var(--gold) 60%, #a9822a);
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-    line-height:1.15;
-    margin-bottom:20px;
-  }
-  .hero p{
-    max-width:640px;color:var(--muted);font-size:1.15rem;line-height:2;
-    margin-bottom:36px;
-  }
-  .hero-actions{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
-  .btn{
-    padding:14px 34px;border-radius:999px;font-weight:700;font-size:1rem;
-    cursor:pointer;text-decoration:none;transition:all .3s;
-    border:1px solid transparent;
-  }
-  .btn-gold{background:linear-gradient(120deg,var(--gold-soft),var(--gold));color:var(--navy-deep);}
-  .btn-gold:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(212,175,55,0.35);}
-  .btn-ghost{border-color:var(--card-border);color:var(--gold-soft);background:transparent;}
-  .btn-ghost:hover{border-color:var(--gold);background:rgba(212,175,55,0.06);}
+  header h1{font-size:2.4rem; font-weight:800; color:var(--ink);}
+  header h1 span{color:var(--gold);}
+  header p{font-size:1.05rem; color:var(--muted); margin-top:12px; max-width:520px; margin-inline:auto;}
 
-  .divider{
-    width:100%;max-width:120px;height:1px;
-    background:linear-gradient(90deg, transparent, var(--gold), transparent);
-    margin:70px auto;opacity:.6;
+  /* breadcrumb back to main portfolio */
+  .back-link{
+    position:relative; z-index:2; display:inline-flex; align-items:center; gap:6px;
+    color:var(--muted); text-decoration:none; font-size:.85rem; margin-bottom:22px;
+    border:1px solid var(--line); border-radius:999px; padding:5px 14px;
+    transition:color .2s ease, border-color .2s ease;
   }
+  .back-link:hover{color:var(--gold); border-color:var(--gold);}
 
-  /* ===== الأقسام ===== */
-  section{padding:40px 6% 100px;}
-  .section-title{
-    text-align:center;margin-bottom:12px;
+  /* ===== sections ===== */
+  section{max-width:920px; margin:0 auto; padding:64px 22px;}
+  .section-head{display:flex; align-items:center; gap:14px; margin-bottom:32px;}
+  .section-head .num{
+    font-family:'Almarai'; font-weight:800; color:var(--gold); font-size:1rem;
+    border:1px solid var(--line); border-radius:8px; width:38px; height:38px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
-  .section-title .eyebrow{margin-bottom:8px;}
-  .section-title h2{
-    font-family:'Amiri', serif;font-size:2.3rem;color:var(--text);
-  }
-  .section-sub{
-    text-align:center;color:var(--muted);max-width:520px;margin:0 auto 50px;line-height:1.9;
-  }
+  .section-head h2{font-size:1.6rem; color:var(--ink);}
+  .section-head .rule{flex:1; height:1px; background:var(--line);}
 
-  /* فلاتر */
-  .filters{
-    display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:44px;
-  }
-  .filter-btn{
-    padding:9px 22px;border-radius:999px;border:1px solid var(--card-border);
-    background:var(--navy-light);color:var(--muted);font-family:inherit;
-    font-size:.9rem;font-weight:600;cursor:pointer;transition:all .25s;
-  }
-  .filter-btn:hover{color:var(--gold-soft);border-color:var(--gold);}
-  .filter-btn.active{background:var(--gold);color:var(--navy-deep);border-color:var(--gold);}
-
-  /* شبكة المشاريع */
-  .grid{
-    display:grid;grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
-    gap:28px;max-width:1200px;margin:0 auto;
-  }
+  /* ===== content cards ===== */
+  .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:20px;}
   .card{
-    background:linear-gradient(160deg, var(--navy-light), var(--navy));
-    border:1px solid var(--card-border);border-radius:18px;
-    padding:30px 26px;position:relative;overflow:hidden;
-    transition:transform .35s, box-shadow .35s, border-color .35s;
-    display:flex;flex-direction:column;
-  }
-  .card::before{
-    content:'';position:absolute;top:0;right:0;width:100%;height:3px;
-    background:linear-gradient(90deg, transparent, var(--gold), transparent);
-    opacity:0;transition:opacity .3s;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px;
+    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    display:flex; flex-direction:column; gap:12px;
   }
   .card:hover{
-    transform:translateY(-6px);
+    transform:translateY(-4px);
     border-color:var(--gold);
-    box-shadow:0 18px 40px rgba(0,0,0,0.4);
+    box-shadow:0 14px 30px -12px rgba(0,0,0,.55);
   }
-  .card:hover::before{opacity:1;}
-  .card-icon{font-size:2.2rem;margin-bottom:16px;}
-  .card h3{font-size:1.25rem;color:var(--gold-soft);margin-bottom:10px;font-weight:700;}
-  .card p{color:var(--muted);font-size:.92rem;line-height:1.8;flex-grow:1;margin-bottom:20px;}
-  .card-tag{
-    display:inline-block;font-size:.72rem;color:var(--gold);
-    border:1px solid var(--card-border);border-radius:999px;
-    padding:4px 12px;margin-bottom:14px;width:fit-content;
-  }
-  .card-link{
-    color:var(--gold);text-decoration:none;font-weight:700;font-size:.9rem;
-    display:flex;align-items:center;gap:6px;
-  }
-  .card-link:hover{color:var(--gold-soft);}
-  .card.empty{
-    align-items:center;justify-content:center;text-align:center;
-    border-style:dashed;color:var(--muted);
-  }
+  .card .icon{font-size:2.1rem;}
+  .card h3{font-size:1.1rem; color:var(--ink); font-weight:700;}
+  .card p{color:var(--muted); font-size:.92rem; margin:0; flex:1;}
 
-  /* حول */
-  .about-wrap{
-    max-width:760px;margin:0 auto;text-align:center;
+  .btn{
+    display:inline-block;
+    align-self:flex-start;
+    background:transparent;
+    color:var(--gold);
+    border:1px solid var(--gold-soft);
+    padding:9px 20px;
+    border-radius:10px;
+    cursor:pointer;
+    text-decoration:none;
+    font-family:'Tajawal'; font-weight:700; font-size:.9rem;
+    transition:background .2s ease, color .2s ease;
   }
-  .about-wrap p{color:var(--muted);line-height:2.1;font-size:1.05rem;margin-bottom:18px;}
+  .btn:hover{background:var(--gold); color:#161C36;}
+
+  /* ===== about / contact ===== */
+  .prose{color:var(--muted); font-size:1.02rem; max-width:640px;}
+  .prose strong{color:var(--ink);}
+
+  .contact-row{
+    display:flex; align-items:center; gap:12px; color:var(--muted);
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 20px; max-width:420px;
+  }
+  .contact-row .label{color:var(--gold); font-weight:700; font-family:'Almarai';}
+  .contact-row a{color:var(--gold); text-decoration:none;}
 
   footer{
-    text-align:center;padding:50px 6%;border-top:1px solid var(--card-border);
-    color:var(--muted);font-size:.9rem;
+    text-align:center; padding:26px; color:var(--muted); font-size:.85rem;
+    border-top:1px solid var(--line); background:var(--bg-panel);
   }
-  footer .logo{display:block;margin-bottom:14px;}
+  footer span{color:var(--gold);}
 
-  @media (max-width:700px){
-    nav ul{gap:16px;font-size:.85rem;}
-    .hero p{font-size:1rem;}
+  @media (max-width:520px){
+    header{padding:70px 18px 60px;}
+    header h1{font-size:1.9rem;}
+    section{padding:48px 18px;}
   }
-  @media (prefers-reduced-motion: reduce){
-    html{scroll-behavior:auto;}
-    *{transition:none !important;animation:none !important;}
-  }
-  .gallery{
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
 </style>
 </head>
 <body>
 
-<canvas id="stars"></canvas>
-
-<div class="content">
-
-  <nav>
-    <div class="logo">موقع <span>نجيب</span></div>
-    <ul>
-      <li><a href="#projects">الأعمال</a></li>
-      <li><a href="#about">عن الموقع</a></li>
-      <li><a href="#contact">تواصل</a></li>
-    </ul>
-  </nav>
-
-  <section class="hero">
-    <div class="eyebrow">أرشيف رقمي شخصي</div>
-    <h1>اطفال والعاب</h1>
-    <p>تطبيقات اطفال و العاب </p>
-    <div class="hero-actions">
-      <a href="#projects" class="btn btn-gold">تصفّح الأعمال</a>
-      <a href="#about" class="btn btn-ghost">عن الموقع</a>
-    </div>
-
-               <h2>فريق العمل</h2>
+<header>
+  <div class="inner"
+    <div>
+      <h1>  المحاكاة </h1>
 
 <div class="gallery">
-    <img src="adem.png" width="150" height="200">
-    <img src="zeineb.png" width="150" height="200">
-    <img src="chehd.png" width="150" height="200">
-    <img src="abdou.png" width="150" height="200">
-</div>
 
-
-</body>
-  </section>
-
-  <div class="divider"></div>
-
-  <section id="projects">
-    <div class="section-title">
-      <div class="eyebrow">المعرض</div>
-      <h2>الأعمال والمشاريع</h2>
-    </div>
-
-
-    <p class="section-sub">اضغط على أي تصنيف لعرض الأعمال المرتبطة به. </p>
-
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">الكل</button>
-      <button class="filter-btn" data-filter="atfal">اطفال</button>
-      <button class="filter-btn" data-filter="jeux">العاب</button>
-    
-
-    </div>
-
-    <div class="grid" id="grid">
-
-      <div class="card" data-cat="tools">
-        <div class="card-icon"></div>
-        <span class="card-tag">ادوات</span>
-        <h3>تاريخ اليوم</h3>
-        <p> اعرف تاريخ اليوم بكل مكوناته  </p>
-        <a href="terikh.html" class="card-link">فتح الاداة   ←</a>
-      </div>
-
-      <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3>الحروف العربية</h3>
-        <p>تعرف على ترتيب الحروف العربية</p>
-        <a href="ara_let.html" class="card-link">فتح  التطبيق ←</a>
-
-      </div>
-
-         <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3>المحفظة</h3>
-        <p>تعرف على  ما تحتويه المحفظة </p>
-        <a href="mihfada.html" class="card-link">فتح  التطبيق ←</a>
-         </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>لعبة تركيز</h3>
-        <p>ركز و رتب</p>
-        <a href="memoir.html" class="card-link">فتح اللعبة   ←</a>
-      </div>
-
-       <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>لعبة تركيب  </h3>
-        <p> اختر صورة ثم اختر المستوى بعدها فككها ثم ركبها</p>
-        <a href="puzzle.html".html" class="card-link">فتح اللعبة   ←</a>
-      </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>مولدي</h3>
-        <p>كل عام و انت بخير</p>
-        <a href="senahilwa.html" class="card-link">فتح   اللعبة   ←</a>
-      </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>المبلغ</h3>
-        <p> تعرف على عدد الاوراق النقدية و القطع بعد  ادخال مبلغ تختاره</p>
-        <a href="sarraf_eli.html" class="card-link">فتح   اللعبة   ←</a>
-      </div>
-
-       <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>الفخ</h3>
-        <p>تجنب الوقوع في فخين</p>
-        <a href="demineur.html" class="card-link">فتح   اللعبة   ←</a>
-      </div>
-
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3> كلمات متقاطعة</h3>
-        <p>كلمة  و  مفهوم</p>
-        <a href="mots_croises.html" class="card-link">فتح اللعبة   ←</a>
-      </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3> قطع الخضر و الفواكه  </h3>
-        <p> اقطع و اربح نقاط</p>
-        <a href="kat3.html" class="card-link">فتح اللعبة   ←</a>
-      </div>
-      
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>المربع السحري</h3>
-        <p>لغز رياضي تفاعلي لترتيب الأرقام بحيث يتساوى مجموع كل صف وعمود وقطر.</p>
-        <a href="magic-square.html" class="card-link">فتح اللعبة ←</a>
-      </div>
-
-       <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>ارقام وعمليات</h3>
-        <p>الوصول الى الناتج بعمليات حسابية اربع فحاول </p>
-        <a href="arkam.html" class="card-link">فتح اللعبة ←</a>
-      </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>تكوين كلمة </h3>
-        <p> كون كلمة من كل الحروف الظاهرة</p>
-        <a href="kelma.html" class="card-link">فتح اللعبة ←</a>
-      </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3> ترتيب قطع نقدية</h3>
-        <p> رتب القطع المتماثلة في انبوب واحد بالنقر.</p>
-        <a href="tejrina.html " class="card-link">فتح اللعبة ←</a>
-      </div>
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3> بيانو </h3>
-        <p> بيانو تفاعلي</p>
-        <a href="piano.html " class="card-link">فتح  اللعبة ←</a>
-      </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>لعبة ذاكرة</h3>
-        <p>تذكر مواقع وجود الكرة ثم انقر عليها بعد الاختفاء</p>
-        <a href= "jeucon.html" class="card-link">  فتح اللعبة ←</a>
-      </div>
-
-      <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3> محاكاة اللغات الثلاث</h3>
-        <p>بعض الكلمات و كل الحروف</p>
-        <a href= "langues.html" class="card-link">  فتح  الاداة ←</a>
-
-      </div>
-
-      <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3>العد الطبيعي</h3>
-        <p> تعلم العد بالصور و الارقام</p>
-        <a href= "elaad.html" class="card-link">  فتح  الاداة ←</a>
-
-      </div>
-
-      <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3> الاضواء المرورية</h3>
-        <p>  تعليمات الاضواء المرورية   </p>
-        <a href= "feux_tri.html" class="card-link">  فتح  الاداة ←</a>
-
-      </div>
-
-
-      <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3>صورتان متماثلتان</h3>
-        <p> انقر على الصورتين المتماثلتين</p>
-        <a href= "meyz.html" class="card-link">  فتح  الاداة ←</a>
-
-      </div>
-
-      <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3>  دمية</h3>
-        <p> انقر على الدمية</p>
-        <a href= "doumia.html" class="card-link">  فتح  الاداة ←</a>
-      </div>
-
-      <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3>   اصوات حيوانات</h3>
-        <p> تعرف على اصوات بعض الحيوانات  </p>
-        <a href= "heyeouen_sawt.html" class="card-link">  فتح اللعبة   ←</a>
-
-      </div>
-
-      <div class="card" data-cat="jeux">
-        <div class="card-icon"></div>
-        <span class="card-tag">العاب</span>
-        <h3>تدوير قطعة نقدية وجه او ظهر</h3>
-        <p>انقر على فتح اللعبة ثم انقر تدوير  </p>
-        <a href= "tedouir_3achra.html" class="card-link">  فتح اللعبة   ←</a>
-      </div>
-
-       <div class="card" data-cat="atfal">
-        <div class="card-icon"></div>
-        <span class="card-tag">اطفال</span>
-        <h3> اطلاق سهم</h3>
-        <p>انقر على  السهم   </p>
-        <a href= "sehm.html" class="card-link">  فتح اللعبة   ←</a>
-      </div>
-
-      <div class="card empty">
-        <div class="card-icon"></div>
-        <h3 style="color:var(--muted)">  انتظرونا في اضافات اخرى ان شاء الله</h3>
-        <p style="margin:0">بالتوفيق
-      </div>
-    </div>
-
-
-  </section>
-
-  <div class="divider"></div>
-
-  <section id="about">
-    <div class="section-title">
-      <div class="eyebrow">الخلفية</div>
-      <h2>عن هذا الموقع</h2>
-    </div>
-    <div class="about-wrap">
-      <p>  هذا الموقع هوتطببقات للاطفال و الالعاب  </p>
-    </div>
-  </section>
-
-  <footer id="contact">
-    <div class="logo">موقع <span>نجيب</span></div>
-    <p></p>
-  </footer>
+    <img src="simulation.png" width="150" height="200">
 
 </div>
 
-<script>
-  // خلفية النجوم المتلألئة
-  const canvas = document.getElementById('stars');
-  const ctx = canvas.getContext('2d');
-  let w, h, stars = [];
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      <h1> و بعض <span>   تطبيقاتها </span></h1>
+      <p></p>
+    </div>
+  </div>
+</header>
 
-  function resize(){
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = document.body.scrollHeight;
-  }
-  function initStars(){
-    stars = [];
-    const count = Math.floor((w*h)/9000);
-    for(let i=0;i<count;i++){
-      stars.push({
-        x: Math.random()*w,
-        y: Math.random()*h,
-        r: Math.random()*1.4+0.3,
-        a: Math.random(),
-        speed: Math.random()*0.015+0.003
-      });
-    }
-  }
-  function draw(){
-    ctx.clearRect(0,0,w,h);
-    ctx.fillStyle = '#080b1f';
-    ctx.fillRect(0,0,w,h);
-    for(const s of stars){
-      s.a += s.speed;
-      const twinkle = (Math.sin(s.a)+1)/2;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(240,215,140,${0.15+twinkle*0.65})`;
-      ctx.fill();
-    }
-    if(!reduceMotion) requestAnimationFrame(draw);
-  }
-  window.addEventListener('resize', ()=>{ resize(); initStars(); });
-  resize(); initStars(); draw();
+<section id="projects">
+  <div class="section-head">
+    <span class="num">  1-</span>
+    <h2>المحتويات</h2>
+    <span class="rule"></span>
+  </div>
 
-  // فلاتر المشاريع
-  const buttons = document.querySelectorAll('.filter-btn');
-  const cards = document.querySelectorAll('#grid .card');
-  buttons.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      buttons.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const filter = btn.dataset.filter;
-      cards.forEach(card=>{
-        if(card.classList.contains('empty')) return;
-        const show = filter === 'all' || card.dataset.cat === filter;
-        card.style.display = show ? 'flex' : 'none';
-      });
-    });
-  });
-</script>
- 
+
+    <div class="card">
+      <div class="icon"></div>
+      <h3>   البحث و الدراسة</h3>
+      <p> </p>
+      <a class="btn" href="recherche.html"> افتح  التطبيق</a>
+    </div>
+
+     <div class="card">
+      <div class="icon"></div>
+      <h3>  الاختراع من الفكرة الى الواقع </h3>
+      <p></p>
+      <a class="btn" href="ikhtira3.html"> افتح  التطبيق</a>
+    </div>
+
+    <div class="card">
+      <div class="icon"></div>
+      <h3>   العلوم انواعها  و فوائدها </h3>
+      <p></p>
+      <a class="btn" href="ouloum.html"> افتح  التطبيق</a>
+    </div>
+
+    <div class="card">
+      <div class="icon"></div>
+      <h3>  سماعات الاذن و انواعها</h3>
+      <p></p>
+      <a class="btn" href="ecouteur.html"  > افتح  التطبيق</a>
+    </div>
+
+    <div class="card">
+      <div class="icon"></div>
+      <h3>  انواع الصابون</h3>
+      <p></p>
+      <a class="btn" href="ensaboun.html"  > افتح  التطبيق</a>
+    </div>
+
+</section>
+
+<section id="contact">
+  <div class="section-head">
+    <span class="num">2- </span>
+    <h2> التواصل</h2>
+    <span class="rule"></span>
+  </div>
+  <div class="contact-row">
+    <span class="label">البريد:</span>
+    <a href="mailto:email@example.com"> smwknjyb5@ gmail.com </a>
+  </div>
+</section>
+
+<footer>
+  © 2026 <span>نجيب</span> — جميع الحقوق محفوظة
+</footer>
+
 </body>
 </html>
